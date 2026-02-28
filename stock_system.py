@@ -349,6 +349,9 @@ def download_stock(ticker: str, start: str, end: str) -> pd.DataFrame | None:
 
         df.columns = df.columns.str.lower()
 
+        # 去除重複欄位名（yfinance 偶爾回傳重複 columns）
+        df = df.loc[:, ~df.columns.duplicated()]
+
         # 確認必要欄位存在
         required = {"open", "high", "low", "close", "volume"}
         if not required.issubset(set(df.columns)):
