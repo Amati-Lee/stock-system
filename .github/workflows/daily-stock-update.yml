@@ -16,25 +16,69 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check if Taiwan market is open today
+        id: check_holiday
+        run: |
+          # 台灣國定假日（每年底更新下一年）
+          TW_HOLIDAYS_2026="
+          2026-01-01
+          2026-01-26
+          2026-01-27
+          2026-01-28
+          2026-01-29
+          2026-01-30
+          2026-02-02
+          2026-02-27
+          2026-04-03
+          2026-04-06
+          2026-05-01
+          2026-05-25
+          2026-06-19
+          2026-09-21
+          2026-10-05
+          2026-10-06
+          2026-10-07
+          2026-10-08
+          2026-10-09
+          "
+          # 2026 補班日（週六上班，但這裡不需要處理，因為 cron 只跑週一到五）
+
+          TODAY=$(TZ=Asia/Taipei date +%Y-%m-%d)
+          echo "today=$TODAY"
+
+          if echo "$TW_HOLIDAYS_2026" | grep -q "$TODAY"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⛔ $TODAY 是國定假日，跳過"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ $TODAY 是交易日"
+          fi
+
       - name: Checkout repo
+        if: steps.check_holiday.outputs.skip != 'true'
         uses: actions/checkout@v4
 
       - name: Setup Python
+        if: steps.check_holiday.outputs.skip != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
 
       - name: Install dependencies
+        if: steps.check_holiday.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
       - name: Download stock data
+        if: steps.check_holiday.outputs.skip != 'true'
         run: python stock_system.py
 
       - name: Generate PWA
+        if: steps.check_holiday.outputs.skip != 'true'
         run: python generate_pwa.py
 
       - name: Commit new data
+        if: steps.check_holiday.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -43,6 +87,7 @@ jobs:
           git push
 
       - name: Deploy to Cloudflare Pages
+        if: steps.check_holiday.outputs.skip != 'true'
         run: npx wrangler pages deploy pwa --project-name=stock-viewer
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
