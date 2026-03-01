@@ -364,6 +364,7 @@ h1{font-size:22px;color:#333;margin-bottom:4px}
 .stock-price{font-size:17px;font-weight:bold;color:#e74c3c}
 .stock-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .tag{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500}
+.tag-emg{font-size:10px;padding:1px 5px;border-radius:4px;background:#fff3e0;color:#e65100;font-weight:bold;vertical-align:middle}
 .tg{background:#e8f5e9;color:#2e7d32}
 .tr{background:#fce4ec;color:#c62828}
 .tb{background:#e3f2fd;color:#1565c0}
@@ -910,7 +911,7 @@ function renderCards() {
 
         h += '<div class="stock-item">';
         h += '<div class="stock-header">';
-        h += '<div class="stock-name">' + s.股票代號 + ' ' + (s.股票名稱 || '') + '</div>';
+        h += '<div class="stock-name">' + s.股票代號 + ' ' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</div>';
         h += '<div class="stock-price">$' + (ok(s.收盤價) ? s.收盤價 : '-') + '</div>';
         h += '</div>';
         h += '<div class="stock-tags">';
@@ -981,7 +982,7 @@ function renderTable() {
         var mc = s.macd_status === '黃金交叉' ? '#2e7d32' : '#c62828';
         h += '<tr>';
         h += '<td>' + s.股票代號 + '</td>';
-        h += '<td>' + (s.股票名稱 || '') + '</td>';
+        h += '<td>' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</td>';
         h += '<td>' + (ok(s.收盤價) ? s.收盤價 : '') + '</td>';
         h += '<td>' + fv(s.K值, 1) + '</td>';
         h += '<td>' + fv(s.D值, 1) + '</td>';
@@ -1099,6 +1100,15 @@ def main():
         if fixed:
             print(f"  名稱修正: {fixed} 筆")
 
+    # 用 stock_market_type.json 加入市場類型
+    mkt_json = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stock_market_type.json")
+    if os.path.exists(mkt_json):
+        with open(mkt_json, 'r', encoding='utf-8') as f:
+            mkt_map = json.load(f)
+        df['市場'] = df['股票代號'].astype(str).map(lambda x: mkt_map.get(str(int(x)) if x == int(x) else x, ''))
+        emg_count = (df['市場'] == '興櫃').sum()
+        print(f"  市場分類: 興櫃 {emg_count} 筆")
+
     # 計算趨勢比對
     print("  計算趨勢比對...")
     df = compute_trend(df, csv_files)
@@ -1190,7 +1200,9 @@ def main():
         # 趨勢欄位
         '漲跌幅', '價格趨勢', 'KD趨勢', 'RSI趨勢', '量能趨勢', 'K值變化', 'RSI變化',
         # 突破欄位
-        '強度評分', '訊號數量', '訊號'
+        '強度評分', '訊號數量', '訊號',
+        # 市場分類
+        '市場'
     ]
     cols = [c for c in desired if c in df.columns]
     df_out = df[cols].copy()
