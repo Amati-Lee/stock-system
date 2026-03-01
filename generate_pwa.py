@@ -428,7 +428,7 @@ tr:nth-child(even){background:#fafafa}
 <h1>📊 台股篩選器</h1>
 <div class="info">更新：__UPDATE_TIME__ ｜ 共 __TOTAL_COUNT__ 檔</div>
 <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
-<span style="font-size:13px;color:#888">📅 漲跌比較</span>
+<span style="font-size:13px;color:#888">📈 漲跌比較</span>
 <select id="compareDate" onchange="updateCompareDate()" style="padding:6px 10px;border:2px solid #e8e8e8;border-radius:8px;font-size:14px;outline:none;background:#fff"></select>
 <span id="compareInfo" style="font-size:12px;color:#aaa"></span>
 </div>
@@ -551,6 +551,7 @@ tr:nth-child(even){background:#fafafa}
 var RAW = __STOCK_DATA__;
 var HIST = __HIST_DATA__;
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
+var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
 var data = [];
 var filtered = [];
 var strategies = [];
@@ -702,9 +703,11 @@ function updateCompareDate() {
             s.價格趨勢 = '平穩';
         }
     }
+    var cm = parseInt(CURRENT_TRADE_DATE.substring(4, 6));
+    var cd = parseInt(CURRENT_TRADE_DATE.substring(6, 8));
     var m = parseInt(dateKey.substring(4, 6));
     var d = parseInt(dateKey.substring(6, 8));
-    document.getElementById('compareInfo').textContent = 'vs ' + m + '/' + d + ' 收盤價';
+    document.getElementById('compareInfo').textContent = cm + '/' + cd + ' vs ' + m + '/' + d + ' 收盤價';
     if (document.getElementById('resultsCard').className.indexOf('hidden') < 0) {
         doFilter();
     }
@@ -1001,7 +1004,7 @@ function renderTable() {
 }
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=__CACHE_VERSION__').catch(function(){});
 }
 </script>
 </body>
@@ -1009,7 +1012,7 @@ if ('serviceWorker' in navigator) {
 
 
 # ==================== Service Worker ====================
-SW_JS = '''var CACHE_NAME = 'stock-viewer-v1';
+SW_JS_TEMPLATE = '''var CACHE_NAME = '__CACHE_VERSION__';
 var ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', function(e) {
@@ -1094,6 +1097,14 @@ def main():
     breakout_count = (df['強度評分'] > 0).sum() if '強度評分' in df.columns else 0
     print(f"  突破: {breakout_count} 筆有訊號")
 
+    # 取得實際交易日（從 CSV 的「交易日」欄位）
+    current_trade_date = ''
+    if '交易日' in df.columns and len(df) > 0:
+        trade_dates = df['交易日'].dropna()
+        if len(trade_dates) > 0:
+            current_trade_date = str(trade_dates.mode().iloc[0]).replace('-', '')[:8]
+    # （current_trade_date 在歷史收盤價建立後再做 fallback）
+
     # 歷史收盤價（供前端切換比較基準）
     print("  建立歷史收盤價...")
     hist_prices = {}
@@ -1116,6 +1127,39 @@ def main():
             continue
     hist_json = json.dumps(hist_prices, ensure_ascii=False)
     print(f"  歷史: {len(hist_prices)} 個日期, {len(hist_json)/1024:.1f} KB")
+
+    # fallback: 若沒有「交易日」欄位，用 HIST 推算
+    if not current_trade_date:
+        from datetime import datetime as dt, timedelta
+        csv_date_str = csv_file.replace('stock_data_', '').replace('.csv', '')
+        if default_compare:
+            # 最近歷史日的下一個工作日就是目前的交易日
+            try:
+                last_hist = dt.strptime(default_compare, '%Y%m%d')
+                candidate = last_hist + timedelta(days=1)
+                csv_date = dt.strptime(csv_date_str, '%Y%m%d')
+                while candidate.weekday() >= 5:
+                    candidate += timedelta(days=1)
+                if candidate <= csv_date:
+                    current_trade_date = candidate.strftime('%Y%m%d')
+                else:
+                    current_trade_date = csv_date_str
+            except ValueError:
+                current_trade_date = csv_date_str
+        else:
+            current_trade_date = csv_date_str
+    print(f"  交易日: {current_trade_date}")
+
+    # 把目前的收盤價也加入 HIST（用實際交易日為 key）
+    if current_trade_date and current_trade_date not in hist_prices:
+        current_prices = {}
+        for _, row in df.iterrows():
+            code = str(int(row['股票代號'])) if isinstance(row['股票代號'], (int, float)) and not pd.isna(row['股票代號']) else str(row['股票代號'])
+            if pd.notna(row.get('收盤價')):
+                current_prices[code] = round(float(row['收盤價']), 2)
+        hist_prices[current_trade_date] = current_prices
+        hist_json = json.dumps(hist_prices, ensure_ascii=False)
+        print(f"  已加入 {current_trade_date} 至歷史 ({len(current_prices)} 筆), 共 {len(hist_prices)} 個日期")
 
     # 更新時間
     if '更新時間' in df.columns and len(df) > 0:
@@ -1147,6 +1191,9 @@ def main():
     # 建目錄
     os.makedirs('pwa/icons', exist_ok=True)
 
+    # 每次 build 用新版號，強制清舊快取
+    cache_version = 'stock-viewer-' + datetime.now().strftime('%Y%m%d%H%M%S')
+
     # 產出 index.html
     html = HTML_TEMPLATE
     html = html.replace('__STOCK_DATA__', json_data)
@@ -1154,6 +1201,8 @@ def main():
     html = html.replace('__TOTAL_COUNT__', str(len(df)))
     html = html.replace('__HIST_DATA__', hist_json)
     html = html.replace('__COMPARE_DEFAULT__', default_compare)
+    html = html.replace('__CURRENT_TRADE_DATE__', current_trade_date)
+    html = html.replace('__CACHE_VERSION__', cache_version)
 
     with open('pwa/index.html', 'w', encoding='utf-8') as f:
         f.write(html)
@@ -1163,11 +1212,15 @@ def main():
     with open('pwa/manifest.json', 'w', encoding='utf-8') as f:
         json.dump(MANIFEST, f, ensure_ascii=False, indent=2)
     print("  manifest.json: OK")
-
-    # 產出 sw.js
+    sw_content = SW_JS_TEMPLATE.replace('__CACHE_VERSION__', cache_version)
     with open('pwa/sw.js', 'w', encoding='utf-8') as f:
-        f.write(SW_JS)
-    print("  sw.js: OK")
+        f.write(sw_content)
+    print(f"  sw.js: OK (cache: {cache_version})")
+
+    # 產出 _headers（禁止 CDN 快取 sw.js）
+    with open('pwa/_headers', 'w', encoding='utf-8') as f:
+        f.write("/sw.js\n  Cache-Control: no-cache, no-store, must-revalidate\n")
+    print("  _headers: OK")
 
     # 產出 icons
     generate_icons('pwa/icons')

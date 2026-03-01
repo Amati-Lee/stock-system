@@ -1206,6 +1206,13 @@ def _build_csv_row(ticker: str, name: str, df: pd.DataFrame, info: dict | None) 
 
         latest = df.iloc[-1]
 
+        # 取得實際交易日（yfinance DataFrame index 是交易日期）
+        trading_date = latest.name
+        if hasattr(trading_date, 'strftime'):
+            trading_date_str = trading_date.strftime('%Y-%m-%d')
+        else:
+            trading_date_str = str(trading_date)[:10]
+
         # 從 info 取得市場資料
         market_cap = None
         pe_ratio = None
@@ -1250,6 +1257,7 @@ def _build_csv_row(ticker: str, name: str, df: pd.DataFrame, info: dict | None) 
             "本益比": pe_ratio,
             "每股配息": div_rate,
             "殖利率": div_yield,
+            "交易日": trading_date_str,
             "更新時間": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
     except Exception:
