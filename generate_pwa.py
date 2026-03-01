@@ -1085,6 +1085,20 @@ def main():
     df = pd.read_csv(csv_file, encoding="utf-8-sig")
     print(f"  筆數: {len(df)}")
 
+    # 用 stock_names_all.json 補齊中文名稱
+    names_json = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stock_names_all.json")
+    if os.path.exists(names_json):
+        with open(names_json, 'r', encoding='utf-8') as f:
+            all_names = json.load(f)
+        fixed = 0
+        for i, row in df.iterrows():
+            code = str(int(row['股票代號'])) if isinstance(row['股票代號'], (int, float)) else str(row['股票代號'])
+            if str(row['股票名稱']) == code and code in all_names:
+                df.at[i, '股票名稱'] = all_names[code]
+                fixed += 1
+        if fixed:
+            print(f"  名稱修正: {fixed} 筆")
+
     # 計算趨勢比對
     print("  計算趨勢比對...")
     df = compute_trend(df, csv_files)
