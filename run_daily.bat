@@ -17,7 +17,13 @@ for /f %%i in ('powershell -command "Get-Date -Format \"yyyyMMdd\""') do set TOD
 
 if exist "stock_data_%TODAY%.csv" (
     echo.
-    echo ✅ 今日資料 stock_data_%TODAY%.csv 已存在（GitHub Actions 已處理），跳過。
+    echo ℹ️ 今日 CSV 已存在（GitHub Actions 已下載），跳過下載。
+    echo.
+    echo [Step 2] 產生本地資料（突破訊號 CSV + PWA）...
+    echo.
+    python generate_pwa.py
+    echo.
+    echo ✅ 完成！本地資料已產生，網站由 GitHub Actions 部署。
     echo.
     if not "%1"=="auto" pause
     exit /b 0
@@ -51,7 +57,7 @@ echo [Step 3] 部署到 Cloudflare...
 echo.
 set CLOUDFLARE_API_TOKEN=7NRf_D8SLdWVPtgvM_otnp1AUVD8Cz_lF7Z8ixeC
 set CLOUDFLARE_ACCOUNT_ID=49021099240f48de19359e92dd0732a0
-npx wrangler pages deploy pwa --project-name=stock-viewer
+npx wrangler pages deploy pwa --project-name=stock-viewer --branch=main
 
 echo.
 echo ✅ 完成！ %date% %time%
