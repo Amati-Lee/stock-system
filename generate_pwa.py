@@ -1121,7 +1121,7 @@ def main():
     breakout_count = (df['強度評分'] > 0).sum() if '強度評分' in df.columns else 0
     print(f"  突破: {breakout_count} 筆有訊號")
 
-    # 輸出突破訊號 CSV（Excel 可直接開）
+    # 輸出突破訊號 Excel
     if '強度評分' in df.columns:
         df_breakout = df[df['強度評分'] > 0].copy()
         if len(df_breakout) > 0:
@@ -1132,8 +1132,8 @@ def main():
             if '市場' in df_breakout.columns:
                 cols.append('市場')
             df_breakout = df_breakout[cols].sort_values('強度評分', ascending=False)
-            out_file = f"breakout_signals_{date_str}.csv"
-            df_breakout.to_csv(out_file, index=False, encoding='utf-8-sig')
+            out_file = f"breakout_signals_{date_str}.xlsx"
+            df_breakout.to_excel(out_file, index=False, sheet_name='突破訊號')
             print(f"  突破訊號: {out_file} ({len(df_breakout)} 筆)")
 
     # 取得實際交易日（從 CSV 的「交易日」欄位）
