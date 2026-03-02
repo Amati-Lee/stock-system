@@ -1134,6 +1134,22 @@ def main():
             df_breakout = df_breakout[cols].sort_values('強度評分', ascending=False)
             out_file = f"breakout_signals_{date_str}.xlsx"
             df_breakout.to_excel(out_file, index=False, sheet_name='突破訊號')
+            # 加入表格格式（自動篩選 + 斑馬紋 + 欄寬調整 + 凍結首列）
+            from openpyxl import load_workbook
+            from openpyxl.worksheet.table import Table, TableStyleInfo
+            wb = load_workbook(out_file)
+            ws = wb['突破訊號']
+            last_col = chr(64 + ws.max_column)
+            table = Table(displayName='BreakoutSignals', ref=f'A1:{last_col}{ws.max_row}')
+            table.tableStyleInfo = TableStyleInfo(
+                name='TableStyleMedium9', showFirstColumn=False,
+                showLastColumn=False, showRowStripes=True, showColumnStripes=False)
+            ws.add_table(table)
+            for col_cells in ws.columns:
+                max_len = max(len(str(c.value or '')) for c in col_cells)
+                ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 4, 30)
+            ws.freeze_panes = 'A2'
+            wb.save(out_file)
             print(f"  突破訊號: {out_file} ({len(df_breakout)} 筆)")
 
     # 取得實際交易日（從 CSV 的「交易日」欄位）
