@@ -9,6 +9,20 @@ echo.
 
 cd /d D:\stock_system
 
+echo [Step 0] 從 GitHub 同步最新資料...
+echo.
+git pull --ff-only
+
+for /f %%i in ('powershell -command "Get-Date -Format \"yyyyMMdd\""') do set TODAY=%%i
+
+if exist "stock_data_%TODAY%.csv" (
+    echo.
+    echo ✅ 今日資料 stock_data_%TODAY%.csv 已存在（GitHub Actions 已處理），跳過。
+    echo.
+    if not "%1"=="auto" pause
+    exit /b 0
+)
+
 echo [Step 1] 下載數據 + 分析篩選...
 echo.
 python stock_system.py
