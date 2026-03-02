@@ -82,7 +82,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add stock_data_*.csv breakout_signals_*.json stock_names_all.json tw_stock_verified.txt watchlist.json
+          git add stock_data_*.csv stock_names_all.json tw_stock_verified.txt watchlist.json
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%d) stock update"
           git push
 
