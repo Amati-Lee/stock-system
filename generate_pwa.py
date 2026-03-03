@@ -428,10 +428,12 @@ tr:nth-child(even){background:#fafafa}
 <div class="card">
 <h1>📊 台股篩選器</h1>
 <div class="info">更新：__UPDATE_TIME__ ｜ 共 __TOTAL_COUNT__ 檔</div>
-<div style="margin-top:8px;display:flex;align-items:center;gap:8px">
-<span style="font-size:13px;color:#888">📈 漲跌比較</span>
+<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+<span id="todayDate" style="font-size:18px;font-weight:bold;color:#333"></span>
+<span style="font-size:13px;color:#aaa;margin-left:4px">vs</span>
 <select id="compareDate" onchange="updateCompareDate()" style="padding:6px 10px;border:2px solid #e8e8e8;border-radius:8px;font-size:14px;outline:none;background:#fff"></select>
 <span id="compareInfo" style="font-size:12px;color:#aaa"></span>
+<span style="margin-left:auto;font-size:18px">📈</span>
 </div>
 </div>
 
@@ -463,6 +465,10 @@ tr:nth-child(even){background:#fafafa}
 <div class="btn" data-st="breakout_high">高強度</div>
 <div class="btn" data-st="breakout_mid">中強度</div>
 <div class="btn" data-st="breakout_multi">多重訊號</div>
+
+<div class="cat-label">漲跌停</div>
+<div class="btn" data-st="limit_up">今日漲停</div>
+<div class="btn" data-st="limit_down">今日跌停</div>
 
 <div class="cat-label">趨勢轉強</div>
 <div class="btn" data-st="trend_price">價格上漲</div>
@@ -565,6 +571,11 @@ function ok(v) { return v != null && v !== ''; }
 function num(v) { var x = parseFloat(v); return isNaN(x) ? 0 : x; }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // 顯示當日日期
+    var tm = parseInt(CURRENT_TRADE_DATE.substring(4, 6));
+    var td = parseInt(CURRENT_TRADE_DATE.substring(6, 8));
+    document.getElementById('todayDate').textContent = tm + '/' + td;
+
     // 計算衍生欄位
     for (var i = 0; i < RAW.length; i++) {
         var s = RAW[i];
@@ -836,6 +847,8 @@ function doFilter() {
                 else if (st === 'breakout_high') pass = ok(s.強度評分) && s.強度評分 >= 20;
                 else if (st === 'breakout_mid') pass = ok(s.強度評分) && s.強度評分 >= 10;
                 else if (st === 'breakout_multi') pass = ok(s.訊號數量) && s.訊號數量 >= 3;
+                else if (st === 'limit_up') pass = ok(s.漲跌幅) && s.漲跌幅 >= 9.5;
+                else if (st === 'limit_down') pass = ok(s.漲跌幅) && s.漲跌幅 <= -9.5;
                 else if (st === 'trend_price') pass = s.價格趨勢 === '上漲' || s.價格趨勢 === '大漲';
                 else if (st === 'trend_kd') pass = s.KD趨勢 === 'KD轉強';
                 else if (st === 'trend_rsi') pass = s.RSI趨勢 === 'RSI轉強';
@@ -908,10 +921,11 @@ function renderCards() {
         var kc = s.kd_status === '黃金交叉' ? 'tg' : 'tr';
         var mc = s.macd_status === '黃金交叉' ? 'tg' : 'tr';
         var bc = ok(s.bb_pos) ? (s.bb_pos >= 80 ? 'tr' : s.bb_pos <= 20 ? 'tb' : 'tg') : '';
+        var limitStyle = ok(s.漲跌幅) ? (s.漲跌幅 >= 9.5 ? 'background:#c62828;color:#fff;padding:2px 8px;border-radius:6px' : s.漲跌幅 <= -9.5 ? 'background:#2e7d32;color:#fff;padding:2px 8px;border-radius:6px' : '') : '';
 
         h += '<div class="stock-item">';
         h += '<div class="stock-header">';
-        h += '<div class="stock-name">' + s.股票代號 + ' ' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</div>';
+        h += '<div class="stock-name"' + (limitStyle ? ' style="' + limitStyle + '"' : '') + '>' + s.股票代號 + ' ' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</div>';
         h += '<div class="stock-price">$' + (ok(s.收盤價) ? s.收盤價 : '-') + '</div>';
         h += '</div>';
         h += '<div class="stock-tags">';
@@ -980,9 +994,10 @@ function renderTable() {
         var s = filtered[i];
         var kc = s.kd_status === '黃金交叉' ? '#2e7d32' : '#c62828';
         var mc = s.macd_status === '黃金交叉' ? '#2e7d32' : '#c62828';
+        var limitStyle = ok(s.漲跌幅) ? (s.漲跌幅 >= 9.5 ? 'background:#c62828;color:#fff;font-weight:bold' : s.漲跌幅 <= -9.5 ? 'background:#2e7d32;color:#fff;font-weight:bold' : '') : '';
         h += '<tr>';
         h += '<td>' + s.股票代號 + '</td>';
-        h += '<td>' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</td>';
+        h += '<td' + (limitStyle ? ' style="' + limitStyle + '"' : '') + '>' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</td>';
         h += '<td>' + (ok(s.收盤價) ? s.收盤價 : '') + '</td>';
         h += '<td>' + fv(s.K值, 1) + '</td>';
         h += '<td>' + fv(s.D值, 1) + '</td>';
