@@ -706,12 +706,14 @@ function updateCompareDate() {
         var oldPrice = hist[code];
         if (ok(s.收盤價) && oldPrice != null && oldPrice > 0) {
             s.漲跌幅 = Math.round((s.收盤價 - oldPrice) / oldPrice * 10000) / 100;
+            s.漲跌額 = Math.round((s.收盤價 - oldPrice) * 100) / 100;
             if (s.漲跌幅 >= 3) s.價格趨勢 = '大漲';
             else if (s.漲跌幅 > 0) s.價格趨勢 = '上漲';
             else if (s.漲跌幅 <= -3) s.價格趨勢 = '下跌';
             else s.價格趨勢 = '平穩';
         } else {
             s.漲跌幅 = null;
+            s.漲跌額 = null;
             s.價格趨勢 = '平穩';
         }
     }
@@ -938,7 +940,7 @@ function renderCards() {
         if (ok(s.價格趨勢)) {
             h += '<div class="trend-row">';
             var pc = s.價格趨勢 === '大漲' || s.價格趨勢 === '上漲' ? 'tb-up' : s.價格趨勢 === '下跌' ? 'tb-down' : 'tb-flat';
-            var pLabel = '價格' + (ok(s.漲跌幅) ? (s.漲跌幅 > 0 ? '↑' : s.漲跌幅 < 0 ? '↓' : '') + Math.abs(s.漲跌幅).toFixed(1) + '%' : '');
+            var pLabel = '價格' + (ok(s.漲跌幅) ? (s.漲跌幅 > 0 ? '↑' : s.漲跌幅 < 0 ? '↓' : '') + Math.abs(s.漲跌幅).toFixed(1) + '%' + (ok(s.漲跌額) ? ' (' + (s.漲跌額 > 0 ? '+' : '') + s.漲跌額.toFixed(2) + ')' : '') : '');
             h += '<span class="trend-badge ' + pc + '">' + pLabel + '</span>';
             var kdc = s.KD趨勢 === 'KD轉強' ? 'tb-up' : s.KD趨勢 === 'KD轉弱' ? 'tb-down' : 'tb-flat';
             h += '<span class="trend-badge ' + kdc + '">' + s.KD趨勢 + '</span>';
@@ -1011,7 +1013,8 @@ function renderTable() {
         h += '<td>' + fv(s.本益比, 1) + '</td>';
         h += '<td>' + (ok(s.市值億) ? Math.round(s.市值億) : '') + '</td>';
         var chgColor = ok(s.漲跌幅) ? (s.漲跌幅 > 0 ? '#c62828' : s.漲跌幅 < 0 ? '#2e7d32' : '') : '';
-        h += '<td style="color:' + chgColor + '">' + fv(s.漲跌幅, 2) + '</td>';
+        var chgText = fv(s.漲跌幅, 2) + (ok(s.漲跌額) ? '<br><small>' + (s.漲跌額 > 0 ? '+' : '') + s.漲跌額.toFixed(2) + '</small>' : '');
+        h += '<td style="color:' + chgColor + '">' + chgText + '</td>';
         h += '<td>' + (ok(s.強度評分) ? s.強度評分 : '') + '</td>';
         h += '<td>' + (ok(s.訊號數量) ? s.訊號數量 : '') + '</td>';
         h += '</tr>';
