@@ -2,11 +2,8 @@ name: Daily Stock Update
 
 on:
   # 手動觸發（手機 GitHub App 可用）
+  # 自動觸發由 Cloudflare Worker (stock-cron-trigger) 負責
   workflow_dispatch:
-
-  # 每個交易日台灣時間 15:30 (UTC 07:30)
-  schedule:
-    - cron: '30 7 * * 1-5'
 
 permissions:
   contents: write
