@@ -1368,7 +1368,7 @@ def _verify_and_fix_prices(csv_path: str) -> int:
     )
     merged["chg_pct"] = ((merged["收盤價_today"] - merged["收盤價_prev"]).abs()
                          / merged["收盤價_prev"])
-    flagged = merged[merged["chg_pct"] > 0.15]
+    flagged = merged[merged["chg_pct"] > 0.10]
 
     if flagged.empty:
         print("   ✅ 價格驗證通過（無 >15% 異常變動）")
