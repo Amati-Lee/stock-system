@@ -1280,6 +1280,139 @@ def _save_stock_csv(csv_data: list[dict]) -> str | None:
 
 
 # ============================================================
+# 價格驗證（TWSE / TPEX 官方 API）
+# ============================================================
+
+def _query_twse(ticker: str, date_ymd: str) -> float | None:
+    """從證交所 API 取得上市股收盤價"""
+    import requests, urllib3
+    urllib3.disable_warnings()
+    try:
+        url = f"https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date={date_ymd}&stockNo={ticker}"
+        r = requests.get(url, timeout=10, verify=False,
+                         headers={"User-Agent": "Mozilla/5.0"})
+        if r.ok:
+            data = r.json()
+            if data.get("stat") == "OK" and data.get("data"):
+                last_row = data["data"][-1]
+                return float(last_row[6].replace(",", ""))
+    except Exception:
+        pass
+    return None
+
+
+def _query_tpex(ticker: str, date_slash: str) -> float | None:
+    """從櫃買中心 API 取得上櫃股收盤價"""
+    import requests, urllib3
+    urllib3.disable_warnings()
+    try:
+        url = (f"https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes"
+               f"?date={date_slash}&code={ticker}&response=json")
+        r = requests.get(url, timeout=10, verify=False,
+                         headers={"User-Agent": "Mozilla/5.0"})
+        if r.ok:
+            data = r.json()
+            tables = data.get("tables", [])
+            if tables and tables[0].get("data"):
+                # 必須確認回傳的代號與查詢的一致
+                for row in tables[0]["data"]:
+                    if str(row[0]).strip() == ticker:
+                        return float(str(row[2]).replace(",", ""))
+    except Exception:
+        pass
+    return None
+
+
+def _query_official_price(ticker: str, date_ymd: str, date_slash: str) -> float | None:
+    """依市場別查詢官方收盤價（自動偵測上市/上櫃）"""
+    cached = _suffix_cache.get(ticker, "")
+    is_tpex = cached.endswith(".TWO")
+
+    if is_tpex:
+        price = _query_tpex(ticker, date_slash)
+        if price is not None:
+            return price
+        return _query_twse(ticker, date_ymd)
+    else:
+        price = _query_twse(ticker, date_ymd)
+        if price is not None:
+            return price
+        return _query_tpex(ticker, date_slash)
+
+
+def _verify_and_fix_prices(csv_path: str) -> int:
+    """驗證 >15% 價格變動，用 TWSE/TPEX 官方 API 修正"""
+    import glob as _glob
+
+    base_dir = os.path.dirname(os.path.abspath(csv_path))
+    all_csvs = sorted(_glob.glob(os.path.join(base_dir, "stock_data_*.csv")))
+
+    abs_path = os.path.abspath(csv_path)
+    try:
+        idx = all_csvs.index(abs_path)
+    except ValueError:
+        return 0
+    if idx == 0:
+        print("   ℹ️ 無前日 CSV，跳過價格驗證")
+        return 0
+
+    prev_csv = all_csvs[idx - 1]
+
+    df_today = pd.read_csv(abs_path, encoding="utf-8-sig")
+    df_prev = pd.read_csv(prev_csv, encoding="utf-8-sig")
+
+    merged = pd.merge(
+        df_today[["股票代號", "收盤價"]],
+        df_prev[["股票代號", "收盤價"]],
+        on="股票代號", suffixes=("_today", "_prev")
+    )
+    merged["chg_pct"] = ((merged["收盤價_today"] - merged["收盤價_prev"]).abs()
+                         / merged["收盤價_prev"])
+    flagged = merged[merged["chg_pct"] > 0.15]
+
+    if flagged.empty:
+        print("   ✅ 價格驗證通過（無 >15% 異常變動）")
+        return 0
+
+    print(f"\n   🔍 發現 {len(flagged)} 檔 >15% 價格變動，向官方驗證中...")
+
+    # 從 CSV 取交易日以確保日期正確
+    trading_date_raw = str(df_today["交易日"].iloc[0])[:10]  # "2026-03-18"
+    date_ymd = trading_date_raw.replace("-", "")              # "20260318"
+    date_slash = trading_date_raw.replace("-", "/")           # "2026/03/18"
+
+    fixes = []
+    for _, row in flagged.iterrows():
+        ticker = str(int(row["股票代號"]))
+        csv_price = row["收盤價_today"]
+
+        official_price = _query_official_price(ticker, date_ymd, date_slash)
+
+        if official_price is None:
+            print(f"      ⚠️ {ticker} 無法取得官方價格，跳過")
+            continue
+
+        if abs(official_price - csv_price) / official_price > 0.01:
+            fixes.append((ticker, csv_price, official_price))
+            print(f"      🔧 {ticker}: {csv_price} → {official_price}")
+        else:
+            print(f"      ✅ {ticker}: 價格正確 ({csv_price})")
+
+        time.sleep(0.5)
+
+    if fixes:
+        df = pd.read_csv(abs_path, encoding="utf-8-sig")
+        for ticker, old_price, new_price in fixes:
+            df.loc[df["股票代號"] == int(ticker), "收盤價"] = new_price
+        df.to_csv(abs_path, index=False, encoding="utf-8-sig")
+        print(f"\n   📝 已修正 {len(fixes)} 筆價格（來源：TWSE/TPEX 官方）")
+    else:
+        print(f"\n   ✅ 驗證完成，價格皆正確")
+
+    return len(fixes)
+
+
+# ============================================================
 # 主掃描流程
 # ============================================================
 
@@ -1517,6 +1650,7 @@ def run_screener(cfg: ScreenerConfig | None = None, deep: bool = False, save_csv
         csv_path = _save_stock_csv(csv_data)
         if csv_path:
             print(f"   成功：{csv_success} 筆")
+            _verify_and_fix_prices(csv_path)
             print(f"   💡 可使用 quick_filter.py 快速篩選")
 
     return results

@@ -1032,7 +1032,7 @@ if ('serviceWorker' in navigator) {
 
 # ==================== Service Worker ====================
 SW_JS_TEMPLATE = '''var CACHE_NAME = '__CACHE_VERSION__';
-var ASSETS = ['./index.html', './manifest.json'];
+var ASSETS = ['./index.html', './manifest.json', './icons/icon-144.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', function(e) {
     e.waitUntil(caches.open(CACHE_NAME).then(function(c) { return c.addAll(ASSETS); }));
@@ -1075,9 +1075,9 @@ MANIFEST = {
     "background_color": "#667eea",
     "theme_color": "#667eea",
     "icons": [
-        {"src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png"},
-        {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
-        {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"}
+        {"src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any"},
+        {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+        {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
     ]
 }
 
