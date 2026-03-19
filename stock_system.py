@@ -1416,6 +1416,66 @@ def _verify_and_fix_prices(csv_path: str) -> int:
 # 主掃描流程
 # ============================================================
 
+def _backfill_watchlist(csv_path: str) -> int:
+    """檢查 watchlist 中的股票是否都在 CSV 裡，漏掉的立刻補抓"""
+    watchlist_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "watchlist.json")
+    if not os.path.exists(watchlist_path):
+        return 0
+
+    try:
+        with open(watchlist_path, "r", encoding="utf-8") as f:
+            watchlist = json.load(f)
+    except Exception:
+        return 0
+
+    if not watchlist:
+        return 0
+
+    watch_codes = {str(item["code"]) for item in watchlist}
+
+    df_csv = pd.read_csv(csv_path, encoding="utf-8-sig")
+    existing_codes = set(df_csv["股票代號"].astype(str).tolist())
+
+    missing = watch_codes - existing_codes
+    if not missing:
+        return 0
+
+    print(f"\n   🔄 Watchlist 補漏：發現 {len(missing)} 支追蹤股票不在 CSV 中")
+
+    end_date = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+    start_date = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+
+    added = 0
+    for code in sorted(missing):
+        name_display = get_stock_name(code)
+        print(f"      補抓 {code} {name_display}...", end=" ", flush=True)
+
+        try:
+            df = download_stock(code, start_date, end_date)
+            if df is None or len(df) < 5:
+                print("資料不足，跳過")
+                continue
+
+            info = _fetch_ticker_info(code)
+            csv_row = _build_csv_row(code, name_display, df, info)
+            if csv_row:
+                df_csv = pd.concat([df_csv, pd.DataFrame([csv_row])], ignore_index=True)
+                added += 1
+                print(f"OK (收盤 {csv_row['收盤價']})")
+            else:
+                print("建立資料失敗")
+        except Exception as e:
+            print(f"失敗: {e}")
+
+        time.sleep(0.3)
+
+    if added > 0:
+        df_csv.to_csv(csv_path, index=False, encoding="utf-8-sig")
+        print(f"   ✅ 已補齊 {added} 支 watchlist 股票")
+
+    return added
+
+
 def run_screener(cfg: ScreenerConfig | None = None, deep: bool = False, save_csv: bool = True) -> list[StockResult]:
     """
     main entry — 可傳入 config，不傳則用預設值。
@@ -1651,6 +1711,7 @@ def run_screener(cfg: ScreenerConfig | None = None, deep: bool = False, save_csv
         if csv_path:
             print(f"   成功：{csv_success} 筆")
             _verify_and_fix_prices(csv_path)
+            _backfill_watchlist(csv_path)
             print(f"   💡 可使用 quick_filter.py 快速篩選")
 
     return results

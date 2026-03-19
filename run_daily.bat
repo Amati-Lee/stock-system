@@ -2,12 +2,19 @@
 chcp 65001 >nul
 title 台股每日分析系統
 
+cd /d D:\stock_system
+
+REM 檢查是否為交易日（跳過週末 + 國定假日）
+python -c "import datetime,sys; today=datetime.date.today(); wd=today.weekday(); holidays=[l.strip() for l in open('holidays.txt',encoding='utf-8') if l.strip() and not l.strip().startswith('#')]; is_holiday=str(today) in holidays; print(f'今天 {today} ({'週六' if wd==5 else '週日' if wd==6 else '國定假日'})，非交易日，跳過。') if wd>=5 or is_holiday else None; sys.exit(1 if wd>=5 or is_holiday else 0)"
+if %errorlevel% neq 0 (
+    if not "%1"=="auto" pause
+    exit /b 0
+)
+
 echo ======================================================================
 echo   台股每日分析系統
 echo ======================================================================
 echo.
-
-cd /d D:\stock_system
 
 echo [Step 0] 從 GitHub 同步最新資料...
 echo.
