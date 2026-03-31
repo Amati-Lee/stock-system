@@ -1074,9 +1074,10 @@ function openChart(code) {
     } else {
         fetch('ohlc/' + code + '.json').then(function(r) {
             if (!r.ok) throw new Error('no data');
-            var ct = r.headers.get('content-type') || '';
-            if (ct.indexOf('json') === -1) throw new Error('no data');
-            return r.json();
+            return r.text();
+        }).then(function(txt) {
+            if (txt.charAt(0) !== '[') throw new Error('no data');
+            return JSON.parse(txt);
         }).then(function(ohlcData) {
             OHLC_CACHE[code] = ohlcData;
             renderChart(code, ohlcData);
