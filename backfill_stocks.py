@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 import time
 
 # ====== 要補的股票 ======
-NEW_STOCKS = ["3349", "7709", "3710", "3228", "7770", "3552", "7734"]
+NEW_STOCKS = ["3071", "3259", "3363", "3521", "3595", "3710", "5297", "5386", "6434", "6818", "6979", "6990", "7728", "7810", "7846", "7890"]
 
 # ====== 找出所有 CSV ======
 csv_files = sorted(glob.glob("stock_data_*.csv"))
