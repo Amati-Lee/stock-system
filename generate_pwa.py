@@ -1371,34 +1371,68 @@ def main():
         hist_json = json.dumps(hist_prices, ensure_ascii=False)
         print(f"  已加入 {current_trade_date} 至歷史 ({len(current_prices)} 筆), 共 {len(hist_prices)} 個日期")
 
-    # 建立 OHLC 歷史（供 K 線圖）
-    print("  建立 OHLC 歷史...")
+    # 建立 OHLC 歷史（供 K 線圖）— 從 yfinance 抓 350 天，確保年線可用
+    print("  建立 OHLC 歷史（yfinance）...")
+    import yfinance as yf
+    import time as _time
+
+    # 讀取 watchlist
+    watchlist_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "watchlist.json")
+    watchlist_codes = []
+    if os.path.exists(watchlist_path):
+        with open(watchlist_path, 'r', encoding='utf-8') as f:
+            watchlist_codes = [s['code'] for s in json.load(f)]
+
+    # 讀取 suffix 快取（上市 .TW / 上櫃 .TWO）
+    mkt_json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stock_market_type.json")
+    mkt_map_local = {}
+    if os.path.exists(mkt_json_path):
+        with open(mkt_json_path, 'r', encoding='utf-8') as f:
+            mkt_map_local = json.load(f)
+
     ohlc_by_stock = {}
-    all_csv_sorted = sorted(glob.glob("stock_data_*.csv"))  # oldest first
-    for f in all_csv_sorted:
+    ohlc_ok = 0
+    ohlc_fail = 0
+    for code in watchlist_codes:
         try:
-            tmp = pd.read_csv(f, encoding="utf-8-sig")
-            if len(tmp) < 1:
+            # 決定 suffix
+            mkt = mkt_map_local.get(code, '')
+            if mkt in ('上櫃', '興櫃'):
+                suffixes = ['.TWO', '.TW']
+            else:
+                suffixes = ['.TW', '.TWO']
+
+            hist = None
+            for suffix in suffixes:
+                hist = yf.download(f"{code}{suffix}", period="18mo", progress=False, auto_adjust=False)
+                if hist is not None and len(hist) >= 5:
+                    break
+
+            if hist is None or len(hist) < 5:
+                ohlc_fail += 1
                 continue
-            date_str = f.replace('stock_data_', '').replace('.csv', '')
-            has_ohlc = all(col in tmp.columns for col in ['開盤價', '最高價', '最低價'])
-            for _, row in tmp.iterrows():
-                code = str(int(row['股票代號'])) if isinstance(row['股票代號'], (int, float)) and not pd.isna(row['股票代號']) else str(row['股票代號'])
-                if pd.isna(row.get('收盤價')):
-                    continue
-                close = round(float(row['收盤價']), 2)
-                vol = int(row['成交量張']) if pd.notna(row.get('成交量張')) else 0
-                if has_ohlc and pd.notna(row.get('開盤價')):
-                    entry = {'t': date_str, 'o': round(float(row['開盤價']), 2), 'h': round(float(row['最高價']), 2), 'l': round(float(row['最低價']), 2), 'c': close, 'v': vol}
-                else:
-                    entry = {'t': date_str, 'o': close, 'h': close, 'l': close, 'c': close, 'v': vol}
-                if code not in ohlc_by_stock:
-                    ohlc_by_stock[code] = []
-                ohlc_by_stock[code].append(entry)
+
+            entries = []
+            for idx, row in hist.iterrows():
+                date_str = idx.strftime('%Y%m%d')
+                o = round(float(row['Open'].iloc[0] if hasattr(row['Open'], 'iloc') else row['Open']), 2)
+                h = round(float(row['High'].iloc[0] if hasattr(row['High'], 'iloc') else row['High']), 2)
+                l = round(float(row['Low'].iloc[0] if hasattr(row['Low'], 'iloc') else row['Low']), 2)
+                c = round(float(row['Close'].iloc[0] if hasattr(row['Close'], 'iloc') else row['Close']), 2)
+                v_raw = row['Volume'].iloc[0] if hasattr(row['Volume'], 'iloc') else row['Volume']
+                v = int(float(v_raw) / 1000)  # 轉為張
+                entries.append({'t': date_str, 'o': o, 'h': h, 'l': l, 'c': c, 'v': v})
+            ohlc_by_stock[code] = entries
+            ohlc_ok += 1
+            if ohlc_ok % 10 == 0:
+                print(f"    已下載 {ohlc_ok}/{len(watchlist_codes)}...")
+            _time.sleep(0.2)
         except Exception:
+            ohlc_fail += 1
             continue
+
     ohlc_json = json.dumps(ohlc_by_stock, ensure_ascii=False, separators=(',', ':'))
-    print(f"  OHLC: {len(ohlc_by_stock)} 檔, {len(ohlc_json)/1024:.1f} KB")
+    print(f"  OHLC: {ohlc_ok} 成功, {ohlc_fail} 失敗, {len(ohlc_json)/1024:.1f} KB")
 
     # 更新時間
     if '更新時間' in df.columns and len(df) > 0:
