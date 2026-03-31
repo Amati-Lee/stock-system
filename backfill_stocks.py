@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 import time
 
 # ====== 要補的股票 ======
-NEW_STOCKS = ["3234", "3587", "6907", "7718", "7547", "3221", "3066"]
+NEW_STOCKS = ["3349", "7709", "3710", "3228", "7770", "3552", "7734"]
 
 # ====== 找出所有 CSV ======
 csv_files = sorted(glob.glob("stock_data_*.csv"))
@@ -27,7 +27,7 @@ print()
 
 # ====== 對每支股票下載 90 天歷史資料 ======
 end_date = datetime.now() + timedelta(days=1)
-start_date = end_date - timedelta(days=120)  # 多抓一點確保覆蓋所有 CSV 日期
+start_date = end_date - timedelta(days=250)  # 多抓一點確保覆蓋所有 CSV 日期
 start_str = start_date.strftime("%Y-%m-%d")
 end_str = end_date.strftime("%Y-%m-%d")
 
