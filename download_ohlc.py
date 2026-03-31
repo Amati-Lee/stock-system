@@ -7,6 +7,7 @@ import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 import json
+import math
 import os
 import time
 import yfinance as yf
@@ -60,13 +61,15 @@ def download_one(code, mkt_map):
                     l = row['Low'].iloc[0] if hasattr(row['Low'], 'iloc') else row['Low']
                     c = row['Close'].iloc[0] if hasattr(row['Close'], 'iloc') else row['Close']
                     v_raw = row['Volume'].iloc[0] if hasattr(row['Volume'], 'iloc') else row['Volume']
+                    if any(math.isnan(float(x)) for x in [o, h, l, c]):
+                        continue
                     entries.append({
                         't': idx.strftime('%Y%m%d'),
                         'o': round(float(o), 2),
                         'h': round(float(h), 2),
                         'l': round(float(l), 2),
                         'c': round(float(c), 2),
-                        'v': int(float(v_raw) / 1000)
+                        'v': int(float(v_raw) / 1000) if not math.isnan(float(v_raw)) else 0
                     })
                 return code, entries
         except Exception:

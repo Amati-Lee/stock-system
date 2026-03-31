@@ -1074,12 +1074,14 @@ function openChart(code) {
     } else {
         fetch('ohlc/' + code + '.json').then(function(r) {
             if (!r.ok) throw new Error('no data');
+            var ct = r.headers.get('content-type') || '';
+            if (ct.indexOf('json') === -1) throw new Error('no data');
             return r.json();
         }).then(function(ohlcData) {
             OHLC_CACHE[code] = ohlcData;
             renderChart(code, ohlcData);
-        }).catch(function() {
-            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#888">此股票無歷史資料</div>';
+        }).catch(function(err) {
+            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#888">此股票無歷史資料<br><small>' + err.message + '</small></div>';
         });
     }
 }
@@ -1087,6 +1089,7 @@ function openChart(code) {
 function renderChart(code, ohlcData) {
     var container = document.getElementById('chartContainer');
     container.innerHTML = '';
+    try {
 
     var candleData = [];
     var volumeData = [];
@@ -1159,6 +1162,9 @@ function renderChart(code, ohlcData) {
     chartInstance = chart;
 
     window.addEventListener('resize', chartResize);
+    } catch(err) {
+        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#c00">圖表錯誤: ' + err.message + '</div>';
+    }
 }
 
 function chartResize() {
@@ -1202,7 +1208,11 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-    if (e.request.mode === 'navigate') {
+    if (e.request.url.indexOf('/ohlc/') !== -1) {
+        e.respondWith(
+            fetch(e.request).catch(function() { return caches.match(e.request); })
+        );
+    } else if (e.request.mode === 'navigate') {
         e.respondWith(
             fetch(e.request).then(function(res) {
                 var clone = res.clone();
