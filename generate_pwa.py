@@ -426,6 +426,7 @@ tr:nth-child(even){background:#fafafa}
 .chart-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
 .chart-title{font-size:16px;font-weight:bold;color:#333}
 .chart-close{width:32px;height:32px;border:none;background:#f0f0f5;border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.chart-legend{padding:6px 16px 0;display:flex;gap:12px;font-size:12px;font-weight:bold}
 .chart-body{padding:8px}
 #chartContainer{width:100%;height:400px}
 </style>
@@ -567,6 +568,13 @@ tr:nth-child(even){background:#fafafa}
 <div class="chart-header">
 <span class="chart-title" id="chartTitle"></span>
 <button class="chart-close" onclick="closeChart()">&#x2715;</button>
+</div>
+<div class="chart-legend">
+<span style="color:#ff9800">MA5</span>
+<span style="color:#2196f3">MA10</span>
+<span style="color:#e91e63">MA20</span>
+<span style="color:#9c27b0">MA60</span>
+<span style="color:#4caf50">MA240</span>
 </div>
 <div class="chart-body">
 <div id="chartContainer"></div>
@@ -1093,6 +1101,36 @@ function openChart(code) {
         wickDownColor: '#26a69a', wickUpColor: '#ef5350'
     });
     candleSeries.setData(candleData);
+
+    // 均線 MA5, MA10, MA20, MA60, MA240
+    var maConfigs = [
+        { n: 5, color: '#ff9800', width: 1 },
+        { n: 10, color: '#2196f3', width: 1 },
+        { n: 20, color: '#e91e63', width: 1 },
+        { n: 60, color: '#9c27b0', width: 1.5 },
+        { n: 240, color: '#4caf50', width: 1.5 }
+    ];
+    for (var m = 0; m < maConfigs.length; m++) {
+        var period = maConfigs[m].n;
+        if (candleData.length < period) continue;
+        var maData = [];
+        var sum = 0;
+        for (var i = 0; i < candleData.length; i++) {
+            sum += candleData[i].close;
+            if (i >= period) sum -= candleData[i - period].close;
+            if (i >= period - 1) {
+                maData.push({ time: candleData[i].time, value: Math.round(sum / period * 100) / 100 });
+            }
+        }
+        var maSeries = chart.addLineSeries({
+            color: maConfigs[m].color,
+            lineWidth: maConfigs[m].width,
+            priceLineVisible: false,
+            lastValueVisible: false,
+            crosshairMarkerVisible: false
+        });
+        maSeries.setData(maData);
+    }
 
     var volumeSeries = chart.addHistogramSeries({
         priceFormat: { type: 'volume' },
