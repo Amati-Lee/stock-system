@@ -420,6 +420,14 @@ tr:nth-child(even){background:#fafafa}
 .slider-track input[type=range]::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:#667eea;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .reset-btn{width:100%;padding:12px;background:#f0f0f5;color:#667eea;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;margin-top:8px}
 .reset-btn:active{background:#e0e0ea;transform:scale(.98)}
+.chart-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:200;display:none;align-items:center;justify-content:center}
+.chart-overlay.show{display:flex}
+.chart-modal{background:white;border-radius:16px;width:95%;max-width:700px;max-height:90vh;overflow:hidden;position:relative}
+.chart-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
+.chart-title{font-size:16px;font-weight:bold;color:#333}
+.chart-close{width:32px;height:32px;border:none;background:#f0f0f5;border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.chart-body{padding:8px}
+#chartContainer{width:100%;height:400px}
 </style>
 </head>
 <body>
@@ -554,9 +562,23 @@ tr:nth-child(even){background:#fafafa}
 
 </div>
 
+<div class="chart-overlay" id="chartOverlay" onclick="closeChart(event)">
+<div class="chart-modal" onclick="event.stopPropagation()">
+<div class="chart-header">
+<span class="chart-title" id="chartTitle"></span>
+<button class="chart-close" onclick="closeChart()">&#x2715;</button>
+</div>
+<div class="chart-body">
+<div id="chartContainer"></div>
+</div>
+</div>
+</div>
+
+<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 <script>
 var RAW = __STOCK_DATA__;
 var HIST = __HIST_DATA__;
+var OHLC = __OHLC_DATA__;
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
 var data = [];
@@ -925,7 +947,7 @@ function renderCards() {
         var bc = ok(s.bb_pos) ? (s.bb_pos >= 80 ? 'tr' : s.bb_pos <= 20 ? 'tb' : 'tg') : '';
         var limitStyle = ok(s.漲跌幅) ? (s.漲跌幅 >= 9.5 ? 'background:#c62828;color:#fff;padding:2px 8px;border-radius:6px' : s.漲跌幅 <= -9.5 ? 'background:#2e7d32;color:#fff;padding:2px 8px;border-radius:6px' : '') : '';
 
-        h += '<div class="stock-item">';
+        h += '<div class="stock-item" onclick="openChart(\'' + s.股票代號 + '\')" style="cursor:pointer">';
         h += '<div class="stock-header">';
         h += '<div class="stock-name"' + (limitStyle ? ' style="' + limitStyle + '"' : '') + '>' + s.股票代號 + ' ' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</div>';
         h += '<div class="stock-price">$' + (ok(s.收盤價) ? s.收盤價 : '-') + '</div>';
@@ -997,7 +1019,7 @@ function renderTable() {
         var kc = s.kd_status === '黃金交叉' ? '#2e7d32' : '#c62828';
         var mc = s.macd_status === '黃金交叉' ? '#2e7d32' : '#c62828';
         var limitStyle = ok(s.漲跌幅) ? (s.漲跌幅 >= 9.5 ? 'background:#c62828;color:#fff;font-weight:bold' : s.漲跌幅 <= -9.5 ? 'background:#2e7d32;color:#fff;font-weight:bold' : '') : '';
-        h += '<tr>';
+        h += '<tr onclick="openChart(\'' + s.股票代號 + '\')" style="cursor:pointer">';
         h += '<td>' + s.股票代號 + '</td>';
         h += '<td' + (limitStyle ? ' style="' + limitStyle + '"' : '') + '>' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</td>';
         h += '<td>' + (ok(s.收盤價) ? s.收盤價 : '') + '</td>';
@@ -1020,6 +1042,83 @@ function renderTable() {
         h += '</tr>';
     }
     tbody.innerHTML = h;
+}
+
+// ==================== K 線圖 ====================
+var chartInstance = null;
+
+function openChart(code) {
+    if (typeof LightweightCharts === 'undefined') { alert('需要網路連線才能顯示圖表'); return; }
+    var stock = null;
+    for (var i = 0; i < data.length; i++) {
+        if (String(data[i].股票代號) === String(code)) { stock = data[i]; break; }
+    }
+    if (!stock) return;
+
+    var ohlcData = OHLC[String(code)] || [];
+    if (ohlcData.length === 0) { alert('此股票無歷史資料'); return; }
+
+    document.getElementById('chartTitle').textContent = code + ' ' + (stock.股票名稱 || '');
+    document.getElementById('chartOverlay').className = 'chart-overlay show';
+
+    var container = document.getElementById('chartContainer');
+    container.innerHTML = '';
+
+    var candleData = [];
+    var volumeData = [];
+    for (var i = 0; i < ohlcData.length; i++) {
+        var d = ohlcData[i];
+        var dateStr = d.t.substring(0,4) + '-' + d.t.substring(4,6) + '-' + d.t.substring(6,8);
+        candleData.push({ time: dateStr, open: d.o, high: d.h, low: d.l, close: d.c });
+        volumeData.push({
+            time: dateStr,
+            value: d.v * 1000,
+            color: d.c >= d.o ? 'rgba(239,83,80,0.5)' : 'rgba(38,166,154,0.5)'
+        });
+    }
+
+    var chart = LightweightCharts.createChart(container, {
+        width: container.clientWidth,
+        height: 400,
+        layout: { background: { type: 'solid', color: '#fff' }, textColor: '#333' },
+        grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        rightPriceScale: { borderColor: '#ddd' },
+        timeScale: { borderColor: '#ddd', timeVisible: false }
+    });
+
+    var candleSeries = chart.addCandlestickSeries({
+        upColor: '#ef5350', downColor: '#26a69a',
+        borderDownColor: '#26a69a', borderUpColor: '#ef5350',
+        wickDownColor: '#26a69a', wickUpColor: '#ef5350'
+    });
+    candleSeries.setData(candleData);
+
+    var volumeSeries = chart.addHistogramSeries({
+        priceFormat: { type: 'volume' },
+        priceScaleId: '',
+        scaleMargins: { top: 0.8, bottom: 0 }
+    });
+    volumeSeries.setData(volumeData);
+
+    chart.timeScale().fitContent();
+    chartInstance = chart;
+
+    window.addEventListener('resize', chartResize);
+}
+
+function chartResize() {
+    if (chartInstance) {
+        var c = document.getElementById('chartContainer');
+        chartInstance.applyOptions({ width: c.clientWidth });
+    }
+}
+
+function closeChart(e) {
+    if (e && e.target !== document.getElementById('chartOverlay')) return;
+    document.getElementById('chartOverlay').className = 'chart-overlay';
+    if (chartInstance) { chartInstance.remove(); chartInstance = null; }
+    window.removeEventListener('resize', chartResize);
 }
 
 if ('serviceWorker' in navigator) {
@@ -1234,6 +1333,35 @@ def main():
         hist_json = json.dumps(hist_prices, ensure_ascii=False)
         print(f"  已加入 {current_trade_date} 至歷史 ({len(current_prices)} 筆), 共 {len(hist_prices)} 個日期")
 
+    # 建立 OHLC 歷史（供 K 線圖）
+    print("  建立 OHLC 歷史...")
+    ohlc_by_stock = {}
+    all_csv_sorted = sorted(glob.glob("stock_data_*.csv"))  # oldest first
+    for f in all_csv_sorted:
+        try:
+            tmp = pd.read_csv(f, encoding="utf-8-sig")
+            if len(tmp) < 1:
+                continue
+            date_str = f.replace('stock_data_', '').replace('.csv', '')
+            has_ohlc = all(col in tmp.columns for col in ['開盤價', '最高價', '最低價'])
+            for _, row in tmp.iterrows():
+                code = str(int(row['股票代號'])) if isinstance(row['股票代號'], (int, float)) and not pd.isna(row['股票代號']) else str(row['股票代號'])
+                if pd.isna(row.get('收盤價')):
+                    continue
+                close = round(float(row['收盤價']), 2)
+                vol = int(row['成交量張']) if pd.notna(row.get('成交量張')) else 0
+                if has_ohlc and pd.notna(row.get('開盤價')):
+                    entry = {'t': date_str, 'o': round(float(row['開盤價']), 2), 'h': round(float(row['最高價']), 2), 'l': round(float(row['最低價']), 2), 'c': close, 'v': vol}
+                else:
+                    entry = {'t': date_str, 'o': close, 'h': close, 'l': close, 'c': close, 'v': vol}
+                if code not in ohlc_by_stock:
+                    ohlc_by_stock[code] = []
+                ohlc_by_stock[code].append(entry)
+        except Exception:
+            continue
+    ohlc_json = json.dumps(ohlc_by_stock, ensure_ascii=False, separators=(',', ':'))
+    print(f"  OHLC: {len(ohlc_by_stock)} 檔, {len(ohlc_json)/1024:.1f} KB")
+
     # 更新時間
     if '更新時間' in df.columns and len(df) > 0:
         update_time = str(df['更新時間'].iloc[0])
@@ -1275,6 +1403,7 @@ def main():
     html = html.replace('__UPDATE_TIME__', update_time)
     html = html.replace('__TOTAL_COUNT__', str(len(df)))
     html = html.replace('__HIST_DATA__', hist_json)
+    html = html.replace('__OHLC_DATA__', ohlc_json)
     html = html.replace('__COMPARE_DEFAULT__', default_compare)
     html = html.replace('__CURRENT_TRADE_DATE__', current_trade_date)
     html = html.replace('__CACHE_VERSION__', cache_version)
