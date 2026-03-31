@@ -586,7 +586,7 @@ tr:nth-child(even){background:#fafafa}
 <script>
 var RAW = __STOCK_DATA__;
 var HIST = __HIST_DATA__;
-var OHLC = __OHLC_DATA__;
+var OHLC_CACHE = {};
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
 var data = [];
@@ -1063,12 +1063,28 @@ function openChart(code) {
     }
     if (!stock) return;
 
-    var ohlcData = OHLC[String(code)] || [];
-    if (ohlcData.length === 0) { alert('此股票無歷史資料'); return; }
-
     document.getElementById('chartTitle').textContent = code + ' ' + (stock.股票名稱 || '');
     document.getElementById('chartOverlay').className = 'chart-overlay show';
+    var container = document.getElementById('chartContainer');
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#888">載入中...</div>';
 
+    // 從快取或遠端載入 OHLC
+    if (OHLC_CACHE[code]) {
+        renderChart(code, OHLC_CACHE[code]);
+    } else {
+        fetch('ohlc/' + code + '.json').then(function(r) {
+            if (!r.ok) throw new Error('no data');
+            return r.json();
+        }).then(function(ohlcData) {
+            OHLC_CACHE[code] = ohlcData;
+            renderChart(code, ohlcData);
+        }).catch(function() {
+            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#888">此股票無歷史資料</div>';
+        });
+    }
+}
+
+function renderChart(code, ohlcData) {
     var container = document.getElementById('chartContainer');
     container.innerHTML = '';
 
@@ -1371,68 +1387,10 @@ def main():
         hist_json = json.dumps(hist_prices, ensure_ascii=False)
         print(f"  已加入 {current_trade_date} 至歷史 ({len(current_prices)} 筆), 共 {len(hist_prices)} 個日期")
 
-    # 建立 OHLC 歷史（供 K 線圖）— 從 yfinance 抓 350 天，確保年線可用
-    print("  建立 OHLC 歷史（yfinance）...")
-    import yfinance as yf
-    import time as _time
-
-    # 讀取 watchlist
-    watchlist_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "watchlist.json")
-    watchlist_codes = []
-    if os.path.exists(watchlist_path):
-        with open(watchlist_path, 'r', encoding='utf-8') as f:
-            watchlist_codes = [s['code'] for s in json.load(f)]
-
-    # 讀取 suffix 快取（上市 .TW / 上櫃 .TWO）
-    mkt_json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stock_market_type.json")
-    mkt_map_local = {}
-    if os.path.exists(mkt_json_path):
-        with open(mkt_json_path, 'r', encoding='utf-8') as f:
-            mkt_map_local = json.load(f)
-
-    ohlc_by_stock = {}
-    ohlc_ok = 0
-    ohlc_fail = 0
-    for code in watchlist_codes:
-        try:
-            # 決定 suffix
-            mkt = mkt_map_local.get(code, '')
-            if mkt in ('上櫃', '興櫃'):
-                suffixes = ['.TWO', '.TW']
-            else:
-                suffixes = ['.TW', '.TWO']
-
-            hist = None
-            for suffix in suffixes:
-                hist = yf.download(f"{code}{suffix}", period="18mo", progress=False, auto_adjust=False)
-                if hist is not None and len(hist) >= 5:
-                    break
-
-            if hist is None or len(hist) < 5:
-                ohlc_fail += 1
-                continue
-
-            entries = []
-            for idx, row in hist.iterrows():
-                date_str = idx.strftime('%Y%m%d')
-                o = round(float(row['Open'].iloc[0] if hasattr(row['Open'], 'iloc') else row['Open']), 2)
-                h = round(float(row['High'].iloc[0] if hasattr(row['High'], 'iloc') else row['High']), 2)
-                l = round(float(row['Low'].iloc[0] if hasattr(row['Low'], 'iloc') else row['Low']), 2)
-                c = round(float(row['Close'].iloc[0] if hasattr(row['Close'], 'iloc') else row['Close']), 2)
-                v_raw = row['Volume'].iloc[0] if hasattr(row['Volume'], 'iloc') else row['Volume']
-                v = int(float(v_raw) / 1000)  # 轉為張
-                entries.append({'t': date_str, 'o': o, 'h': h, 'l': l, 'c': c, 'v': v})
-            ohlc_by_stock[code] = entries
-            ohlc_ok += 1
-            if ohlc_ok % 10 == 0:
-                print(f"    已下載 {ohlc_ok}/{len(watchlist_codes)}...")
-            _time.sleep(0.2)
-        except Exception:
-            ohlc_fail += 1
-            continue
-
-    ohlc_json = json.dumps(ohlc_by_stock, ensure_ascii=False, separators=(',', ':'))
-    print(f"  OHLC: {ohlc_ok} 成功, {ohlc_fail} 失敗, {len(ohlc_json)/1024:.1f} KB")
+    # OHLC 歷史：由 download_ohlc.py 預先產生 pwa/ohlc/*.json，前端按需載入
+    ohlc_dir = os.path.join('pwa', 'ohlc')
+    ohlc_count = len(os.listdir(ohlc_dir)) if os.path.isdir(ohlc_dir) else 0
+    print(f"  OHLC: {ohlc_count} 支股票（pwa/ohlc/）")
 
     # 更新時間
     if '更新時間' in df.columns and len(df) > 0:
@@ -1475,7 +1433,6 @@ def main():
     html = html.replace('__UPDATE_TIME__', update_time)
     html = html.replace('__TOTAL_COUNT__', str(len(df)))
     html = html.replace('__HIST_DATA__', hist_json)
-    html = html.replace('__OHLC_DATA__', ohlc_json)
     html = html.replace('__COMPARE_DEFAULT__', default_compare)
     html = html.replace('__CURRENT_TRADE_DATE__', current_trade_date)
     html = html.replace('__CACHE_VERSION__', cache_version)
