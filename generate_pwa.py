@@ -420,13 +420,18 @@ tr:nth-child(even){background:#fafafa}
 .slider-track input[type=range]::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:#667eea;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .reset-btn{width:100%;padding:12px;background:#f0f0f5;color:#667eea;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;margin-top:8px}
 .reset-btn:active{background:#e0e0ea;transform:scale(.98)}
-.chart-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:200;display:none;align-items:center;justify-content:center}
+.chart-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center}
 .chart-overlay.show{display:flex}
-.chart-modal{background:white;border-radius:16px;width:95%;max-width:700px;max-height:90vh;overflow:hidden;position:relative}
-.chart-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
-.chart-title{font-size:16px;font-weight:bold;color:#333}
-.chart-close{width:32px;height:32px;border:none;background:#f0f0f5;border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.chart-legend{padding:6px 16px 0;display:flex;gap:12px;font-size:12px;font-weight:bold}
+.chart-modal{background:#1a1a2e;border-radius:16px;width:95%;max-width:700px;max-height:90vh;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.chart-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
+.chart-title{font-size:16px;font-weight:bold;color:#e0e0e0}
+.chart-close{width:32px;height:32px;border:none;background:rgba(255,255,255,0.1);border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#aaa;transition:background .2s}
+.chart-close:hover{background:rgba(255,255,255,0.2)}
+.chart-toolbar{padding:6px 16px 0;display:flex;justify-content:space-between;align-items:center}
+.chart-legend{display:flex;gap:10px;font-size:12px;font-weight:bold}
+.chart-mode-toggle{display:flex;gap:4px}
+.chart-mode-btn{padding:4px 12px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:#aaa;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;transition:all .2s}
+.chart-mode-btn.active{background:rgba(102,126,234,0.3);color:#8da4ef;border-color:rgba(102,126,234,0.5)}
 .chart-body{padding:8px}
 #chartContainer{width:100%;height:400px}
 </style>
@@ -569,12 +574,18 @@ tr:nth-child(even){background:#fafafa}
 <span class="chart-title" id="chartTitle"></span>
 <button class="chart-close" onclick="closeChart()">&#x2715;</button>
 </div>
-<div class="chart-legend">
+<div class="chart-toolbar">
+<div class="chart-legend" id="chartLegend">
 <span style="color:#ff9800">MA5</span>
 <span style="color:#2196f3">MA10</span>
 <span style="color:#e91e63">MA20</span>
 <span style="color:#9c27b0">MA60</span>
 <span style="color:#4caf50">MA240</span>
+</div>
+<div class="chart-mode-toggle">
+<button class="chart-mode-btn active" onclick="switchChartMode('ma')">MA</button>
+<button class="chart-mode-btn" onclick="switchChartMode('bb')">BB</button>
+</div>
 </div>
 <div class="chart-body">
 <div id="chartContainer"></div>
@@ -1087,84 +1098,145 @@ function openChart(code) {
     }
 }
 
+var chartMode = 'ma';
+var chartCandleData = [];
+var chartVolumeData = [];
+var currentChartCode = '';
+
+function switchChartMode(mode) {
+    chartMode = mode;
+    var btns = document.querySelectorAll('.chart-mode-btn');
+    btns.forEach(function(b) { b.classList.toggle('active', b.textContent === mode.toUpperCase()); });
+    if (currentChartCode && chartCandleData.length) {
+        renderChart(currentChartCode, null);
+    }
+}
+
 function renderChart(code, ohlcData) {
     var container = document.getElementById('chartContainer');
     container.innerHTML = '';
     try {
 
-    var candleData = [];
-    var volumeData = [];
-    for (var i = 0; i < ohlcData.length; i++) {
-        var d = ohlcData[i];
-        var dateStr = d.t.substring(0,4) + '-' + d.t.substring(4,6) + '-' + d.t.substring(6,8);
-        candleData.push({ time: dateStr, open: d.o, high: d.h, low: d.l, close: d.c });
-        volumeData.push({
-            time: dateStr,
-            value: d.v * 1000,
-            color: d.c >= d.o ? 'rgba(239,83,80,0.5)' : 'rgba(38,166,154,0.5)'
-        });
+    if (ohlcData) {
+        chartCandleData = [];
+        chartVolumeData = [];
+        currentChartCode = code;
+        for (var i = 0; i < ohlcData.length; i++) {
+            var d = ohlcData[i];
+            var dateStr = d.t.substring(0,4) + '-' + d.t.substring(4,6) + '-' + d.t.substring(6,8);
+            chartCandleData.push({ time: dateStr, open: d.o, high: d.h, low: d.l, close: d.c });
+            chartVolumeData.push({
+                time: dateStr,
+                value: d.v * 1000,
+                color: d.c >= d.o ? 'rgba(239,83,80,0.2)' : 'rgba(38,166,154,0.2)'
+            });
+        }
     }
 
     var chart = LightweightCharts.createChart(container, {
         width: container.clientWidth,
         height: 400,
-        layout: { background: { type: 'solid', color: '#fff' }, textColor: '#333' },
-        grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
-        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        rightPriceScale: { borderColor: '#ddd' },
-        timeScale: { borderColor: '#ddd', timeVisible: false }
+        layout: { background: { type: 'solid', color: '#1a1a2e' }, textColor: '#a0a0b0', fontFamily: "'Segoe UI', sans-serif" },
+        grid: { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: 'rgba(102,126,234,0.3)', labelBackgroundColor: '#667eea' }, horzLine: { color: 'rgba(102,126,234,0.3)', labelBackgroundColor: '#667eea' } },
+        rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.05, bottom: 0.2 } },
+        timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: false }
     });
 
     var candleSeries = chart.addCandlestickSeries({
         upColor: '#ef5350', downColor: '#26a69a',
         borderDownColor: '#26a69a', borderUpColor: '#ef5350',
-        wickDownColor: '#26a69a', wickUpColor: '#ef5350'
+        wickDownColor: '#ef5350', wickUpColor: '#26a69a'
     });
-    candleSeries.setData(candleData);
+    candleSeries.setData(chartCandleData);
 
-    // 均線 MA5, MA10, MA20, MA60, MA240
-    var maConfigs = [
-        { n: 5, color: '#ff9800', width: 1 },
-        { n: 10, color: '#2196f3', width: 1 },
-        { n: 20, color: '#e91e63', width: 1 },
-        { n: 60, color: '#9c27b0', width: 1.5 },
-        { n: 240, color: '#4caf50', width: 1.5 }
-    ];
-    for (var m = 0; m < maConfigs.length; m++) {
-        var period = maConfigs[m].n;
-        if (candleData.length < period) continue;
-        var maData = [];
-        var sum = 0;
-        for (var i = 0; i < candleData.length; i++) {
-            sum += candleData[i].close;
-            if (i >= period) sum -= candleData[i - period].close;
-            if (i >= period - 1) {
-                maData.push({ time: candleData[i].time, value: Math.round(sum / period * 100) / 100 });
+    var legend = document.getElementById('chartLegend');
+
+    if (chartMode === 'ma') {
+        legend.innerHTML = '<span style="color:#ff9800">MA5</span><span style="color:#2196f3">MA10</span><span style="color:#e91e63">MA20</span><span style="color:#9c27b0">MA60</span><span style="color:#4caf50">MA240</span>';
+        var maConfigs = [
+            { n: 5, color: '#ff9800', width: 1 },
+            { n: 10, color: '#2196f3', width: 1 },
+            { n: 20, color: '#e91e63', width: 1 },
+            { n: 60, color: '#9c27b0', width: 1.5 },
+            { n: 240, color: '#4caf50', width: 1.5 }
+        ];
+        for (var m = 0; m < maConfigs.length; m++) {
+            var period = maConfigs[m].n;
+            if (chartCandleData.length < period) continue;
+            var maData = [];
+            var sum = 0;
+            for (var i = 0; i < chartCandleData.length; i++) {
+                sum += chartCandleData[i].close;
+                if (i >= period) sum -= chartCandleData[i - period].close;
+                if (i >= period - 1) {
+                    maData.push({ time: chartCandleData[i].time, value: Math.round(sum / period * 100) / 100 });
+                }
             }
+            var maSeries = chart.addLineSeries({
+                color: maConfigs[m].color,
+                lineWidth: maConfigs[m].width,
+                priceLineVisible: false,
+                lastValueVisible: false,
+                crosshairMarkerVisible: false
+            });
+            maSeries.setData(maData);
         }
-        var maSeries = chart.addLineSeries({
-            color: maConfigs[m].color,
-            lineWidth: maConfigs[m].width,
-            priceLineVisible: false,
-            lastValueVisible: false,
-            crosshairMarkerVisible: false
-        });
-        maSeries.setData(maData);
+    } else {
+        // Bollinger Bands (20, 2)
+        legend.innerHTML = '<span style="color:#e8c547">上軌</span><span style="color:#8da4ef">中線(MA20)</span><span style="color:#e8c547">下軌</span>';
+        var bbPeriod = 20;
+        if (chartCandleData.length >= bbPeriod) {
+            var bbMiddle = [], bbUpper = [], bbLower = [];
+            for (var i = 0; i < chartCandleData.length; i++) {
+                if (i < bbPeriod - 1) continue;
+                var sum = 0;
+                for (var j = i - bbPeriod + 1; j <= i; j++) sum += chartCandleData[j].close;
+                var mean = sum / bbPeriod;
+                var sqSum = 0;
+                for (var j = i - bbPeriod + 1; j <= i; j++) {
+                    var diff = chartCandleData[j].close - mean;
+                    sqSum += diff * diff;
+                }
+                var std = Math.sqrt(sqSum / bbPeriod);
+                var t = chartCandleData[i].time;
+                bbMiddle.push({ time: t, value: Math.round(mean * 100) / 100 });
+                bbUpper.push({ time: t, value: Math.round((mean + 2 * std) * 100) / 100 });
+                bbLower.push({ time: t, value: Math.round((mean - 2 * std) * 100) / 100 });
+            }
+            var upperSeries = chart.addLineSeries({
+                color: '#e8c547', lineWidth: 1.5,
+                priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false
+            });
+            upperSeries.setData(bbUpper);
+            var middleSeries = chart.addLineSeries({
+                color: '#8da4ef', lineWidth: 1, lineStyle: 2,
+                priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false
+            });
+            middleSeries.setData(bbMiddle);
+            var lowerSeries = chart.addLineSeries({
+                color: '#e8c547', lineWidth: 1.5,
+                priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false
+            });
+            lowerSeries.setData(bbLower);
+        }
     }
 
     var volumeSeries = chart.addHistogramSeries({
         priceFormat: { type: 'volume' },
-        priceScaleId: '',
+        priceScaleId: 'volume'
+    });
+    chart.priceScale('volume').applyOptions({
         scaleMargins: { top: 0.8, bottom: 0 }
     });
-    volumeSeries.setData(volumeData);
+    volumeSeries.setData(chartVolumeData);
 
     chart.timeScale().fitContent();
     chartInstance = chart;
 
     window.addEventListener('resize', chartResize);
     } catch(err) {
-        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#c00">圖表錯誤: ' + err.message + '</div>';
+        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#ff6b6b">圖表錯誤: ' + err.message + '</div>';
     }
 }
 

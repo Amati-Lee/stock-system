@@ -43,7 +43,7 @@ def get_market_map():
 
 
 def download_one(code, mkt_map):
-    """下載單支股票的 OHLC"""
+    """下載單支股票的 OHLC（使用 Ticker.history，thread-safe）"""
     mkt = mkt_map.get(code, '')
     if mkt in ('上櫃', '興櫃'):
         suffixes = ['.TWO', '.TW']
@@ -52,24 +52,25 @@ def download_one(code, mkt_map):
 
     for suffix in suffixes:
         try:
-            hist = yf.download(f"{code}{suffix}", period=PERIOD, progress=False, auto_adjust=False)
+            ticker = yf.Ticker(f"{code}{suffix}")
+            hist = ticker.history(period=PERIOD, auto_adjust=False)
             if hist is not None and len(hist) >= 5:
                 entries = []
                 for idx, row in hist.iterrows():
-                    o = row['Open'].iloc[0] if hasattr(row['Open'], 'iloc') else row['Open']
-                    h = row['High'].iloc[0] if hasattr(row['High'], 'iloc') else row['High']
-                    l = row['Low'].iloc[0] if hasattr(row['Low'], 'iloc') else row['Low']
-                    c = row['Close'].iloc[0] if hasattr(row['Close'], 'iloc') else row['Close']
-                    v_raw = row['Volume'].iloc[0] if hasattr(row['Volume'], 'iloc') else row['Volume']
-                    if any(math.isnan(float(x)) for x in [o, h, l, c]):
+                    o = float(row['Open'])
+                    h = float(row['High'])
+                    l = float(row['Low'])
+                    c = float(row['Close'])
+                    v_raw = float(row['Volume'])
+                    if any(math.isnan(x) for x in [o, h, l, c]):
                         continue
                     entries.append({
                         't': idx.strftime('%Y%m%d'),
-                        'o': round(float(o), 2),
-                        'h': round(float(h), 2),
-                        'l': round(float(l), 2),
-                        'c': round(float(c), 2),
-                        'v': int(float(v_raw) / 1000) if not math.isnan(float(v_raw)) else 0
+                        'o': round(o, 2),
+                        'h': round(h, 2),
+                        'l': round(l, 2),
+                        'c': round(c, 2),
+                        'v': int(v_raw / 1000) if not math.isnan(v_raw) else 0
                     })
                 return code, entries
         except Exception:
@@ -86,7 +87,7 @@ def main():
     print(f"輸出目錄: {OUTPUT_DIR}/")
     print()
 
-    # 跳過已存在且是今天下載的
+    # 跳過非今天下載的舊檔（今天的一律重抓，確保拿到收盤價）
     today = datetime.now().strftime('%Y%m%d')
     skip = 0
     to_download = []
@@ -94,7 +95,7 @@ def main():
         fpath = os.path.join(OUTPUT_DIR, f"{code}.json")
         if os.path.exists(fpath):
             mtime = datetime.fromtimestamp(os.path.getmtime(fpath)).strftime('%Y%m%d')
-            if mtime == today:
+            if mtime != today:
                 skip += 1
                 continue
         to_download.append(code)

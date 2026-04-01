@@ -26,6 +26,10 @@ if exist "stock_data_%TODAY%.csv" (
     echo.
     echo ℹ️ 今日 CSV 已存在（GitHub Actions 已下載），跳過下載。
     echo.
+    echo [Step 1.5] 下載 OHLC K線資料...
+    echo.
+    python download_ohlc.py
+    echo.
     echo [Step 2] 產生本地資料（突破訊號 CSV + PWA）...
     echo.
     python generate_pwa.py
@@ -46,6 +50,11 @@ if %errorlevel% neq 0 (
     if not "%1"=="auto" pause
     exit /b 1
 )
+
+echo.
+echo [Step 1.5] 下載 OHLC K線資料...
+echo.
+python download_ohlc.py
 
 echo.
 echo [Step 2] 產生手機版 PWA...
