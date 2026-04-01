@@ -211,14 +211,13 @@ def main():
     print("股票起飛警示系統")
     print("=" * 50)
 
-    # 載入追蹤清單
-    if not os.path.exists(WATCHLIST_PATH):
-        print("找不到 watchlist.json")
+    # 掃描全市場：讀取 pwa/ohlc/ 目錄下所有 OHLC 檔案
+    if not os.path.isdir(OHLC_DIR):
+        print(f"找不到 OHLC 目錄：{OHLC_DIR}")
         return
-    with open(WATCHLIST_PATH, "r", encoding="utf-8") as f:
-        watchlist = json.load(f)
-    codes = [s["code"] for s in watchlist]
-    print(f"追蹤清單：{len(codes)} 支股票")
+    ohlc_files = [f for f in os.listdir(OHLC_DIR) if f.endswith(".json")]
+    codes = [f.replace(".json", "") for f in ohlc_files]
+    print(f"全市場掃描：{len(codes)} 支股票")
 
     # 載入每日 CSV
     daily_data = load_latest_csv()
