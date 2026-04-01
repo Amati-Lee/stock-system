@@ -432,8 +432,23 @@ tr:nth-child(even){background:#fafafa}
 .chart-mode-toggle{display:flex;gap:4px}
 .chart-mode-btn{padding:4px 12px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:#aaa;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;transition:all .2s}
 .chart-mode-btn.active{background:rgba(102,126,234,0.3);color:#8da4ef;border-color:rgba(102,126,234,0.5)}
+.alert-banner{margin:12px;padding:14px 16px;background:linear-gradient(135deg,rgba(255,69,58,0.12),rgba(255,159,10,0.10));border:1px solid rgba(255,69,58,0.3);border-radius:14px}
+.alert-banner h3{margin:0 0 8px;font-size:14px;color:#ff6b6b;display:flex;align-items:center;gap:6px}
+.alert-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer}
+.alert-item:last-child{border-bottom:none}
+.alert-left{display:flex;flex-direction:column;gap:2px}
+.alert-code{font-weight:bold;font-size:14px;color:#e0e0e0}
+.alert-reasons{font-size:11px;color:#aaa;line-height:1.4}
+.alert-right{text-align:right}
+.alert-price{font-size:15px;font-weight:bold;color:#ef5350}
+.alert-chg{font-size:12px}
+.alert-score{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;background:rgba(255,69,58,0.2);color:#ff6b6b;margin-top:2px}
+.alert-none{color:#666;font-size:13px;padding:4px 0}
+.chart-info{padding:4px 16px 0;font-size:11px;color:#a0a0b0;display:flex;gap:12px;flex-wrap:wrap;min-height:18px}
+.chart-info span{white-space:nowrap}
 .chart-body{padding:8px}
-#chartContainer{width:100%;height:400px}
+#chartContainer{width:100%;height:320px}
+#volumeContainer{width:100%;height:80px}
 </style>
 </head>
 <body>
@@ -450,6 +465,8 @@ tr:nth-child(even){background:#fafafa}
 <span style="margin-left:auto;font-size:18px">📈</span>
 </div>
 </div>
+
+<div id="alertBanner"></div>
 
 <div class="card">
 <div class="search-wrap">
@@ -587,8 +604,10 @@ tr:nth-child(even){background:#fafafa}
 <button class="chart-mode-btn" onclick="switchChartMode('bb')">BB</button>
 </div>
 </div>
+<div class="chart-info" id="chartInfo"></div>
 <div class="chart-body">
 <div id="chartContainer"></div>
+<div id="volumeContainer"></div>
 </div>
 </div>
 </div>
@@ -597,6 +616,7 @@ tr:nth-child(even){background:#fafafa}
 <script>
 var RAW = __STOCK_DATA__;
 var HIST = __HIST_DATA__;
+var ALERTS = __ALERTS_DATA__;
 var OHLC_CACHE = {};
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
@@ -627,6 +647,9 @@ document.addEventListener('DOMContentLoaded', function() {
             : null;
         data.push(s);
     }
+
+    // 警示區塊
+    renderAlerts();
 
     // 策略按鈕（只切換外觀）
     var btns = document.querySelectorAll('.btn[data-st]');
@@ -1063,8 +1086,37 @@ function renderTable() {
     tbody.innerHTML = h;
 }
 
+// ==================== 警示 ====================
+function renderAlerts() {
+    var el = document.getElementById('alertBanner');
+    if (!ALERTS || !ALERTS.alerts || ALERTS.alerts.length === 0) {
+        el.innerHTML = '';
+        return;
+    }
+    var h = '<div class="alert-banner"><h3>&#x1F525; 起飛警示 (' + ALERTS.date + ')</h3>';
+    for (var i = 0; i < ALERTS.alerts.length; i++) {
+        var a = ALERTS.alerts[i];
+        var clr = a.chg_pct >= 0 ? '#ef5350' : '#26a69a';
+        var sign = a.chg_pct >= 0 ? '+' : '';
+        h += '<div class="alert-item" onclick="openChart(\'' + a.code + '\')">';
+        h += '<div class="alert-left">';
+        h += '<span class="alert-code">' + a.code + ' ' + a.name + '</span>';
+        h += '<span class="alert-reasons">' + a.reasons.join('、') + '</span>';
+        h += '</div>';
+        h += '<div class="alert-right">';
+        h += '<div class="alert-price">$' + a.close + '</div>';
+        h += '<div class="alert-chg" style="color:' + clr + '">' + sign + a.chg_pct + '%</div>';
+        h += '<span class="alert-score">&#x2B50; ' + a.score + '分</span>';
+        h += '</div></div>';
+    }
+    h += '</div>';
+    el.innerHTML = h;
+}
+
 // ==================== K 線圖 ====================
 var chartInstance = null;
+var volChartInstance = null;
+var syncingTimeScale = false;
 
 function openChart(code) {
     if (typeof LightweightCharts === 'undefined') { alert('需要網路連線才能顯示圖表'); return; }
@@ -1077,9 +1129,10 @@ function openChart(code) {
     document.getElementById('chartTitle').textContent = code + ' ' + (stock.股票名稱 || '');
     document.getElementById('chartOverlay').className = 'chart-overlay show';
     var container = document.getElementById('chartContainer');
-    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#888">載入中...</div>';
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:320px;color:#888">載入中...</div>';
+    document.getElementById('volumeContainer').innerHTML = '';
+    document.getElementById('chartInfo').innerHTML = '';
 
-    // 從快取或遠端載入 OHLC
     if (OHLC_CACHE[code]) {
         renderChart(code, OHLC_CACHE[code]);
     } else {
@@ -1093,7 +1146,7 @@ function openChart(code) {
             OHLC_CACHE[code] = ohlcData;
             renderChart(code, ohlcData);
         }).catch(function(err) {
-            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#888">此股票無歷史資料<br><small>' + err.message + '</small></div>';
+            container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:320px;color:#888">此股票無歷史資料<br><small>' + err.message + '</small></div>';
         });
     }
 }
@@ -1112,9 +1165,16 @@ function switchChartMode(mode) {
     }
 }
 
+function fmtVol(v) {
+    if (v >= 10000) return (v/10000).toFixed(1) + '萬';
+    return v.toLocaleString();
+}
+
 function renderChart(code, ohlcData) {
     var container = document.getElementById('chartContainer');
+    var volContainer = document.getElementById('volumeContainer');
     container.innerHTML = '';
+    volContainer.innerHTML = '';
     try {
 
     if (ohlcData) {
@@ -1124,24 +1184,29 @@ function renderChart(code, ohlcData) {
         for (var i = 0; i < ohlcData.length; i++) {
             var d = ohlcData[i];
             var dateStr = d.t.substring(0,4) + '-' + d.t.substring(4,6) + '-' + d.t.substring(6,8);
-            chartCandleData.push({ time: dateStr, open: d.o, high: d.h, low: d.l, close: d.c });
+            var prevClose = i > 0 ? ohlcData[i-1].c : d.o;
+            chartCandleData.push({ time: dateStr, open: d.o, high: d.h, low: d.l, close: d.c, prevClose: prevClose });
             chartVolumeData.push({
                 time: dateStr,
-                value: d.v * 1000,
-                color: d.c >= d.o ? 'rgba(239,83,80,0.2)' : 'rgba(38,166,154,0.2)'
+                value: d.v,
+                color: d.c >= prevClose ? 'rgba(239,83,80,0.5)' : 'rgba(38,166,154,0.5)'
             });
         }
     }
 
-    var chart = LightweightCharts.createChart(container, {
-        width: container.clientWidth,
-        height: 400,
+    var darkOpts = {
         layout: { background: { type: 'solid', color: '#1a1a2e' }, textColor: '#a0a0b0', fontFamily: "'Segoe UI', sans-serif" },
         grid: { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
-        crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: 'rgba(102,126,234,0.3)', labelBackgroundColor: '#667eea' }, horzLine: { color: 'rgba(102,126,234,0.3)', labelBackgroundColor: '#667eea' } },
-        rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.05, bottom: 0.2 } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal, vertLine: { color: 'rgba(102,126,234,0.3)', labelBackgroundColor: '#667eea' }, horzLine: { color: 'rgba(102,126,234,0.3)', labelBackgroundColor: '#667eea' } }
+    };
+
+    // === 上方 K 線圖 ===
+    var chart = LightweightCharts.createChart(container, Object.assign({
+        width: container.clientWidth,
+        height: 320,
+        rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.05, bottom: 0.05 } },
         timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: false }
-    });
+    }, darkOpts));
 
     var candleSeries = chart.addCandlestickSeries({
         upColor: '#ef5350', downColor: '#26a69a',
@@ -1183,7 +1248,6 @@ function renderChart(code, ohlcData) {
             maSeries.setData(maData);
         }
     } else {
-        // Bollinger Bands (20, 2)
         legend.innerHTML = '<span style="color:#e8c547">上軌</span><span style="color:#8da4ef">中線(MA20)</span><span style="color:#e8c547">下軌</span>';
         var bbPeriod = 20;
         if (chartCandleData.length >= bbPeriod) {
@@ -1204,54 +1268,155 @@ function renderChart(code, ohlcData) {
                 bbUpper.push({ time: t, value: Math.round((mean + 2 * std) * 100) / 100 });
                 bbLower.push({ time: t, value: Math.round((mean - 2 * std) * 100) / 100 });
             }
-            var upperSeries = chart.addLineSeries({
-                color: '#e8c547', lineWidth: 1.5,
-                priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false
-            });
+            var upperSeries = chart.addLineSeries({ color: '#e8c547', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
             upperSeries.setData(bbUpper);
-            var middleSeries = chart.addLineSeries({
-                color: '#8da4ef', lineWidth: 1, lineStyle: 2,
-                priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false
-            });
+            var middleSeries = chart.addLineSeries({ color: '#8da4ef', lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
             middleSeries.setData(bbMiddle);
-            var lowerSeries = chart.addLineSeries({
-                color: '#e8c547', lineWidth: 1.5,
-                priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false
-            });
+            var lowerSeries = chart.addLineSeries({ color: '#e8c547', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
             lowerSeries.setData(bbLower);
         }
     }
 
-    var volumeSeries = chart.addHistogramSeries({
+    // === 下方量柱圖（獨立） ===
+    var volChart = LightweightCharts.createChart(volContainer, Object.assign({
+        width: volContainer.clientWidth,
+        height: 80,
+        rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.1, bottom: 0 } },
+        timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: false, visible: false }
+    }, darkOpts));
+
+    var volumeSeries = volChart.addHistogramSeries({
         priceFormat: { type: 'volume' },
-        priceScaleId: 'volume'
-    });
-    chart.priceScale('volume').applyOptions({
-        scaleMargins: { top: 0.8, bottom: 0 }
+        priceLineVisible: false,
+        lastValueVisible: false
     });
     volumeSeries.setData(chartVolumeData);
 
+    // === 同步兩圖時間軸 ===
+    chart.timeScale().subscribeVisibleLogicalRangeChange(function(range) {
+        if (syncingTimeScale || !range) return;
+        syncingTimeScale = true;
+        volChart.timeScale().setVisibleLogicalRange(range);
+        syncingTimeScale = false;
+    });
+    volChart.timeScale().subscribeVisibleLogicalRangeChange(function(range) {
+        if (syncingTimeScale || !range) return;
+        syncingTimeScale = true;
+        chart.timeScale().setVisibleLogicalRange(range);
+        syncingTimeScale = false;
+    });
+
+    // === 十字線 OHLC + 量資訊 + 跨圖同步 ===
+    var infoEl = document.getElementById('chartInfo');
+    var syncingCrosshair = false;
+    function buildTimeMap() {
+        var m = {};
+        for (var i = 0; i < chartCandleData.length; i++) m[chartCandleData[i].time] = i;
+        return m;
+    }
+    var timeMap = buildTimeMap();
+
+    function updateInfo(time) {
+        if (!time) { infoEl.innerHTML = ''; return; }
+        var idx = timeMap[time];
+        if (idx === undefined) { infoEl.innerHTML = ''; return; }
+        var c = chartCandleData[idx];
+        var v = chartVolumeData[idx];
+        var prev = c.prevClose || c.open;
+        var chg = c.close - prev;
+        var pct = prev ? ((chg / prev) * 100).toFixed(2) : '0.00';
+        var clr = chg >= 0 ? '#ef5350' : '#26a69a';
+        infoEl.innerHTML = '<span>O <b style="color:' + clr + '">' + c.open.toFixed(2) + '</b></span>' +
+            '<span>H <b style="color:' + clr + '">' + c.high.toFixed(2) + '</b></span>' +
+            '<span>L <b style="color:' + clr + '">' + c.low.toFixed(2) + '</b></span>' +
+            '<span>C <b style="color:' + clr + '">' + c.close.toFixed(2) + '</b></span>' +
+            '<span style="color:' + clr + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(2) + ' (' + (chg >= 0 ? '+' : '') + pct + '%)</span>' +
+            '<span>量 <b>' + fmtVol(v.value) + '張</b></span>';
+    }
+
+    chart.subscribeCrosshairMove(function(param) {
+        updateInfo(param.time);
+        if (syncingCrosshair) return;
+        syncingCrosshair = true;
+        if (param.time) {
+            var idx = timeMap[param.time];
+            if (idx !== undefined) {
+                var vd = chartVolumeData[idx];
+                volChart.setCrosshairPosition(vd.value, param.time, volumeSeries);
+            }
+        } else {
+            volChart.clearCrosshairPosition();
+        }
+        syncingCrosshair = false;
+    });
+
+    volChart.subscribeCrosshairMove(function(param) {
+        updateInfo(param.time);
+        if (syncingCrosshair) return;
+        syncingCrosshair = true;
+        if (param.time) {
+            var idx = timeMap[param.time];
+            if (idx !== undefined) {
+                var cd = chartCandleData[idx];
+                chart.setCrosshairPosition(cd.close, param.time, candleSeries);
+            }
+        } else {
+            chart.clearCrosshairPosition();
+        }
+        syncingCrosshair = false;
+    });
+
+    // === 可視範圍最高價標記 ===
+    function updatePeak() {
+        var range = chart.timeScale().getVisibleLogicalRange();
+        if (!range) return;
+        var from = Math.max(0, Math.floor(range.from));
+        var to = Math.min(chartCandleData.length - 1, Math.ceil(range.to));
+        var maxHigh = -Infinity, maxIdx = from;
+        for (var i = from; i <= to; i++) {
+            if (chartCandleData[i].high > maxHigh) {
+                maxHigh = chartCandleData[i].high;
+                maxIdx = i;
+            }
+        }
+        if (maxHigh > -Infinity) {
+            candleSeries.setMarkers([{
+                time: chartCandleData[maxIdx].time,
+                position: 'aboveBar',
+                color: '#ffd700',
+                shape: 'arrowDown',
+                text: maxHigh.toFixed(2)
+            }]);
+        }
+    }
+    chart.timeScale().subscribeVisibleLogicalRangeChange(updatePeak);
+    setTimeout(updatePeak, 100);
+
     chart.timeScale().fitContent();
+    volChart.timeScale().fitContent();
     chartInstance = chart;
+    volChartInstance = volChart;
 
     window.addEventListener('resize', chartResize);
     } catch(err) {
-        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:400px;color:#ff6b6b">圖表錯誤: ' + err.message + '</div>';
+        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:320px;color:#ff6b6b">圖表錯誤: ' + err.message + '</div>';
     }
 }
 
 function chartResize() {
-    if (chartInstance) {
-        var c = document.getElementById('chartContainer');
-        chartInstance.applyOptions({ width: c.clientWidth });
-    }
+    var c = document.getElementById('chartContainer');
+    var vc = document.getElementById('volumeContainer');
+    if (chartInstance) chartInstance.applyOptions({ width: c.clientWidth });
+    if (volChartInstance) volChartInstance.applyOptions({ width: vc.clientWidth });
 }
 
 function closeChart(e) {
     if (e && e.target !== document.getElementById('chartOverlay')) return;
     document.getElementById('chartOverlay').className = 'chart-overlay';
     if (chartInstance) { chartInstance.remove(); chartInstance = null; }
+    if (volChartInstance) { volChartInstance.remove(); volChartInstance = null; }
     window.removeEventListener('resize', chartResize);
+    document.getElementById('chartInfo').innerHTML = '';
 }
 
 if ('serviceWorker' in navigator) {
@@ -1512,7 +1677,18 @@ def main():
 
     # 產出 index.html
     html = HTML_TEMPLATE
+    # 讀取警示資料
+    alerts_path = os.path.join('pwa', 'alerts.json')
+    if os.path.exists(alerts_path):
+        with open(alerts_path, 'r', encoding='utf-8') as f:
+            alerts_json = f.read().strip()
+        print(f"  警示：{alerts_path} 已載入")
+    else:
+        alerts_json = '{"date":"","threshold":8,"scanned":0,"alerts":[]}'
+        print(f"  警示：無 alerts.json，跳過")
+
     html = html.replace('__STOCK_DATA__', json_data)
+    html = html.replace('__ALERTS_DATA__', alerts_json)
     html = html.replace('__UPDATE_TIME__', update_time)
     html = html.replace('__TOTAL_COUNT__', str(len(df)))
     html = html.replace('__HIST_DATA__', hist_json)

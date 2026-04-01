@@ -76,6 +76,10 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true'
         run: python download_ohlc.py
 
+      - name: Run stock alerts
+        if: steps.check_holiday.outputs.skip != 'true'
+        run: python stock_alert.py
+
       - name: Generate PWA
         if: steps.check_holiday.outputs.skip != 'true'
         run: python generate_pwa.py

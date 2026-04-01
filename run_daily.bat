@@ -30,6 +30,10 @@ if exist "stock_data_%TODAY%.csv" (
     echo.
     python download_ohlc.py
     echo.
+    echo [Step 1.8] 起飛警示掃描...
+    echo.
+    python stock_alert.py
+    echo.
     echo [Step 2] 產生本地資料（突破訊號 CSV + PWA）...
     echo.
     python generate_pwa.py
@@ -55,6 +59,11 @@ echo.
 echo [Step 1.5] 下載 OHLC K線資料...
 echo.
 python download_ohlc.py
+
+echo.
+echo [Step 1.8] 起飛警示掃描...
+echo.
+python stock_alert.py
 
 echo.
 echo [Step 2] 產生手機版 PWA...
