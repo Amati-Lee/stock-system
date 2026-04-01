@@ -432,8 +432,8 @@ tr:nth-child(even){background:#fafafa}
 .chart-mode-toggle{display:flex;gap:4px}
 .chart-mode-btn{padding:4px 12px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:#aaa;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;transition:all .2s}
 .chart-mode-btn.active{background:rgba(102,126,234,0.3);color:#8da4ef;border-color:rgba(102,126,234,0.5)}
-.alert-banner{margin:12px;padding:14px 16px;background:linear-gradient(135deg,rgba(255,69,58,0.12),rgba(255,159,10,0.10));border:1px solid rgba(255,69,58,0.3);border-radius:14px}
-.alert-banner h3{margin:0 0 8px;font-size:14px;color:#ff6b6b;display:flex;align-items:center;gap:6px}
+.alert-banner{margin:12px;padding:14px 16px;background:linear-gradient(135deg,rgba(30,30,60,0.95),rgba(40,30,50,0.95));border:1px solid rgba(255,69,58,0.4);border-radius:14px}
+.alert-banner h3{margin:0 0 8px;font-size:14px;color:#fff;text-shadow:0 0 8px rgba(255,69,58,0.8);display:flex;align-items:center;gap:6px}
 .alert-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer}
 .alert-item:last-child{border-bottom:none}
 .alert-left{display:flex;flex-direction:column;gap:2px}
@@ -442,7 +442,7 @@ tr:nth-child(even){background:#fafafa}
 .alert-right{text-align:right}
 .alert-price{font-size:15px;font-weight:bold;color:#ef5350}
 .alert-chg{font-size:12px}
-.alert-score{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;background:rgba(255,69,58,0.2);color:#ff6b6b;margin-top:2px}
+.alert-score{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;background:rgba(255,180,50,0.2);color:#ffc107;margin-top:2px}
 .alert-none{color:#666;font-size:13px;padding:4px 0}
 .chart-info{padding:4px 16px 0;font-size:11px;color:#a0a0b0;display:flex;gap:12px;flex-wrap:wrap;min-height:18px}
 .chart-info span{white-space:nowrap}
@@ -1392,8 +1392,12 @@ function renderChart(code, ohlcData) {
     chart.timeScale().subscribeVisibleLogicalRangeChange(updatePeak);
     setTimeout(updatePeak, 100);
 
-    chart.timeScale().fitContent();
-    volChart.timeScale().fitContent();
+    // 預設顯示最近 2 個月（約 40 個交易日）
+    var visibleBars = Math.min(40, chartCandleData.length);
+    var rangeFrom = chartCandleData.length - visibleBars - 0.5;
+    var rangeTo = chartCandleData.length - 0.5;
+    chart.timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
+    volChart.timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
     chartInstance = chart;
     volChartInstance = volChart;
 
