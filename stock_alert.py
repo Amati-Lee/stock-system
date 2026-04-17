@@ -13,6 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OHLC_DIR = os.path.join(SCRIPT_DIR, "pwa", "ohlc")
 ALERTS_OUT = os.path.join(SCRIPT_DIR, "pwa", "alerts.json")
 WATCHLIST_PATH = os.path.join(SCRIPT_DIR, "watchlist.json")
+MARKET_TYPE_PATH = os.path.join(SCRIPT_DIR, "stock_market_type.json")
 THRESHOLD = 8  # 警示門檻
 
 
@@ -223,6 +224,13 @@ def main():
     daily_data = load_latest_csv()
     print(f"每日資料：{len(daily_data)} 支股票")
 
+    # 載入市場分類
+    mkt_map = {}
+    if os.path.exists(MARKET_TYPE_PATH):
+        with open(MARKET_TYPE_PATH, "r", encoding="utf-8") as f:
+            mkt_map = json.load(f)
+        print(f"市場分類：{len(mkt_map)} 支股票")
+
     # 掃描全部
     alerts = []
     scanned = 0
@@ -234,6 +242,7 @@ def main():
         daily_row = daily_data.get(code)
         result = score_stock(code, ohlc, daily_row)
         if result:
+            result["market"] = mkt_map.get(code, "")
             alerts.append(result)
 
     # 按分數排序
@@ -253,7 +262,7 @@ def main():
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print(f"\n掃描完成：{scanned} 支")
-    print(f"警示門檻：≥ {THRESHOLD} 分")
+    print(f"警示門檻：>= {THRESHOLD} 分")
     print(f"觸發警示：{len(alerts)} 支")
     if alerts:
         print()

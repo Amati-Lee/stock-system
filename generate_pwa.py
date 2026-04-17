@@ -1100,7 +1100,8 @@ function renderAlerts() {
         var sign = a.chg_pct >= 0 ? '+' : '';
         h += '<div class="alert-item" onclick="openChart(\'' + a.code + '\')">';
         h += '<div class="alert-left">';
-        h += '<span class="alert-code">' + a.code + ' ' + a.name + '</span>';
+        var emgTag = a.market === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '';
+        h += '<span class="alert-code">' + a.code + ' ' + a.name + emgTag + '</span>';
         h += '<span class="alert-reasons">' + a.reasons.join('、') + '</span>';
         h += '</div>';
         h += '<div class="alert-right">';
