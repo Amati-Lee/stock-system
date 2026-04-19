@@ -43,9 +43,13 @@ jobs:
           # 2026 補班日（週六上班，但這裡不需要處理，因為 cron 只跑週一到五）
 
           TODAY=$(TZ=Asia/Taipei date +%Y-%m-%d)
-          echo "today=$TODAY"
+          DOW=$(TZ=Asia/Taipei date +%u)  # 1=Mon ... 7=Sun
+          echo "today=$TODAY (weekday=$DOW)"
 
-          if echo "$TW_HOLIDAYS_2026" | grep -q "$TODAY"; then
+          if [ "$DOW" -ge 6 ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⛔ $TODAY 是週末，跳過"
+          elif echo "$TW_HOLIDAYS_2026" | grep -q "$TODAY"; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "⛔ $TODAY 是國定假日，跳過"
           else
