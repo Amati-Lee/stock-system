@@ -66,6 +66,11 @@ df_merged['漲跌幅%'] = ((df_merged['收盤價_今'] - df_merged['收盤價_�
 df_merged['K值變化'] = (df_merged['K值_今'] - df_merged['K值_昨']).round(2)
 df_merged['D值變化'] = (df_merged['D值_今'] - df_merged['D值_昨']).round(2)
 df_merged['RSI變化'] = (df_merged['RSI_今'] - df_merged['RSI_昨']).round(2)
+# BB位置 = (收盤 - BB下軌) / (BB上軌 - BB下軌) * 100
+bb_range_today = df_merged['BB上軌_今'] - df_merged['BB下軌_今']
+df_merged['BB位置_今'] = ((df_merged['收盤價_今'] - df_merged['BB下軌_今']) / bb_range_today.replace(0, float('nan')) * 100).round(2)
+bb_range_yesterday = df_merged['BB上軌_昨'] - df_merged['BB下軌_昨']
+df_merged['BB位置_昨'] = ((df_merged['收盤價_昨'] - df_merged['BB下軌_昨']) / bb_range_yesterday.replace(0, float('nan')) * 100).round(2)
 df_merged['BB位置變化'] = (df_merged['BB位置_今'] - df_merged['BB位置_昨']).round(2)
 df_merged['量比變化'] = (df_merged['量比_今'] - df_merged['量比_昨']).round(2)
 

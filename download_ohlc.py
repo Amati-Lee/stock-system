@@ -1,134 +1,162 @@
 # -*- coding: utf-8 -*-
 """
 download_ohlc.py
-下載所有股票的 OHLC 歷史資料，存為個別 JSON 檔案供 K 線圖使用
+從每日 CSV 建構 OHLC 歷史資料，存為個別 JSON 檔案供 K 線圖使用。
+取代舊版 yfinance 下載方式，純本地檔案 I/O，無網路依賴。
 """
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
+import csv
+import glob
 import json
-import math
 import os
 import time
-import yfinance as yf
-import pandas as pd
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, timedelta
 
 OUTPUT_DIR = "pwa/ohlc"
-PERIOD = "18mo"
-MAX_WORKERS = 8
+HISTORY_DAYS = 548  # ~18 個月
 
 
-def get_all_stock_codes():
-    """從最新 CSV 取得所有股票代號"""
-    import glob
-    files = sorted(glob.glob("stock_data_*.csv"), reverse=True)
+def scan_csvs(since_date=None):
+    """
+    掃描所有 stock_data_*.csv，收集每支股票的 OHLC。
+    since_date: "YYYYMMDD" 字串，只處理此日期之後的 CSV（加速增量更新）。
+    回傳 dict[code] -> list[{t, o, h, l, c, v}]
+    """
+    files = sorted(glob.glob("stock_data_*.csv"))
+    if since_date:
+        files = [f for f in files if f.replace('stock_data_', '').replace('.csv', '') > since_date]
+
     if not files:
-        return []
-    df = pd.read_csv(files[0], encoding="utf-8-sig")
-    codes = df['股票代號'].astype(str).str.strip().tolist()
-    # 去掉小數點（如 "2330.0" → "2330"）
-    codes = [c.split('.')[0] for c in codes]
-    return sorted(set(codes))
+        return {}
 
-
-def get_market_map():
-    """讀取市場分類"""
-    path = "stock_market_type.json"
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return {}
-
-
-def download_one(code, mkt_map):
-    """下載單支股票的 OHLC（使用 Ticker.history，thread-safe）"""
-    mkt = mkt_map.get(code, '')
-    if mkt in ('上櫃', '興櫃'):
-        suffixes = ['.TWO', '.TW']
-    else:
-        suffixes = ['.TW', '.TWO']
-
-    for suffix in suffixes:
+    result = {}  # code -> list of entries
+    for fpath in files:
         try:
-            ticker = yf.Ticker(f"{code}{suffix}")
-            hist = ticker.history(period=PERIOD, auto_adjust=False)
-            if hist is not None and len(hist) >= 5:
-                entries = []
-                for idx, row in hist.iterrows():
-                    o = float(row['Open'])
-                    h = float(row['High'])
-                    l = float(row['Low'])
-                    c = float(row['Close'])
-                    v_raw = float(row['Volume'])
-                    if any(math.isnan(x) for x in [o, h, l, c]):
+            with open(fpath, encoding='utf-8-sig') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    code = row['股票代號'].strip().split('.')[0]
+                    trade_date = row.get('交易日', '').strip()
+                    if not trade_date:
                         continue
-                    entries.append({
-                        't': idx.strftime('%Y%m%d'),
-                        'o': round(o, 2),
-                        'h': round(h, 2),
-                        'l': round(l, 2),
-                        'c': round(c, 2),
-                        'v': int(v_raw / 1000) if not math.isnan(v_raw) else 0
-                    })
-                return code, entries
+                    t = trade_date.replace('-', '')
+
+                    try:
+                        o = round(float(row['開盤價']), 2)
+                        h = round(float(row['最高價']), 2)
+                        l = round(float(row['最低價']), 2)
+                        c = round(float(row['收盤價']), 2)
+                        v = int(float(row['成交量張'].replace(',', '')))
+                    except (ValueError, KeyError):
+                        continue
+
+                    if o <= 0 or c <= 0:
+                        continue
+
+                    if code not in result:
+                        result[code] = []
+                    result[code].append({'t': t, 'o': o, 'h': h, 'l': l, 'c': c, 'v': v})
+        except Exception as e:
+            print(f"  ⚠ 讀取 {fpath} 失敗: {e}")
+
+    return result
+
+
+def load_existing_ohlc():
+    """
+    讀取現有 pwa/ohlc/*.json。
+    回傳 (dict[code] -> list[entries], latest_dates dict[code] -> "YYYYMMDD")
+    """
+    existing = {}
+    latest_dates = {}
+    if not os.path.isdir(OUTPUT_DIR):
+        return existing, latest_dates
+
+    for fname in os.listdir(OUTPUT_DIR):
+        if not fname.endswith('.json'):
+            continue
+        code = fname[:-5]
+        fpath = os.path.join(OUTPUT_DIR, fname)
+        try:
+            with open(fpath, 'r', encoding='utf-8') as f:
+                entries = json.load(f)
+            if entries:
+                existing[code] = entries
+                latest_dates[code] = max(e['t'] for e in entries)
         except Exception:
             continue
-    return code, None
+
+    return existing, latest_dates
+
+
+def merge_and_trim(existing_entries, new_entries, cutoff):
+    """
+    合併既有與新 OHLC 資料，去重（新資料優先），排序，裁剪過期資料。
+    cutoff: "YYYYMMDD" 字串
+    """
+    # 用 dict 去重，新資料覆蓋舊資料
+    by_date = {}
+    for e in existing_entries:
+        by_date[e['t']] = e
+    for e in new_entries:
+        by_date[e['t']] = e
+
+    # 排序 + 裁剪
+    merged = sorted(by_date.values(), key=lambda x: x['t'])
+    return [e for e in merged if e['t'] >= cutoff]
 
 
 def main():
+    start = time.time()
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    codes = get_all_stock_codes()
-    mkt_map = get_market_map()
-    print(f"共 {len(codes)} 支股票，使用 {MAX_WORKERS} 線程下載")
-    print(f"輸出目錄: {OUTPUT_DIR}/")
-    print()
+    # 1. 載入現有 OHLC
+    print("載入現有 OHLC...")
+    existing, latest_dates = load_existing_ohlc()
+    print(f"  現有: {len(existing)} 支股票")
 
-    # 跳過非今天下載的舊檔（今天的一律重抓，確保拿到收盤價）
-    today = datetime.now().strftime('%Y%m%d')
-    skip = 0
-    to_download = []
-    for code in codes:
+    # 2. 決定要掃描哪些 CSV（增量）
+    since_date = None
+    if latest_dates:
+        # 從最舊的 "最新日期" 開始掃，確保所有股票都補到
+        since_date = min(latest_dates.values())
+        print(f"  增量模式: 掃描 {since_date} 之後的 CSV")
+    else:
+        print("  全量模式: 掃描所有 CSV")
+
+    # 3. 掃描 CSV
+    print("掃描 CSV 檔案...")
+    csv_data = scan_csvs(since_date)
+    total_new_entries = sum(len(v) for v in csv_data.values())
+    print(f"  CSV: {len(csv_data)} 支股票, {total_new_entries} 筆資料")
+
+    # 4. 合併 + 裁剪
+    cutoff = (datetime.now() - timedelta(days=HISTORY_DAYS)).strftime('%Y%m%d')
+    all_codes = sorted(set(list(existing.keys()) + list(csv_data.keys())))
+    print(f"合併中... ({len(all_codes)} 支股票, 裁剪 < {cutoff})")
+
+    written = 0
+    for code in all_codes:
+        old = existing.get(code, [])
+        new = csv_data.get(code, [])
+
+        if not old and not new:
+            continue
+
+        merged = merge_and_trim(old, new, cutoff)
+        if not merged:
+            continue
+
         fpath = os.path.join(OUTPUT_DIR, f"{code}.json")
-        if os.path.exists(fpath):
-            mtime = datetime.fromtimestamp(os.path.getmtime(fpath)).strftime('%Y%m%d')
-            if mtime != today:
-                skip += 1
-                continue
-        to_download.append(code)
-
-    if skip:
-        print(f"跳過 {skip} 支（今天已下載），剩餘 {len(to_download)} 支")
-
-    ok = 0
-    fail = 0
-    start = time.time()
-
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = {executor.submit(download_one, code, mkt_map): code for code in to_download}
-        for future in as_completed(futures):
-            code, entries = future.result()
-            if entries:
-                fpath = os.path.join(OUTPUT_DIR, f"{code}.json")
-                with open(fpath, 'w', encoding='utf-8') as f:
-                    json.dump(entries, f, ensure_ascii=False, separators=(',', ':'))
-                ok += 1
-            else:
-                fail += 1
-
-            total = ok + fail
-            if total % 50 == 0:
-                elapsed = time.time() - start
-                rate = total / elapsed if elapsed > 0 else 0
-                eta = (len(to_download) - total) / rate if rate > 0 else 0
-                print(f"  {total}/{len(to_download)} (成功 {ok}, 失敗 {fail}) — {elapsed:.0f}s, ETA {eta:.0f}s")
+        with open(fpath, 'w', encoding='utf-8') as f:
+            json.dump(merged, f, ensure_ascii=False, separators=(',', ':'))
+        written += 1
 
     elapsed = time.time() - start
     print()
-    print(f"完成！成功 {ok}, 失敗 {fail}, 耗時 {elapsed:.0f}s")
+    print(f"完成！{written} 支股票, 耗時 {elapsed:.1f}s")
     print(f"檔案: {OUTPUT_DIR}/")
 
 
