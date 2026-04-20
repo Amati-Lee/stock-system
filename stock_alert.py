@@ -261,6 +261,13 @@ def main():
     with open(ALERTS_OUT, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
+    # 保留歷史備份供回測
+    history_dir = os.path.join(SCRIPT_DIR, "alerts_history")
+    os.makedirs(history_dir, exist_ok=True)
+    history_path = os.path.join(history_dir, f"alerts_{today_str.replace('-', '')}.json")
+    with open(history_path, "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
+
     print(f"\n掃描完成：{scanned} 支")
     print(f"警示門檻：>= {THRESHOLD} 分")
     print(f"觸發警示：{len(alerts)} 支")
