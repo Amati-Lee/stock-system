@@ -13,6 +13,7 @@ import csv
 import glob
 import json
 import os
+import shutil
 import time
 from datetime import datetime, timedelta
 
@@ -22,7 +23,10 @@ except ImportError:
     requests = None
 
 OUTPUT_DIR = "pwa/ohlc"
+BACKUP_DIR = "pwa/ohlc_backup"
+HEALTH_FILE = "pwa/ohlc_backup/health.json"
 HISTORY_DAYS = 548  # ~18 個月
+HEALTHY_DAYS_TO_BACKUP = 3  # 連續健康 N 天才更新備份
 
 # 證交所 MI_INDEX（收盤後即時更新，比 OpenAPI 快）
 TWSE_MI_INDEX = "https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date={date}&type=ALLBUT0999"
@@ -274,6 +278,92 @@ def merge_and_trim(existing_entries, new_entries, cutoff):
     return [e for e in merged if e['t'] >= cutoff]
 
 
+def check_ohlc_health(api_date):
+    """
+    檢查 OHLC 是否健康：
+    - 至少 1000 支股票有 api_date 的資料
+    回傳 healthy_count
+    """
+    if not api_date or not os.path.isdir(OUTPUT_DIR):
+        return 0
+    count = 0
+    for fname in os.listdir(OUTPUT_DIR):
+        if not fname.endswith('.json'):
+            continue
+        fpath = os.path.join(OUTPUT_DIR, fname)
+        try:
+            with open(fpath, 'r', encoding='utf-8') as f:
+                entries = json.load(f)
+            if entries and entries[-1]['t'] == api_date:
+                count += 1
+        except Exception:
+            continue
+    return count
+
+
+def load_health():
+    """讀取健康狀態紀錄"""
+    if os.path.exists(HEALTH_FILE):
+        try:
+            with open(HEALTH_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"consecutive": 0, "last_healthy": "", "last_backup": ""}
+
+
+def save_health(health):
+    """儲存健康狀態紀錄"""
+    os.makedirs(os.path.dirname(HEALTH_FILE), exist_ok=True)
+    with open(HEALTH_FILE, 'w', encoding='utf-8') as f:
+        json.dump(health, f, ensure_ascii=False, indent=2)
+
+
+def backup_ohlc(api_date):
+    """將 OHLC 複製到備份資料夾"""
+    if os.path.isdir(BACKUP_DIR):
+        # 只刪 JSON 檔，保留 health.json
+        for f in os.listdir(BACKUP_DIR):
+            if f.endswith('.json') and f != 'health.json':
+                os.remove(os.path.join(BACKUP_DIR, f))
+    else:
+        os.makedirs(BACKUP_DIR, exist_ok=True)
+
+    count = 0
+    for f in os.listdir(OUTPUT_DIR):
+        if f.endswith('.json'):
+            shutil.copy2(os.path.join(OUTPUT_DIR, f), os.path.join(BACKUP_DIR, f))
+            count += 1
+
+    health = load_health()
+    health["last_backup"] = api_date
+    save_health(health)
+    print(f"  📦 備份完成: {count} 支股票 → {BACKUP_DIR}/")
+
+
+def restore_from_backup():
+    """從備份還原 OHLC"""
+    if not os.path.isdir(BACKUP_DIR):
+        print("  ⚠ 無備份可還原")
+        return False
+
+    backup_files = [f for f in os.listdir(BACKUP_DIR)
+                    if f.endswith('.json') and f != 'health.json']
+    if len(backup_files) < 100:
+        print(f"  ⚠ 備份檔案太少 ({len(backup_files)})，跳過還原")
+        return False
+
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    count = 0
+    for f in backup_files:
+        shutil.copy2(os.path.join(BACKUP_DIR, f), os.path.join(OUTPUT_DIR, f))
+        count += 1
+
+    health = load_health()
+    print(f"  🔄 已從備份還原: {count} 支股票 (備份日期: {health.get('last_backup', '?')})")
+    return True
+
+
 def main():
     start = time.time()
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -331,6 +421,36 @@ def main():
         with open(fpath, 'w', encoding='utf-8') as f:
             json.dump(merged, f, ensure_ascii=False, separators=(',', ':'))
         written += 1
+
+    # 6. 健��檢查 + 備份���理
+    if api_date:
+        healthy_count = check_ohlc_health(api_date)
+        health = load_health()
+        is_healthy = healthy_count >= 1000
+
+        if is_healthy:
+            if health.get("last_healthy", "") >= api_date:
+                # 同一天重複跑，不累加
+                pass
+            else:
+                health["consecutive"] = health.get("consecutive", 0) + 1
+                health["last_healthy"] = api_date
+                save_health(health)
+
+            print(f"  ✅ 健康: {healthy_count} 支有 {api_date} 資料 "
+                  f"(連續 {health['consecutive']} 天)")
+
+            if health["consecutive"] >= HEALTHY_DAYS_TO_BACKUP:
+                backup_ohlc(api_date)
+                health = load_health()  # 重新讀取（backup_ohlc 已更新 last_backup）
+                health["consecutive"] = 0
+                save_health(health)
+        else:
+            print(f"  ⚠ 異常: 只有 {healthy_count} 支有 {api_date} 資料")
+            if restore_from_backup():
+                # 還原後重新跑合併
+                health["consecutive"] = 0
+                save_health(health)
 
     elapsed = time.time() - start
     print()

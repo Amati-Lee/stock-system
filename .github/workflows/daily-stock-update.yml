@@ -76,7 +76,9 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true'
         uses: actions/cache@v4
         with:
-          path: pwa/ohlc
+          path: |
+            pwa/ohlc
+            pwa/ohlc_backup
           key: ohlc-data-${{ github.run_id }}
           restore-keys: ohlc-data-
 
