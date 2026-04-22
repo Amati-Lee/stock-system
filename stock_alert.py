@@ -7,6 +7,8 @@ import json
 import os
 import glob
 import csv
+import subprocess
+import sys
 from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -207,10 +209,67 @@ def score_stock(code, ohlc, daily_row):
     }
 
 
+def ensure_ohlc_up_to_date():
+    """確保 OHLC 資料與最新 CSV 同日，否則自動跑 download_ohlc.py"""
+    # 找最新 CSV 的交易日
+    csvs = sorted(glob.glob(os.path.join(SCRIPT_DIR, "stock_data_*.csv")))
+    if not csvs:
+        return
+    csv_date = os.path.basename(csvs[-1]).replace("stock_data_", "").replace(".csv", "")
+
+    # 抽查一支股票的 OHLC 最後日期
+    ohlc_dir = os.path.join(SCRIPT_DIR, "pwa", "ohlc")
+    if not os.path.isdir(ohlc_dir):
+        ohlc_date = None
+    else:
+        # 抽查 2330（台積電，一定有）或第一個檔案
+        sample = os.path.join(ohlc_dir, "2330.json")
+        if not os.path.exists(sample):
+            files = [f for f in os.listdir(ohlc_dir) if f.endswith(".json")]
+            sample = os.path.join(ohlc_dir, files[0]) if files else None
+        if sample and os.path.exists(sample):
+            with open(sample, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            ohlc_date = data[-1]["t"] if data else None
+        else:
+            ohlc_date = None
+
+    if ohlc_date == csv_date:
+        return  # 已同步
+
+    print(f"⚠ OHLC 最後日期 {ohlc_date} ≠ CSV 日期 {csv_date}")
+    print(f"  自動執行 download_ohlc.py 更新 OHLC...")
+    dl_script = os.path.join(SCRIPT_DIR, "download_ohlc.py")
+    result = subprocess.run([sys.executable, dl_script], cwd=SCRIPT_DIR)
+    if result.returncode != 0:
+        print("❌ download_ohlc.py 執行失敗，中斷警示計算")
+        sys.exit(1)
+
+    # 驗證更新結果
+    sample = os.path.join(ohlc_dir, "2330.json")
+    if not os.path.exists(sample):
+        files = [f for f in os.listdir(ohlc_dir) if f.endswith(".json")]
+        sample = os.path.join(ohlc_dir, files[0]) if files else None
+    if sample and os.path.exists(sample):
+        with open(sample, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        new_ohlc_date = data[-1]["t"] if data else None
+    else:
+        new_ohlc_date = None
+
+    if new_ohlc_date != csv_date:
+        print(f"❌ OHLC 更新後仍為 {new_ohlc_date}，CSV 為 {csv_date}，資料不可靠，中斷！")
+        sys.exit(1)
+    print(f"✅ OHLC 已驗證更新至 {csv_date}")
+
+
 def main():
     print("=" * 50)
     print("股票起飛警示系統")
     print("=" * 50)
+
+    # 自動確保 OHLC 與 CSV 同步
+    ensure_ohlc_up_to_date()
 
     # 掃描全市場：讀取 pwa/ohlc/ 目錄下所有 OHLC 檔案
     if not os.path.isdir(OHLC_DIR):

@@ -9,6 +9,8 @@ import glob
 import struct
 import zlib
 import shutil
+import subprocess
+import sys
 from datetime import datetime
 
 
@@ -1488,11 +1490,51 @@ MANIFEST = {
 }
 
 
+def ensure_ohlc_up_to_date():
+    """確保 OHLC 與最新 CSV 同日，否則自動跑 download_ohlc.py + stock_alert.py"""
+    csvs = sorted(glob.glob("stock_data_*.csv"))
+    if not csvs:
+        return
+    csv_date = os.path.basename(csvs[-1]).replace("stock_data_", "").replace(".csv", "")
+
+    ohlc_dir = os.path.join("pwa", "ohlc")
+    sample = os.path.join(ohlc_dir, "2330.json")
+    ohlc_date = None
+    if os.path.exists(sample):
+        with open(sample, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        ohlc_date = data[-1]["t"] if data else None
+
+    if ohlc_date == csv_date:
+        return
+
+    print(f"⚠ OHLC ({ohlc_date}) ≠ CSV ({csv_date})，自動更新...")
+    for script in ["download_ohlc.py", "stock_alert.py"]:
+        print(f"  執行 {script}...")
+        r = subprocess.run([sys.executable, script])
+        if r.returncode != 0:
+            print(f"❌ {script} 失敗，中斷")
+            sys.exit(1)
+
+    # 驗證
+    if os.path.exists(sample):
+        with open(sample, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        new_date = data[-1]["t"] if data else None
+        if new_date != csv_date:
+            print(f"❌ 更新後 OHLC 仍為 {new_date}，中斷！")
+            sys.exit(1)
+    print(f"✅ OHLC + alerts 已同步至 {csv_date}")
+
+
 def main():
     print("=" * 60)
     print("  產生股票篩選 PWA")
     print("=" * 60)
     print()
+
+    # 確保 OHLC 和 alerts 都是最新的
+    ensure_ohlc_up_to_date()
 
     # 找最新 CSV
     csv_file = get_latest_csv()

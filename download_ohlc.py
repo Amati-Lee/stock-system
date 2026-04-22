@@ -25,8 +25,10 @@ except ImportError:
 OUTPUT_DIR = "pwa/ohlc"
 BACKUP_DIR = "pwa/ohlc_backup"
 HEALTH_FILE = "pwa/ohlc_backup/health.json"
+SNAPSHOT_FILE = "ohlc_snapshot.tar.gz"  # commit 到 git，cache miss 時兜底
 HISTORY_DAYS = 548  # ~18 個月
 HEALTHY_DAYS_TO_BACKUP = 3  # 連續健康 N 天才更新備份
+SNAPSHOT_MIN_STOCKS = 5000  # snapshot 最少要有這麼多支才算有效
 
 # 證交所 MI_INDEX（收盤後即時更新，比 OpenAPI 快）
 TWSE_MI_INDEX = "https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date={date}&type=ALLBUT0999"
@@ -278,6 +280,36 @@ def merge_and_trim(existing_entries, new_entries, cutoff):
     return [e for e in merged if e['t'] >= cutoff]
 
 
+def save_snapshot():
+    """將 pwa/ohlc/ 壓縮為 ohlc_snapshot.tar.gz（commit 到 git 當備份）"""
+    import tarfile
+    count = len([f for f in os.listdir(OUTPUT_DIR) if f.endswith('.json')])
+    if count < SNAPSHOT_MIN_STOCKS:
+        print(f"  ⚠ 只有 {count} 支，不更新 snapshot（需 >= {SNAPSHOT_MIN_STOCKS}）")
+        return False
+    tmp = SNAPSHOT_FILE + ".tmp"
+    with tarfile.open(tmp, "w:gz") as tar:
+        tar.add(OUTPUT_DIR, arcname="ohlc")
+    os.replace(tmp, SNAPSHOT_FILE)
+    size_mb = os.path.getsize(SNAPSHOT_FILE) / 1024 / 1024
+    print(f"  📦 snapshot 已更新: {count} 支, {size_mb:.1f} MB → {SNAPSHOT_FILE}")
+    return True
+
+
+def restore_from_snapshot():
+    """從 ohlc_snapshot.tar.gz 還原（cache miss 時的兜底）"""
+    import tarfile
+    if not os.path.exists(SNAPSHOT_FILE):
+        print(f"  ⚠ 無 {SNAPSHOT_FILE} 可還原")
+        return False
+    size_mb = os.path.getsize(SNAPSHOT_FILE) / 1024 / 1024
+    with tarfile.open(SNAPSHOT_FILE, "r:gz") as tar:
+        tar.extractall("pwa")  # extracts ohlc/ into pwa/ohlc/
+    count = len([f for f in os.listdir(OUTPUT_DIR) if f.endswith('.json')])
+    print(f"  🔄 從 snapshot 還原: {count} 支 ({size_mb:.1f} MB)")
+    return count >= SNAPSHOT_MIN_STOCKS
+
+
 def check_ohlc_health(api_date):
     """
     檢查 OHLC 是否健康：
@@ -368,9 +400,13 @@ def main():
     start = time.time()
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # 1. 載入現有 OHLC
+    # 1. 載入現有 OHLC（cache miss 時自動從 snapshot 還原）
     print("載入現有 OHLC...")
     existing, latest_dates = load_existing_ohlc()
+    if len(existing) < SNAPSHOT_MIN_STOCKS:
+        print(f"  現有 {len(existing)} 支不足（cache miss？），嘗試從 snapshot 還原...")
+        if restore_from_snapshot():
+            existing, latest_dates = load_existing_ohlc()
     print(f"  現有: {len(existing)} 支股票")
 
     # 2. 從證交所/櫃買中心 API 下載最新資料
@@ -451,6 +487,10 @@ def main():
                 # 還原後重新跑合併
                 health["consecutive"] = 0
                 save_health(health)
+
+    # 7. 更新 git snapshot（寫入數 >= 5000 才更新，避免壞資料覆蓋好的）
+    if written >= SNAPSHOT_MIN_STOCKS:
+        save_snapshot()
 
     elapsed = time.time() - start
     print()
