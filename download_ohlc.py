@@ -416,13 +416,25 @@ def main():
     start = time.time()
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # 1. 載入現有 OHLC（cache miss 時自動從 snapshot 還原）
+    # 1. 載入現有 OHLC（cache miss 或淺資料時自動從 snapshot 還原）
     print("載入現有 OHLC...")
     existing, latest_dates = load_existing_ohlc()
+
+    # 檢查是否需要從 snapshot 還原（stock 數不足 OR 資料太淺）
+    need_restore = False
     if len(existing) < SNAPSHOT_MIN_STOCKS:
         print(f"  現有 {len(existing)} 支不足（cache miss？），嘗試從 snapshot 還原...")
+        need_restore = True
+    else:
+        deep_count = sum(1 for entries in existing.values() if len(entries) >= 20)
+        if deep_count < 500:
+            print(f"  現有 {len(existing)} 支但只有 {deep_count} 支有 >= 20 筆歷史（淺資料），從 snapshot 還原...")
+            need_restore = True
+
+    if need_restore:
         if restore_from_snapshot():
             existing, latest_dates = load_existing_ohlc()
+
     print(f"  現有: {len(existing)} 支股票")
 
     # 2. 從證交所/櫃買中心 API 下載最新資料
