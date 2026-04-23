@@ -106,12 +106,18 @@ jobs:
           git add stock_data_*.csv stock_names_all.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%d) stock update"
           git pull --rebase || {
-            echo "Rebase conflict (likely binary file), resolving with ours..."
-            git checkout --ours ohlc_snapshot.tar.gz
-            git add ohlc_snapshot.tar.gz
-            git rebase --continue
+            if git diff --name-only --diff-filter=U | grep -q .; then
+              echo "Rebase conflict (likely binary file), resolving with ours..."
+              git checkout --ours ohlc_snapshot.tar.gz 2>/dev/null || true
+              git add ohlc_snapshot.tar.gz
+              GIT_EDITOR=true git rebase --continue
+            else
+              echo "Pull failed (network error?), retrying in 30s..."
+              sleep 30
+              git pull --rebase
+            fi
           }
-          git push
+          git push || { sleep 30 && git push; }
 
       - name: Deploy to Cloudflare Pages
         if: steps.check_holiday.outputs.skip != 'true'
