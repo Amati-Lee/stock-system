@@ -287,6 +287,22 @@ def save_snapshot():
     if count < SNAPSHOT_MIN_STOCKS:
         print(f"  ⚠ 只有 {count} 支，不更新 snapshot（需 >= {SNAPSHOT_MIN_STOCKS}）")
         return False
+    # 深度檢查：至少 500 支有 >= 20 筆，避免淺資料覆蓋好的 snapshot
+    deep = 0
+    for fname in os.listdir(OUTPUT_DIR):
+        if not fname.endswith('.json'):
+            continue
+        try:
+            fpath = os.path.join(OUTPUT_DIR, fname)
+            with open(fpath, 'r', encoding='utf-8') as f:
+                entries = json.load(f)
+            if len(entries) >= 20:
+                deep += 1
+        except Exception:
+            continue
+    if deep < 500:
+        print(f"  ⚠ 只有 {deep} 支有 >= 20 筆歷史，不更新 snapshot（避免覆蓋好的備份）")
+        return False
     tmp = SNAPSHOT_FILE + ".tmp"
     with tarfile.open(tmp, "w:gz") as tar:
         tar.add(OUTPUT_DIR, arcname="ohlc")
@@ -413,11 +429,18 @@ def main():
     print("從證交所/櫃買中心下載最新資料...")
     api_data, api_date = fetch_from_api()
 
-    # 3. 掃描 CSV 補充歷史（增量）
+    # 3. 掃描 CSV 補充歷史（增量，但偵測淺資料時全量補齊）
     since_date = None
     if latest_dates:
-        since_date = min(latest_dates.values())
-        print(f"  增量 CSV: 掃描 {since_date} 之後")
+        # 檢查 OHLC 深度：如果大量股票不到 20 筆，強制全量掃描
+        shallow_count = sum(1 for code, entries in existing.items() if len(entries) < 20)
+        deep_count = len(existing) - shallow_count
+        if deep_count < 1000:
+            print(f"  ⚠ OHLC 太淺: {shallow_count}/{len(existing)} 支不到 20 筆，強制全量 CSV 掃描")
+            since_date = None
+        else:
+            since_date = min(latest_dates.values())
+            print(f"  增量 CSV: 掃描 {since_date} 之後")
     else:
         print("  全量 CSV: 掃描所有")
     csv_data = scan_csvs(since_date)
