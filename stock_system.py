@@ -248,14 +248,11 @@ def _load_verified() -> list[str]:
 def get_stock_list(cfg: ScreenerConfig, deep: bool = False) -> list[str]:
     """
     取股票清單的主入口。
-    
-    - 正常模式：使用 tw_stock_verified.txt 緩存清單（永久有效）
-    - deep=True：強制重新驗證全範圍 1100-9999，更新緩存
-    
-    第一次執行時會自動驗證並建立緩存，之後就一直用這個清單，
-    除非手動刪除 tw_stock_verified.txt 或使用 deep=True 重新驗證。
+
+    優先使用 stock_names_all.json（TWSE/TPEx API 來源，排除興櫃），
+    若 JSON 不存在或為空則 fallback 到 tw_stock_verified.txt。
+    deep=True 時強制重新驗證全範圍並更新 tw_stock_verified.txt。
     """
-    # deep 模式強制重新驗證
     if deep:
         print("🔍 深度掃描模式：強制重新驗證全範圍股票清單 (1100-9999)")
         stocks = _run_verification(deep=True)
@@ -265,27 +262,48 @@ def get_stock_list(cfg: ScreenerConfig, deep: bool = False) -> list[str]:
         else:
             print("❌ 驗證結果為空")
             return []
-    elif os.path.exists(VERIFIED_CACHE):
-        # 緩存存在，直接使用（不檢查日期）
-        stocks = _load_verified()
-        print(f"📦 使用已驗證清單：{len(stocks)} 筆股票（來自 tw_stock_verified.txt）")
     else:
-        # 第一次執行，自動建立緩存
-        print("⚠️  找不到 tw_stock_verified.txt，自動建立清單...")
-        print("   建議：首次執行請使用 deep=True 取得完整 1070 筆股票")
-        stocks = _run_verification(deep=False)
+        # 優先用 stock_names_all.json（排除興櫃）
+        stocks = _get_stocks_from_names_json()
         if stocks:
-            _save_verified(stocks)
-            print(f"💾 清單已建立：{len(stocks)} 筆股票")
+            print(f"📦 使用 stock_names_all.json 清單：{len(stocks)} 筆（上市+上櫃+興櫃）")
+        elif os.path.exists(VERIFIED_CACHE):
+            stocks = _load_verified()
+            print(f"📦 Fallback 到 tw_stock_verified.txt：{len(stocks)} 筆")
         else:
-            print("❌ 驗證結果為空")
-            return []
+            print("⚠️  找不到股票清單，自動建立...")
+            stocks = _run_verification(deep=False)
+            if stocks:
+                _save_verified(stocks)
+                print(f"💾 清單已建立：{len(stocks)} 筆股票")
+            else:
+                print("❌ 驗證結果為空")
+                return []
 
     count = min(len(stocks), cfg.max_stocks)
     est_min = count * 0.3 / 60
     print(f"📊 本次掃描：{count} 筆，預估時間：約 {est_min:.1f} 分鐘")
 
     return stocks[:cfg.max_stocks]
+
+
+def _get_stocks_from_names_json() -> list[str]:
+    """從 stock_names_all.json 取得上市+上櫃股票清單（排除興櫃）。"""
+    json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stock_names_all.json")
+    market_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stock_market_type.json")
+    if not os.path.exists(json_path):
+        return []
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            names = json.load(f)
+        market = {}
+        if os.path.exists(market_path):
+            with open(market_path, "r", encoding="utf-8") as f:
+                market = json.load(f)
+        stocks = sorted(k for k in names if market.get(k, "") in ("上市", "上櫃", "興櫃"))
+        return stocks if len(stocks) >= 500 else []  # 安全閾值：少於 500 筆視為異常
+    except Exception:
+        return []
 
 
 # ============================================================
