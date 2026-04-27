@@ -1453,9 +1453,14 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-    if (e.request.url.indexOf('/ohlc/') !== -1) {
+    var url = e.request.url;
+    if (url.indexOf('/ohlc/') !== -1 || url.indexOf('alerts.json') !== -1 || url.indexOf('.csv') !== -1 || url.indexOf('.json') !== -1) {
         e.respondWith(
-            fetch(e.request).catch(function() { return caches.match(e.request); })
+            fetch(e.request).then(function(res) {
+                var clone = res.clone();
+                caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
+                return res;
+            }).catch(function() { return caches.match(e.request); })
         );
     } else if (e.request.mode === 'navigate') {
         e.respondWith(

@@ -18,6 +18,7 @@ echo.
 
 echo [Step 0] 從 GitHub 同步最新資料...
 echo.
+git checkout -- ohlc_snapshot.tar.gz 2>nul
 git pull --ff-only
 
 for /f %%i in ('powershell -command "Get-Date -Format \"yyyyMMdd\""') do set TODAY=%%i
