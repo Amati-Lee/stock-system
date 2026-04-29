@@ -93,7 +93,12 @@ def fetch_tpex(date_str):
         resp = urllib.request.urlopen(req, timeout=30, context=SSL_CTX)
         data = json.loads(resp.read().decode("utf-8"))
 
-        rows = data.get("aaData", [])
+        # 新版 API: tables[0].data
+        tables = data.get("tables", [])
+        rows = tables[0].get("data", []) if tables else []
+        if not rows:
+            # fallback 舊版
+            rows = data.get("aaData", [])
         if not rows:
             print(f"  TPEx: no data")
             return result
@@ -106,17 +111,19 @@ def fetch_tpex(date_str):
                 def parse_int(s):
                     return int(str(s).replace(",", "").replace(" ", ""))
 
-                # 欄位順序: 代號, 名稱, 外資買, 外資賣, 外資淨買,
-                #           投信買, 投信賣, 投信淨買,
-                #           自營買(自行), 自營賣(自行), 自營淨買(自行),
-                #           自營買(避險), 自營賣(避險), 自營淨買(避險),
-                #           三大法人合計
-                foreign = parse_int(row[4])    # 外資淨買（股）
-                trust = parse_int(row[7])      # 投信淨買（股）
-                dealer_prop = parse_int(row[10])   # 自營(自行)淨買
-                dealer_hedge = parse_int(row[13])  # 自營(避險)淨買
-                dealer = dealer_prop + dealer_hedge
-                total = foreign + trust + dealer
+                # 24 欄: 代號, 名稱,
+                #   外資(不含自營) 買/賣/淨 [2-4],
+                #   外資自營 買/賣/淨 [5-7],
+                #   外資合計 買/賣/淨 [8-10],
+                #   投信 買/賣/淨 [11-13],
+                #   自營(自行) 買/賣/淨 [14-16],
+                #   自營(避險) 買/賣/淨 [17-19],
+                #   自營合計 買/賣/淨 [20-22],
+                #   三大法人合計 [23]
+                foreign = parse_int(row[10])   # 外資合計淨買（股）
+                trust = parse_int(row[13])     # 投信淨買（股）
+                dealer = parse_int(row[22])    # 自營合計淨買（股）
+                total = parse_int(row[23])     # 三大法人合計（股）
 
                 result[code] = {
                     "foreign": round(foreign / 1000),
