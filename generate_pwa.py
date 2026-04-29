@@ -441,6 +441,9 @@ tr:nth-child(even){background:#fafafa}
 .alert-left{display:flex;flex-direction:column;gap:2px}
 .alert-code{font-weight:bold;font-size:14px;color:#e0e0e0}
 .alert-reasons{font-size:11px;color:#aaa;line-height:1.4}
+.inst-tag{display:inline-block;font-size:10px;margin-top:2px;padding:1px 4px;background:#1a1a2e;border-radius:3px}
+.inst-tag span{margin-right:6px}
+.watch-inst{margin:4px 0 2px 0}
 .alert-right{text-align:right}
 .alert-price{font-size:15px;font-weight:bold;color:#ef5350}
 .alert-chg{font-size:12px}
@@ -471,6 +474,22 @@ tr:nth-child(even){background:#fafafa}
 .watch-date.today{color:#ff5722;font-weight:bold}
 .watch-notes{font-size:11px;color:#888;margin-top:4px;line-height:1.4}
 .watch-sl{font-size:11px;color:#ef5350;margin-top:2px}
+.watch-add-btn{display:none;font-size:13px;background:#2196F3;color:#fff;padding:2px 10px;border-radius:10px;margin-left:8px;cursor:pointer}
+.watch-add-btn.show{display:inline}
+.watch-del-btn{font-size:10px;color:#666;cursor:pointer;margin-top:4px;display:none}
+.watch-del-btn.show{display:inline}
+.watch-actions{text-align:right}
+.watch-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center}
+.watch-form{background:#1a1a2e;border-radius:12px;padding:20px;width:90%;max-width:380px;max-height:85vh;overflow-y:auto}
+.watch-form h3{margin:0 0 12px;color:#fff}
+.watch-form label{display:block;font-size:11px;color:#aaa;margin-top:8px}
+.watch-form input,.watch-form textarea{width:100%;box-sizing:border-box;padding:8px;margin-top:2px;background:#0d1117;border:1px solid #333;border-radius:6px;color:#fff;font-size:14px}
+.watch-form input[type=number]{width:48%;display:inline-block}
+.watch-form input+input{margin-left:4%}
+.wf-btns{margin-top:16px;display:flex;gap:10px}
+.wf-btns button{flex:1;padding:10px;border:none;border-radius:8px;font-size:14px;cursor:pointer;background:#2196F3;color:#fff}
+.wf-btns .wf-cancel{background:#333;color:#aaa}
+#wf-msg{margin-top:8px;font-size:12px;color:#ff9800;text-align:center}
 .chart-info{padding:4px 16px 0;font-size:11px;color:#a0a0b0;display:flex;gap:12px;flex-wrap:wrap;min-height:18px}
 .chart-info span{white-space:nowrap}
 .chart-body{padding:8px}
@@ -647,6 +666,7 @@ var HIST = __HIST_DATA__;
 var ALERTS = __ALERTS_DATA__;
 var ANALYSIS = __ANALYSIS_DATA__;
 var WATCHNOTES = __WATCHNOTES_DATA__;
+var INST = __INST_DATA__;
 var OHLC_CACHE = {};
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
@@ -1122,6 +1142,14 @@ function toggleAnalysis(code) {
     var panel = document.getElementById('analysis-' + code);
     if (panel) panel.classList.toggle('show');
 }
+function renderInstTag(d) {
+    var parts = [];
+    if (d.foreign) { var c = d.foreign > 0 ? '#ef5350' : '#26a69a'; parts.push('<span style="color:'+c+'">外 '+(d.foreign>0?'+':'')+d.foreign+'</span>'); }
+    if (d.trust) { var c = d.trust > 0 ? '#ef5350' : '#26a69a'; parts.push('<span style="color:'+c+'">投 '+(d.trust>0?'+':'')+d.trust+'</span>'); }
+    if (d.dealer) { var c = d.dealer > 0 ? '#ef5350' : '#26a69a'; parts.push('<span style="color:'+c+'">自 '+(d.dealer>0?'+':'')+d.dealer+'</span>'); }
+    if (parts.length === 0) return '';
+    return '<span class="inst-tag">' + parts.join(' ') + '</span>';
+}
 function renderAlerts() {
     var el = document.getElementById('alertBanner');
     if (!ALERTS || !ALERTS.alerts || ALERTS.alerts.length === 0) {
@@ -1146,6 +1174,8 @@ function renderAlerts() {
         var emgTag = a.market === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '';
         h += '<span class="alert-code">' + a.code + ' ' + a.name + emgTag + '</span>';
         h += '<span class="alert-reasons">' + a.reasons.join('、') + '</span>';
+        var instD = (INST && INST.data) ? INST.data[a.code] : null;
+        if (instD) { h += renderInstTag(instD); }
         h += '</div>';
         h += '<div class="alert-right">';
         h += '<div class="alert-price">$' + a.close + '</div>';
@@ -1179,7 +1209,7 @@ function renderWatchlist() {
     }
     var stocks = WATCHNOTES.stocks;
     var codes = Object.keys(stocks);
-    var h = '<div class="watch-banner"><h3>&#x1F4CB; 觀察清單 (' + WATCHNOTES.trade_date + ')</h3>';
+    var h = '<div class="watch-banner"><h3 onclick="watchTitleTap()">&#x1F4CB; 觀察清單 (' + WATCHNOTES.trade_date + ') <span class="watch-add-btn" id="watchAddBtn" onclick="event.stopPropagation();showWatchForm()">+ 新增</span></h3>';
     for (var i = 0; i < codes.length; i++) {
         var code = codes[i];
         var s = stocks[code];
@@ -1188,6 +1218,8 @@ function renderWatchlist() {
         h += '<span class="watch-name" onclick="openChart(\'' + code + '\')" style="cursor:pointer">' + code + ' ' + s.name + '</span>';
         h += '<span class="watch-price">$' + s.price + '</span>';
         h += '</div>';
+        // 法人動向
+        if (s.institutional) { h += '<div class="watch-inst">' + renderInstTag(s.institutional) + '</div>'; }
         // 目標價
         var tkeys = Object.keys(s.targets || {});
         if (tkeys.length > 0) {
@@ -1226,10 +1258,109 @@ function renderWatchlist() {
         if (s.stop_loss) {
             h += '<div class="watch-sl">停損: $' + s.stop_loss + '</div>';
         }
+        h += '<div class="watch-actions"><span class="watch-del-btn" onclick="deleteWatch(\'' + code + '\')">刪除</span></div>';
         h += '</div>';
     }
     h += '</div>';
     el.innerHTML = h;
+}
+
+var WATCH_API = 'https://stock-watchlist.juria-orch.workers.dev/watchlist';
+var WATCH_TOKEN = '';
+var _watchTaps = 0, _watchTapTimer = null;
+function watchTitleTap() {
+    _watchTaps++;
+    if (_watchTapTimer) clearTimeout(_watchTapTimer);
+    _watchTapTimer = setTimeout(function(){ _watchTaps = 0; }, 800);
+    if (_watchTaps >= 3) {
+        _watchTaps = 0;
+        var btn = document.getElementById('watchAddBtn');
+        if (btn) btn.classList.toggle('show');
+        var dels = document.querySelectorAll('.watch-del-btn');
+        for (var i = 0; i < dels.length; i++) dels[i].classList.toggle('show');
+    }
+}
+
+function showWatchForm(prefill) {
+    var d = prefill || {};
+    var overlay = document.createElement('div');
+    overlay.className = 'watch-overlay';
+    overlay.innerHTML = '<div class="watch-form">' +
+        '<h3>' + (d.code ? '編輯' : '新增') + '觀察股票</h3>' +
+        '<label>Token (首次需輸入)</label><input id="wf-token" value="' + WATCH_TOKEN + '" type="password" placeholder="API Token">' +
+        '<label>股票代號</label><input id="wf-code" value="' + (d.code||'') + '" placeholder="例: 2330" ' + (d.code ? 'readonly' : '') + '>' +
+        '<label>股票名稱</label><input id="wf-name" value="' + (d.name||'') + '" placeholder="例: 台積電">' +
+        '<label>積極進場價</label><input id="wf-t1" type="number" value="' + (d.t1||'') + '" placeholder="價格"><input id="wf-t1n" value="' + (d.t1n||'') + '" placeholder="備註">' +
+        '<label>穩健進場價</label><input id="wf-t2" type="number" value="' + (d.t2||'') + '" placeholder="價格"><input id="wf-t2n" value="' + (d.t2n||'') + '" placeholder="備註">' +
+        '<label>保守進場價</label><input id="wf-t3" type="number" value="' + (d.t3||'') + '" placeholder="價格"><input id="wf-t3n" value="' + (d.t3n||'') + '" placeholder="備註">' +
+        '<label>停損價</label><input id="wf-sl" type="number" value="' + (d.sl||'') + '" placeholder="停損價格">' +
+        '<label>觀察重點 (逗號分隔)</label><input id="wf-watch" value="' + (d.watch||'') + '" placeholder="例: 投信動向, 營收成長">' +
+        '<label>關鍵日期 (一行一個: 2026-05-10 事件名)</label><textarea id="wf-dates" rows="3" placeholder="2026-05-10 4月營收公告">' + (d.dates||'') + '</textarea>' +
+        '<div class="wf-btns"><button onclick="submitWatch()">儲存</button><button onclick="closeWatchForm()" class="wf-cancel">取消</button></div>' +
+        '<div id="wf-msg"></div>' +
+        '</div>';
+    document.body.appendChild(overlay);
+}
+
+function closeWatchForm() {
+    var el = document.querySelector('.watch-overlay');
+    if (el) el.remove();
+}
+
+function submitWatch() {
+    var token = document.getElementById('wf-token').value.trim();
+    if (!token) { document.getElementById('wf-msg').textContent = '請輸入 Token'; return; }
+    WATCH_TOKEN = token;
+    var code = document.getElementById('wf-code').value.trim();
+    var name = document.getElementById('wf-name').value.trim();
+    if (!code) { document.getElementById('wf-msg').textContent = '請輸入股票代號'; return; }
+
+    var targets = {};
+    var t1 = document.getElementById('wf-t1').value;
+    if (t1) targets['積極進場'] = { price_below: parseFloat(t1), note: document.getElementById('wf-t1n').value };
+    var t2 = document.getElementById('wf-t2').value;
+    if (t2) targets['穩健進場'] = { price_below: parseFloat(t2), note: document.getElementById('wf-t2n').value };
+    var t3 = document.getElementById('wf-t3').value;
+    if (t3) targets['保守進場'] = { price_below: parseFloat(t3), note: document.getElementById('wf-t3n').value };
+
+    var watchArr = document.getElementById('wf-watch').value.split(',').map(function(s){return s.trim()}).filter(Boolean);
+    var sl = document.getElementById('wf-sl').value;
+    var datesRaw = document.getElementById('wf-dates').value.trim().split('\\n').filter(Boolean);
+    var keyDates = [];
+    for (var i = 0; i < datesRaw.length; i++) {
+        var parts = datesRaw[i].trim().split(/\\s+/);
+        if (parts.length >= 2) keyDates.push({ date: parts[0], event: parts.slice(1).join(' ') });
+    }
+
+    var body = { code: code, name: name || code, targets: targets, key_dates: keyDates, watch: watchArr, stop_loss: sl ? parseFloat(sl) : null };
+    document.getElementById('wf-msg').textContent = '儲存中...';
+
+    fetch(WATCH_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(body)
+    }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.ok) {
+            document.getElementById('wf-msg').textContent = '已儲存! 明日生效';
+            setTimeout(closeWatchForm, 1500);
+        } else {
+            document.getElementById('wf-msg').textContent = d.error || '儲存失敗';
+        }
+    }).catch(function(e) { document.getElementById('wf-msg').textContent = '網路錯誤: ' + e; });
+}
+
+function deleteWatch(code) {
+    if (!confirm('確定刪除 ' + code + '?')) return;
+    var token = WATCH_TOKEN || prompt('請輸入 API Token');
+    if (!token) return;
+    WATCH_TOKEN = token;
+    fetch(WATCH_API + '/' + code, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+    }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.ok) alert('已刪除，明日生效');
+        else alert(d.error || '刪除失敗');
+    }).catch(function(e) { alert('網路錯誤: ' + e); });
 }
 
 // ==================== K 線圖 ====================
@@ -1865,9 +1996,20 @@ def main():
         analysis_json = '{}'
         print(f"  AI分析：無 analysis.json，跳過")
 
+    # 讀取三大法人資料
+    inst_path = os.path.join('pwa', 'institutional.json')
+    if os.path.exists(inst_path):
+        with open(inst_path, 'r', encoding='utf-8') as f:
+            inst_json = f.read().strip()
+        print(f"  法人資料：{inst_path} 已載入")
+    else:
+        inst_json = '{}'
+        print(f"  法人資料：無 institutional.json，跳過")
+
     html = html.replace('__STOCK_DATA__', json_data)
     html = html.replace('__ALERTS_DATA__', alerts_json)
     html = html.replace('__ANALYSIS_DATA__', analysis_json)
+    html = html.replace('__INST_DATA__', inst_json)
 
     # 讀取觀察清單狀態
     watchnotes_path = os.path.join('pwa', 'watchlist_status.json')

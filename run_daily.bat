@@ -31,6 +31,10 @@ if exist "stock_data_%TODAY%.csv" (
     echo.
     python download_ohlc.py
     echo.
+    echo [Step 1.6] 下載三大法人資料...
+    echo.
+    python download_institutional.py
+    echo.
     echo [Step 1.8] 起飛警示掃描...
     echo.
     python stock_alert.py
@@ -60,6 +64,11 @@ echo.
 echo [Step 1.5] 下載 OHLC K線資料...
 echo.
 python download_ohlc.py
+
+echo.
+echo [Step 1.6] 下載三大法人資料...
+echo.
+python download_institutional.py
 
 echo.
 echo [Step 1.8] 起飛警示掃描...

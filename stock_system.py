@@ -322,63 +322,73 @@ def _get_symbol(ticker: str) -> str:
     return f"{ticker}.TW"
 
 
-def download_stock(ticker: str, start: str, end: str) -> pd.DataFrame | None:
+def download_stock(ticker: str, start: str, end: str, max_retries: int = 3) -> pd.DataFrame | None:
     """
     下載單股數據並統一為扁平 DataFrame。
     return 的 columns 全部小寫：open, high, low, close, volume
     自動偵測上市(.TW)/上櫃(.TWO)，並快取後綴。
+    失敗時自動重試，間隔遞增（2s, 5s, 10s）。
     """
     import sys, io
 
-    try:
-        _orig_out, _orig_err = sys.stdout, sys.stderr
-        sys.stdout = io.StringIO()
-        sys.stderr = io.StringIO()
+    retry_delays = [2, 5, 10]
+
+    for attempt in range(max_retries):
         try:
-            # 如果已知後綴就直接用，否則依序嘗試
-            if ticker in _suffix_cache:
-                suffixes = [_suffix_cache[ticker].replace(ticker, "")]
-            else:
-                suffixes = [".TW", ".TWO"]
+            _orig_out, _orig_err = sys.stdout, sys.stderr
+            sys.stdout = io.StringIO()
+            sys.stderr = io.StringIO()
+            try:
+                # 如果已知後綴就直接用，否則依序嘗試
+                if ticker in _suffix_cache:
+                    suffixes = [_suffix_cache[ticker].replace(ticker, "")]
+                else:
+                    suffixes = [".TW", ".TWO"]
 
-            df = None
-            for suffix in suffixes:
-                symbol = f"{ticker}{suffix}"
-                df = yf.download(
-                    symbol,
-                    start=start,
-                    end=end,
-                    progress=False,
-                    auto_adjust=True
-                )
-                if not df.empty:
-                    _suffix_cache[ticker] = symbol
-                    break
                 df = None
-        finally:
-            sys.stdout, sys.stderr = _orig_out, _orig_err
+                for suffix in suffixes:
+                    symbol = f"{ticker}{suffix}"
+                    df = yf.download(
+                        symbol,
+                        start=start,
+                        end=end,
+                        progress=False,
+                        auto_adjust=True
+                    )
+                    if not df.empty:
+                        _suffix_cache[ticker] = symbol
+                        break
+                    df = None
+            finally:
+                sys.stdout, sys.stderr = _orig_out, _orig_err
 
-        if df is None or df.empty:
+            if df is None or df.empty:
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delays[attempt])
+                    continue
+                return None
+
+            # --- 處理 yfinance 新版本的 MultiIndex columns ---
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+
+            df.columns = df.columns.str.lower()
+
+            # 去除重複欄位名（yfinance 偶爾回傳重複 columns）
+            df = df.loc[:, ~df.columns.duplicated()]
+
+            # 確認必要欄位存在
+            required = {"open", "high", "low", "close", "volume"}
+            if not required.issubset(set(df.columns)):
+                return None
+
+            return df
+
+        except Exception:
+            if attempt < max_retries - 1:
+                time.sleep(retry_delays[attempt])
+                continue
             return None
-
-        # --- 處理 yfinance 新版本的 MultiIndex columns ---
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-
-        df.columns = df.columns.str.lower()
-
-        # 去除重複欄位名（yfinance 偶爾回傳重複 columns）
-        df = df.loc[:, ~df.columns.duplicated()]
-
-        # 確認必要欄位存在
-        required = {"open", "high", "low", "close", "volume"}
-        if not required.issubset(set(df.columns)):
-            return None
-
-        return df
-
-    except Exception:
-        return None
 
 
 def _fetch_ticker_info(ticker: str) -> dict | None:
@@ -1642,7 +1652,7 @@ def run_screener(cfg: ScreenerConfig | None = None, deep: bool = False, save_csv
         else:
             print("—")
 
-        time.sleep(0.3)   # 避免打太快被 yfinance 限制
+        time.sleep(0.5)   # 避免打太快被 yfinance 限制
 
     # ============================================================
     # 排序結果

@@ -90,6 +90,10 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true'
         run: python download_ohlc.py
 
+      - name: Download institutional data
+        if: steps.check_holiday.outputs.skip != 'true'
+        run: python download_institutional.py
+
       - name: Run stock alerts
         if: steps.check_holiday.outputs.skip != 'true'
         run: python stock_alert.py

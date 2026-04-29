@@ -1,0 +1,7 @@
+name = "stock-watchlist"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "WATCHLIST_KV"
+id = "2ae307e7404642b9ba19d3e8fb9d043f"

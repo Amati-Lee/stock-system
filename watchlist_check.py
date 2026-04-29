@@ -13,11 +13,37 @@ from datetime import datetime
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 NOTES_PATH = os.path.join(SCRIPT_DIR, "watchlist_notes.json")
 STATUS_OUT = os.path.join(SCRIPT_DIR, "pwa", "watchlist_status.json")
+INST_PATH = os.path.join(SCRIPT_DIR, "pwa", "institutional.json")
 TELEGRAM_URL = "https://pomodoro-bot.juria-orch.workers.dev"
 TELEGRAM_CHAT_ID = "8786691885"
 
 
+def load_institutional():
+    """載入三大法人資料"""
+    if not os.path.exists(INST_PATH):
+        return {}
+    with open(INST_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get("data", {})
+
+
+WATCHLIST_API = "https://stock-watchlist.juria-orch.workers.dev/watchlist"
+
+
 def load_notes():
+    """先從 KV API 讀取，失敗則 fallback 到本地 JSON"""
+    # 嘗試從 Cloudflare KV 讀取
+    try:
+        req = urllib.request.Request(WATCHLIST_API, headers={"User-Agent": "stock-system/1.0"})
+        resp = urllib.request.urlopen(req, timeout=10)
+        data = json.loads(resp.read().decode("utf-8"))
+        if data:
+            print(f"  觀察清單：從 KV 載入 {len(data)} 支")
+            return data
+    except Exception as e:
+        print(f"  KV 讀取失敗 ({e})，使用本地檔案")
+
+    # Fallback: 本地 JSON
     if not os.path.exists(NOTES_PATH):
         return {}
     with open(NOTES_PATH, "r", encoding="utf-8") as f:
@@ -69,6 +95,8 @@ def main():
         print("無收盤價資料，跳過")
         return
 
+    inst_data = load_institutional()
+
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"觀察清單檢查：{len(notes)} 支，交易日 {trade_date}")
 
@@ -82,6 +110,9 @@ def main():
             print(f"  {code} {name}: 無報價，跳過")
             continue
 
+        # 法人資料
+        inst = inst_data.get(code, {})
+
         entry = {
             "name": name,
             "price": price,
@@ -89,6 +120,7 @@ def main():
             "upcoming_dates": [],
             "watch": note.get("watch", []),
             "stop_loss": note.get("stop_loss"),
+            "institutional": inst if inst else None,
             "triggered": [],
         }
 
@@ -139,6 +171,21 @@ def main():
             notifications.append(
                 f"{code} {name} ${price} 跌破停損 ${sl}"
             )
+
+        # 法人動向自動檢查
+        if inst:
+            trust_val = inst.get("trust", 0)
+            if trust_val > 0:
+                entry["triggered"].append("trust_buy")
+                notifications.append(
+                    f"{code} {name} 投信買超 {trust_val} 張"
+                )
+            foreign_val = inst.get("foreign", 0)
+            if foreign_val > 500:
+                entry["triggered"].append("foreign_big_buy")
+                notifications.append(
+                    f"{code} {name} 外資大買 {foreign_val} 張"
+                )
 
         results[code] = entry
         status = "HIT" if entry["triggered"] else "OK"
