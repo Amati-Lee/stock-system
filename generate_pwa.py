@@ -1209,7 +1209,9 @@ function renderWatchlist() {
     }
     var stocks = WATCHNOTES.stocks;
     var codes = Object.keys(stocks);
-    var h = '<div class="watch-banner"><h3 onclick="watchTitleTap()">&#x1F4CB; 觀察清單 (' + WATCHNOTES.trade_date + ') <span class="watch-add-btn" id="watchAddBtn" onclick="event.stopPropagation();showWatchForm()">+ 新增</span></h3>';
+    var cnt = codes.length;
+    var h = '<div class="watch-banner"><h3 onclick="toggleWatchBody()" style="cursor:pointer">&#x1F4CB; 觀察清單 (' + cnt + ') <span style="font-size:11px;color:#aaa">&#x25BC;</span> <span class="watch-add-btn" id="watchAddBtn" onclick="event.stopPropagation();showWatchForm()">+ 新增</span></h3>';
+    h += '<div id="watchBody" style="display:none">';
     for (var i = 0; i < codes.length; i++) {
         var code = codes[i];
         var s = stocks[code];
@@ -1261,8 +1263,13 @@ function renderWatchlist() {
         h += '<div class="watch-actions"><span class="watch-del-btn" onclick="deleteWatch(\'' + code + '\')">刪除</span></div>';
         h += '</div>';
     }
-    h += '</div>';
+    h += '</div></div>';
     el.innerHTML = h;
+}
+function toggleWatchBody() {
+    var b = document.getElementById('watchBody');
+    if (b) b.style.display = b.style.display === 'none' ? 'block' : 'none';
+    watchTitleTap();
 }
 
 var WATCH_API = 'https://stock-watchlist.juria-orch.workers.dev/watchlist';
