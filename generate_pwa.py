@@ -446,6 +446,13 @@ tr:nth-child(even){background:#fafafa}
 .alert-chg{font-size:12px}
 .alert-score{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;background:rgba(255,180,50,0.2);color:#ffc107;margin-top:2px}
 .alert-none{color:#666;font-size:13px;padding:4px 0}
+.analysis-panel{display:none;padding:10px 0 4px;border-top:1px solid rgba(255,255,255,0.08);margin-top:8px}
+.analysis-panel.show{display:block}
+.analysis-row{margin:6px 0;font-size:12px;line-height:1.5}
+.analysis-label{color:#ffc107;font-weight:bold;display:block;margin-bottom:2px}
+.analysis-text{color:#ccc}
+.analysis-chart-btn{display:inline-block;margin-top:8px;padding:6px 14px;background:rgba(102,126,234,0.3);color:#8da4ef;border:1px solid rgba(102,126,234,0.5);border-radius:8px;font-size:12px;cursor:pointer}
+.analysis-chart-btn:active{background:rgba(102,126,234,0.5)}
 .chart-info{padding:4px 16px 0;font-size:11px;color:#a0a0b0;display:flex;gap:12px;flex-wrap:wrap;min-height:18px}
 .chart-info span{white-space:nowrap}
 .chart-body{padding:8px}
@@ -619,6 +626,7 @@ tr:nth-child(even){background:#fafafa}
 var RAW = __STOCK_DATA__;
 var HIST = __HIST_DATA__;
 var ALERTS = __ALERTS_DATA__;
+var ANALYSIS = __ANALYSIS_DATA__;
 var OHLC_CACHE = {};
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
@@ -1089,18 +1097,30 @@ function renderTable() {
 }
 
 // ==================== 警示 ====================
+function toggleAnalysis(code) {
+    var panel = document.getElementById('analysis-' + code);
+    if (panel) panel.classList.toggle('show');
+}
 function renderAlerts() {
     var el = document.getElementById('alertBanner');
     if (!ALERTS || !ALERTS.alerts || ALERTS.alerts.length === 0) {
         el.innerHTML = '';
         return;
     }
+    var ana = (ANALYSIS && ANALYSIS.analysis) ? ANALYSIS.analysis : {};
+    var labels = [
+        ['position', '公司定位'], ['fundamental', '基本面優勢'], ['risk', '風險因素'],
+        ['technical', '技術面判斷'], ['conservative', '穩健型策略'], ['aggressive', '積極型策略'],
+        ['opinion', '客觀看法'], ['conclusion', '結論']
+    ];
     var h = '<div class="alert-banner"><h3>&#x1F525; 起飛警示 (' + ALERTS.date + ')</h3>';
     for (var i = 0; i < ALERTS.alerts.length; i++) {
         var a = ALERTS.alerts[i];
         var clr = a.chg_pct >= 0 ? '#ef5350' : '#26a69a';
         var sign = a.chg_pct >= 0 ? '+' : '';
-        h += '<div class="alert-item" onclick="openChart(\'' + a.code + '\')">';
+        var hasAna = !!ana[a.code];
+        h += '<div>';
+        h += '<div class="alert-item" onclick="' + (hasAna ? 'toggleAnalysis(\'' + a.code + '\')' : 'openChart(\'' + a.code + '\')') + '">';
         h += '<div class="alert-left">';
         var emgTag = a.market === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '';
         h += '<span class="alert-code">' + a.code + ' ' + a.name + emgTag + '</span>';
@@ -1111,6 +1131,19 @@ function renderAlerts() {
         h += '<div class="alert-chg" style="color:' + clr + '">' + sign + a.chg_pct + '%</div>';
         h += '<span class="alert-score">&#x2B50; ' + a.score + '分</span>';
         h += '</div></div>';
+        if (hasAna) {
+            var d = ana[a.code];
+            h += '<div class="analysis-panel" id="analysis-' + a.code + '">';
+            for (var j = 0; j < labels.length; j++) {
+                var val = d[labels[j][0]];
+                if (val) {
+                    h += '<div class="analysis-row"><span class="analysis-label">' + labels[j][1] + '</span><span class="analysis-text">' + val + '</span></div>';
+                }
+            }
+            h += '<span class="analysis-chart-btn" onclick="event.stopPropagation();openChart(\'' + a.code + '\')">K 線圖</span>';
+            h += '</div>';
+        }
+        h += '</div>';
     }
     h += '</div>';
     el.innerHTML = h;
@@ -1739,8 +1772,19 @@ def main():
         alerts_json = '{"date":"","threshold":8,"scanned":0,"alerts":[]}'
         print(f"  警示：無 alerts.json，跳過")
 
+    # 讀取 AI 分析資料
+    analysis_path = os.path.join('pwa', 'analysis.json')
+    if os.path.exists(analysis_path):
+        with open(analysis_path, 'r', encoding='utf-8') as f:
+            analysis_json = f.read().strip()
+        print(f"  AI分析：{analysis_path} 已載入")
+    else:
+        analysis_json = '{}'
+        print(f"  AI分析：無 analysis.json，跳過")
+
     html = html.replace('__STOCK_DATA__', json_data)
     html = html.replace('__ALERTS_DATA__', alerts_json)
+    html = html.replace('__ANALYSIS_DATA__', analysis_json)
     html = html.replace('__UPDATE_TIME__', update_time)
     html = html.replace('__TOTAL_COUNT__', str(len(df)))
     html = html.replace('__HIST_DATA__', hist_json)
