@@ -12,6 +12,8 @@ ALERTS_PATH = os.path.join(SCRIPT_DIR, "pwa", "alerts.json")
 ANALYSIS_OUT = os.path.join(SCRIPT_DIR, "pwa", "analysis.json")
 MODEL = "claude-haiku-4-5-20251001"
 MAX_RETRIES = 2
+TELEGRAM_URL = "https://pomodoro-bot.juria-orch.workers.dev"
+TELEGRAM_CHAT_ID = "8786691885"
 
 
 def load_alerts():
@@ -144,9 +146,10 @@ def analyze_stock(client, alert, csv_row, ohlc_summary):
             return parse_response(text)
         except Exception as e:
             err_msg = str(e)
-            # 帳單/權限錯誤，不重試直接中止
+            # 帳單/權限錯誤，通知後中止
             if "credit balance" in err_msg or "billing" in err_msg.lower():
                 print(f"\n    API 餘額不足，中止分析")
+                send_telegram("Anthropic API 餘額不足，AI 個股分析已停止。請至 console.anthropic.com 加值。")
                 raise SystemExit(0)
             if attempt < MAX_RETRIES:
                 print(f"    重試 ({attempt + 1}/{MAX_RETRIES})...")
@@ -214,6 +217,20 @@ def main():
 
     print(f"\n分析完成：{len(results)}/{len(alerts)} 支")
     print(f"輸出：{ANALYSIS_OUT}")
+
+
+def send_telegram(text):
+    """發送 Telegram 通知"""
+    import urllib.request
+    try:
+        data = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
+        req = urllib.request.Request(
+            TELEGRAM_URL, data=data,
+            headers={"Content-Type": "application/json"}, method="POST"
+        )
+        urllib.request.urlopen(req, timeout=10)
+    except Exception as e:
+        print(f"  Telegram 通知失敗: {e}")
 
 
 if __name__ == "__main__":
