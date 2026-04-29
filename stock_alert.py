@@ -17,6 +17,7 @@ ALERTS_OUT = os.path.join(SCRIPT_DIR, "pwa", "alerts.json")
 WATCHLIST_PATH = os.path.join(SCRIPT_DIR, "watchlist.json")
 MARKET_TYPE_PATH = os.path.join(SCRIPT_DIR, "stock_market_type.json")
 THRESHOLD = 8  # 警示門檻
+MIN_AVG_VOL = 100  # 日均量低於此值排除（避免流動性陷阱）
 
 
 def load_ohlc(code):
@@ -312,6 +313,13 @@ def main():
             if not result["name"]:
                 result["name"] = names_map.get(code, "")
             alerts.append(result)
+
+    # 過濾日均量過低的股票（流動性陷阱）
+    before = len(alerts)
+    alerts = [a for a in alerts if a["avg_volume"] >= MIN_AVG_VOL]
+    filtered = before - len(alerts)
+    if filtered:
+        print(f"已過濾 {filtered} 支日均量 < {MIN_AVG_VOL} 張的股票")
 
     # 按分數排序
     alerts.sort(key=lambda x: x["score"], reverse=True)
