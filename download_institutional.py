@@ -165,6 +165,47 @@ def main():
         json.dump(output, f, ensure_ascii=False)
     print(f"輸出: {OUT_PATH} ({len(merged)} stocks)")
 
+    # 注入法人資料到 OHLC JSON
+    inject_to_ohlc(merged, trade_date)
+
+
+def inject_to_ohlc(inst_data, trade_date):
+    """把法人買賣超注入到每支股票的 OHLC JSON（累積歷史）"""
+    ohlc_dir = os.path.join(SCRIPT_DIR, "pwa", "ohlc")
+    if not os.path.isdir(ohlc_dir):
+        print("  OHLC 目錄不存在，跳過注入")
+        return
+
+    injected = 0
+    for code, inst in inst_data.items():
+        ohlc_path = os.path.join(ohlc_dir, f"{code}.json")
+        if not os.path.exists(ohlc_path):
+            continue
+        try:
+            with open(ohlc_path, "r", encoding="utf-8") as f:
+                ohlc = json.load(f)
+            if not ohlc:
+                continue
+
+            # 找到對應交易日的記錄，注入法人資料
+            updated = False
+            for entry in ohlc:
+                if entry.get("t") == trade_date:
+                    entry["fi"] = inst["foreign"]  # 外資
+                    entry["ti"] = inst["trust"]     # 投信
+                    entry["di"] = inst["dealer"]    # 自營
+                    updated = True
+                    break
+
+            if updated:
+                with open(ohlc_path, "w", encoding="utf-8") as f:
+                    json.dump(ohlc, f, ensure_ascii=False)
+                injected += 1
+        except Exception:
+            continue
+
+    print(f"  法人注入 OHLC: {injected} stocks")
+
 
 if __name__ == "__main__":
     main()

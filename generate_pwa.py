@@ -495,6 +495,8 @@ tr:nth-child(even){background:#fafafa}
 .chart-body{padding:8px}
 #chartContainer{width:100%;height:320px}
 #volumeContainer{width:100%;height:80px}
+#instContainer{width:100%;height:90px}
+.inst-legend{font-size:10px;padding:2px 8px;color:#aaa}
 </style>
 </head>
 <body>
@@ -655,6 +657,7 @@ tr:nth-child(even){background:#fafafa}
 <div class="chart-body">
 <div id="chartContainer"></div>
 <div id="volumeContainer"></div>
+<div id="instContainer"></div>
 </div>
 </div>
 </div>
@@ -1388,6 +1391,7 @@ function openChart(code) {
     var container = document.getElementById('chartContainer');
     container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:320px;color:#888">載入中...</div>';
     document.getElementById('volumeContainer').innerHTML = '';
+    document.getElementById('instContainer').innerHTML = '';
     document.getElementById('chartInfo').innerHTML = '';
 
     if (OHLC_CACHE[code]) {
@@ -1411,6 +1415,8 @@ function openChart(code) {
 var chartMode = 'ma';
 var chartCandleData = [];
 var chartVolumeData = [];
+var chartInstData = { fi: [], ti: [], di: [] };
+var instChartInstance = null;
 var currentChartCode = '';
 
 function switchChartMode(mode) {
@@ -1430,13 +1436,16 @@ function fmtVol(v) {
 function renderChart(code, ohlcData) {
     var container = document.getElementById('chartContainer');
     var volContainer = document.getElementById('volumeContainer');
+    var instCont = document.getElementById('instContainer');
     container.innerHTML = '';
     volContainer.innerHTML = '';
+    instCont.innerHTML = '';
     try {
 
     if (ohlcData) {
         chartCandleData = [];
         chartVolumeData = [];
+        chartInstData = { fi: [], ti: [], di: [] };
         currentChartCode = code;
         for (var i = 0; i < ohlcData.length; i++) {
             var d = ohlcData[i];
@@ -1448,6 +1457,11 @@ function renderChart(code, ohlcData) {
                 value: d.v,
                 color: d.c >= prevClose ? 'rgba(239,83,80,0.5)' : 'rgba(38,166,154,0.5)'
             });
+            if (d.fi !== undefined || d.ti !== undefined || d.di !== undefined) {
+                chartInstData.fi.push({ time: dateStr, value: d.fi || 0, color: (d.fi||0) >= 0 ? 'rgba(255,152,0,0.7)' : 'rgba(255,152,0,0.3)' });
+                chartInstData.ti.push({ time: dateStr, value: d.ti || 0, color: (d.ti||0) >= 0 ? 'rgba(33,150,243,0.7)' : 'rgba(33,150,243,0.3)' });
+                chartInstData.di.push({ time: dateStr, value: d.di || 0, color: (d.di||0) >= 0 ? 'rgba(156,39,176,0.7)' : 'rgba(156,39,176,0.3)' });
+            }
         }
     }
 
@@ -1549,19 +1563,41 @@ function renderChart(code, ohlcData) {
     });
     volumeSeries.setData(chartVolumeData);
 
-    // === 同步兩圖時間軸 ===
-    chart.timeScale().subscribeVisibleLogicalRangeChange(function(range) {
+    // === 下方法人買賣超圖 ===
+    var instChart = null;
+    if (chartInstData.fi.length > 0) {
+        instCont.innerHTML = '<div class="inst-legend"><span style="color:#ff9800">外資</span> <span style="color:#2196f3">投信</span> <span style="color:#9c27b0">自營</span> (張)</div>';
+        var instDiv = document.createElement('div');
+        instCont.appendChild(instDiv);
+        instChart = LightweightCharts.createChart(instDiv, Object.assign({
+            width: instCont.clientWidth,
+            height: 70,
+            rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.1, bottom: 0.1 } },
+            timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: false, visible: false }
+        }, darkOpts));
+        var fSeries = instChart.addHistogramSeries({ color: '#ff9800', priceLineVisible: false, lastValueVisible: false, priceFormat: { type: 'volume' } });
+        fSeries.setData(chartInstData.fi);
+        var tSeries = instChart.addLineSeries({ color: '#2196f3', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+        tSeries.setData(chartInstData.ti);
+        var dSeries = instChart.addLineSeries({ color: '#9c27b0', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+        dSeries.setData(chartInstData.di);
+        instChartInstance = instChart;
+    } else {
+        instChartInstance = null;
+    }
+
+    // === 同步所有圖表時間軸 ===
+    function syncAll(source, range) {
         if (syncingTimeScale || !range) return;
         syncingTimeScale = true;
-        volChart.timeScale().setVisibleLogicalRange(range);
+        if (source !== chart) chart.timeScale().setVisibleLogicalRange(range);
+        if (source !== volChart) volChart.timeScale().setVisibleLogicalRange(range);
+        if (instChart && source !== instChart) instChart.timeScale().setVisibleLogicalRange(range);
         syncingTimeScale = false;
-    });
-    volChart.timeScale().subscribeVisibleLogicalRangeChange(function(range) {
-        if (syncingTimeScale || !range) return;
-        syncingTimeScale = true;
-        chart.timeScale().setVisibleLogicalRange(range);
-        syncingTimeScale = false;
-    });
+    }
+    chart.timeScale().subscribeVisibleLogicalRangeChange(function(range) { syncAll(chart, range); });
+    volChart.timeScale().subscribeVisibleLogicalRangeChange(function(range) { syncAll(volChart, range); });
+    if (instChart) instChart.timeScale().subscribeVisibleLogicalRangeChange(function(range) { syncAll(instChart, range); });
 
     // === 十字線 OHLC + 量資訊 + 跨圖同步 ===
     var infoEl = document.getElementById('chartInfo');
@@ -1589,6 +1625,14 @@ function renderChart(code, ohlcData) {
             '<span>C <b style="color:' + clr + '">' + c.close.toFixed(2) + '</b></span>' +
             '<span style="color:' + clr + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(2) + ' (' + (chg >= 0 ? '+' : '') + pct + '%)</span>' +
             '<span>量 <b>' + fmtVol(v.value) + '張</b></span>';
+        if (chartInstData.fi.length > 0 && chartInstData.fi[idx]) {
+            var fi = chartInstData.fi[idx], ti = chartInstData.ti[idx], di = chartInstData.di[idx];
+            if (fi && (fi.value || ti.value || di.value)) {
+                infoEl.innerHTML += '<span style="color:#ff9800">外' + (fi.value>0?'+':'') + fi.value + '</span>' +
+                    '<span style="color:#2196f3">投' + (ti.value>0?'+':'') + ti.value + '</span>' +
+                    '<span style="color:#9c27b0">自' + (di.value>0?'+':'') + di.value + '</span>';
+            }
+        }
     }
 
     chart.subscribeCrosshairMove(function(param) {
@@ -1655,6 +1699,7 @@ function renderChart(code, ohlcData) {
     var rangeTo = chartCandleData.length - 0.5;
     chart.timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
     volChart.timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
+    if (instChart) instChart.timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
     chartInstance = chart;
     volChartInstance = volChart;
 
@@ -1669,6 +1714,8 @@ function chartResize() {
     var vc = document.getElementById('volumeContainer');
     if (chartInstance) chartInstance.applyOptions({ width: c.clientWidth });
     if (volChartInstance) volChartInstance.applyOptions({ width: vc.clientWidth });
+    var ic = document.getElementById('instContainer');
+    if (instChartInstance && ic) instChartInstance.applyOptions({ width: ic.clientWidth });
 }
 
 function closeChart(e) {
@@ -1676,6 +1723,7 @@ function closeChart(e) {
     document.getElementById('chartOverlay').className = 'chart-overlay';
     if (chartInstance) { chartInstance.remove(); chartInstance = null; }
     if (volChartInstance) { volChartInstance.remove(); volChartInstance = null; }
+    if (instChartInstance) { instChartInstance.remove(); instChartInstance = null; }
     window.removeEventListener('resize', chartResize);
     document.getElementById('chartInfo').innerHTML = '';
 }
