@@ -424,7 +424,7 @@ tr:nth-child(even){background:#fafafa}
 .reset-btn:active{background:#e0e0ea;transform:scale(.98)}
 .chart-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center}
 .chart-overlay.show{display:flex}
-.chart-modal{background:#1a1a2e;border-radius:16px;width:95%;max-width:700px;max-height:90vh;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.chart-modal{background:#1a1a2e;border-radius:16px;width:95%;max-width:700px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
 .chart-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
 .chart-title{font-size:16px;font-weight:bold;color:#e0e0e0}
 .chart-close{width:32px;height:32px;border:none;background:rgba(255,255,255,0.1);border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#aaa;transition:background .2s}
@@ -497,6 +497,9 @@ tr:nth-child(even){background:#fafafa}
 #volumeContainer{width:100%;height:80px}
 #instContainer{width:100%;height:90px}
 .inst-legend{font-size:10px;padding:2px 8px;color:#aaa}
+.chart-drag-handle{width:100%;height:10px;cursor:ns-resize;display:flex;align-items:center;justify-content:center;touch-action:none}
+.chart-drag-handle::after{content:'';width:36px;height:3px;background:rgba(255,255,255,0.2);border-radius:2px}
+.chart-drag-handle:active::after{background:rgba(102,126,234,0.6)}
 </style>
 </head>
 <body>
@@ -656,7 +659,9 @@ tr:nth-child(even){background:#fafafa}
 <div class="chart-info" id="chartInfo"></div>
 <div class="chart-body">
 <div id="chartContainer"></div>
+<div class="chart-drag-handle" id="dragHandle1"></div>
 <div id="volumeContainer"></div>
+<div class="chart-drag-handle" id="dragHandle2"></div>
 <div id="instContainer"></div>
 </div>
 </div>
@@ -1729,6 +1734,64 @@ function closeChart(e) {
     window.removeEventListener('resize', chartResize);
     document.getElementById('chartInfo').innerHTML = '';
 }
+
+// === 拖拉調整圖表高度 ===
+function resizeChartById(id, h) {
+    if (id === 'chartContainer' && chartInstance) chartInstance.applyOptions({ height: h });
+    else if (id === 'volumeContainer' && volChartInstance) volChartInstance.applyOptions({ height: h });
+    else if (id === 'instContainer' && instChartInstance) {
+        var legend = document.querySelector('#instContainer .inst-legend');
+        var legendH = legend ? legend.offsetHeight : 18;
+        instChartInstance.applyOptions({ height: Math.max(20, h - legendH) });
+    }
+}
+(function() {
+    var dragging = false, startY = 0, aboveEl = null, belowEl = null, startAboveH = 0, startBelowH = 0;
+    var pairs = [
+        { handle: 'dragHandle1', above: 'chartContainer', below: 'volumeContainer' },
+        { handle: 'dragHandle2', above: 'volumeContainer', below: 'instContainer' }
+    ];
+    pairs.forEach(function(p) {
+        var h = document.getElementById(p.handle);
+        if (!h) return;
+        function start(e) {
+            e.preventDefault();
+            dragging = true;
+            aboveEl = document.getElementById(p.above);
+            belowEl = document.getElementById(p.below);
+            startY = e.touches ? e.touches[0].clientY : e.clientY;
+            startAboveH = aboveEl.offsetHeight;
+            startBelowH = belowEl.offsetHeight;
+            document.addEventListener('touchmove', move, { passive: false });
+            document.addEventListener('mousemove', move);
+            document.addEventListener('touchend', end);
+            document.addEventListener('mouseup', end);
+        }
+        function move(e) {
+            if (!dragging) return;
+            e.preventDefault();
+            var y = e.touches ? e.touches[0].clientY : e.clientY;
+            var delta = y - startY;
+            var newAbove = Math.max(40, startAboveH + delta);
+            var newBelow = Math.max(30, startBelowH - delta);
+            if (startAboveH + startBelowH - newAbove < 30) newAbove = startAboveH + startBelowH - 30;
+            if (startAboveH + startBelowH - newBelow < 40) newBelow = startAboveH + startBelowH - 40;
+            aboveEl.style.height = newAbove + 'px';
+            belowEl.style.height = newBelow + 'px';
+            resizeChartById(aboveEl.id, newAbove);
+            resizeChartById(belowEl.id, newBelow);
+        }
+        function end() {
+            dragging = false;
+            document.removeEventListener('touchmove', move);
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('touchend', end);
+            document.removeEventListener('mouseup', end);
+        }
+        h.addEventListener('touchstart', start, { passive: false });
+        h.addEventListener('mousedown', start);
+    });
+})();
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js?v=__CACHE_VERSION__').catch(function(){});
