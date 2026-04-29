@@ -453,6 +453,24 @@ tr:nth-child(even){background:#fafafa}
 .analysis-text{color:#ccc}
 .analysis-chart-btn{display:inline-block;margin-top:8px;padding:6px 14px;background:rgba(102,126,234,0.3);color:#8da4ef;border:1px solid rgba(102,126,234,0.5);border-radius:8px;font-size:12px;cursor:pointer}
 .analysis-chart-btn:active{background:rgba(102,126,234,0.5)}
+.watch-banner{margin:12px;padding:14px 16px;background:linear-gradient(135deg,rgba(20,40,60,0.95),rgba(25,50,45,0.95));border:1px solid rgba(76,175,80,0.4);border-radius:14px}
+.watch-banner h3{margin:0 0 10px;font-size:14px;color:#fff;display:flex;align-items:center;gap:6px}
+.watch-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.watch-item:last-child{border-bottom:none}
+.watch-header{display:flex;justify-content:space-between;align-items:center}
+.watch-name{font-weight:bold;font-size:14px;color:#e0e0e0}
+.watch-price{font-size:15px;font-weight:bold;color:#e0e0e0}
+.watch-targets{margin:6px 0;font-size:12px}
+.watch-target{display:flex;justify-content:space-between;padding:3px 0;color:#aaa}
+.watch-target.hit{color:#66bb6a;font-weight:bold}
+.watch-target .wt-label{flex:1}
+.watch-target .wt-price{width:60px;text-align:right}
+.watch-target .wt-diff{width:70px;text-align:right}
+.watch-dates{margin:4px 0;font-size:11px}
+.watch-date{color:#ffc107;padding:2px 0}
+.watch-date.today{color:#ff5722;font-weight:bold}
+.watch-notes{font-size:11px;color:#888;margin-top:4px;line-height:1.4}
+.watch-sl{font-size:11px;color:#ef5350;margin-top:2px}
 .chart-info{padding:4px 16px 0;font-size:11px;color:#a0a0b0;display:flex;gap:12px;flex-wrap:wrap;min-height:18px}
 .chart-info span{white-space:nowrap}
 .chart-body{padding:8px}
@@ -476,6 +494,7 @@ tr:nth-child(even){background:#fafafa}
 </div>
 
 <div id="alertBanner"></div>
+<div id="watchBanner"></div>
 
 <div class="card">
 <div class="search-wrap">
@@ -627,6 +646,7 @@ var RAW = __STOCK_DATA__;
 var HIST = __HIST_DATA__;
 var ALERTS = __ALERTS_DATA__;
 var ANALYSIS = __ANALYSIS_DATA__;
+var WATCHNOTES = __WATCHNOTES_DATA__;
 var OHLC_CACHE = {};
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
@@ -660,6 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 警示區塊
     renderAlerts();
+    renderWatchlist();
 
     // 策略按鈕（只切換外觀）
     var btns = document.querySelectorAll('.btn[data-st]');
@@ -1142,6 +1163,68 @@ function renderAlerts() {
             }
             h += '<span class="analysis-chart-btn" onclick="event.stopPropagation();openChart(\'' + a.code + '\')">K 線圖</span>';
             h += '</div>';
+        }
+        h += '</div>';
+    }
+    h += '</div>';
+    el.innerHTML = h;
+}
+
+// ==================== 觀察清單 ====================
+function renderWatchlist() {
+    var el = document.getElementById('watchBanner');
+    if (!WATCHNOTES || !WATCHNOTES.stocks || Object.keys(WATCHNOTES.stocks).length === 0) {
+        el.innerHTML = '';
+        return;
+    }
+    var stocks = WATCHNOTES.stocks;
+    var codes = Object.keys(stocks);
+    var h = '<div class="watch-banner"><h3>&#x1F4CB; 觀察清單 (' + WATCHNOTES.trade_date + ')</h3>';
+    for (var i = 0; i < codes.length; i++) {
+        var code = codes[i];
+        var s = stocks[code];
+        h += '<div class="watch-item">';
+        h += '<div class="watch-header">';
+        h += '<span class="watch-name" onclick="openChart(\'' + code + '\')" style="cursor:pointer">' + code + ' ' + s.name + '</span>';
+        h += '<span class="watch-price">$' + s.price + '</span>';
+        h += '</div>';
+        // 目標價
+        var tkeys = Object.keys(s.targets || {});
+        if (tkeys.length > 0) {
+            h += '<div class="watch-targets">';
+            for (var j = 0; j < tkeys.length; j++) {
+                var t = s.targets[tkeys[j]];
+                var cls = t.hit ? 'watch-target hit' : 'watch-target';
+                var icon = t.hit ? '&#x2705; ' : '';
+                var sign = t.diff_pct >= 0 ? '+' : '';
+                h += '<div class="' + cls + '">';
+                h += '<span class="wt-label">' + icon + tkeys[j] + ': ' + t.note + '</span>';
+                h += '<span class="wt-price">$' + t.target_price + '</span>';
+                h += '<span class="wt-diff">' + sign + t.diff_pct + '%</span>';
+                h += '</div>';
+            }
+            h += '</div>';
+        }
+        // 近期日期
+        var dates = s.upcoming_dates || [];
+        if (dates.length > 0) {
+            h += '<div class="watch-dates">';
+            for (var k = 0; k < dates.length; k++) {
+                var dd = dates[k];
+                var dcls = dd.days_left <= 0 ? 'watch-date today' : 'watch-date';
+                var dlabel = dd.days_left === 0 ? '(今天!)' : dd.days_left === 1 ? '(明天)' : '(' + dd.days_left + '天後)';
+                h += '<div class="' + dcls + '">' + dd.date + ' ' + dd.event + ' ' + dlabel + '</div>';
+            }
+            h += '</div>';
+        }
+        // 觀察重點
+        var watch = s.watch || [];
+        if (watch.length > 0) {
+            h += '<div class="watch-notes">觀察: ' + watch.join(' / ') + '</div>';
+        }
+        // 停損
+        if (s.stop_loss) {
+            h += '<div class="watch-sl">停損: $' + s.stop_loss + '</div>';
         }
         h += '</div>';
     }
@@ -1785,6 +1868,17 @@ def main():
     html = html.replace('__STOCK_DATA__', json_data)
     html = html.replace('__ALERTS_DATA__', alerts_json)
     html = html.replace('__ANALYSIS_DATA__', analysis_json)
+
+    # 讀取觀察清單狀態
+    watchnotes_path = os.path.join('pwa', 'watchlist_status.json')
+    if os.path.exists(watchnotes_path):
+        with open(watchnotes_path, 'r', encoding='utf-8') as f:
+            watchnotes_json = f.read().strip()
+        print(f"  觀察清單：{watchnotes_path} 已載入")
+    else:
+        watchnotes_json = '{}'
+        print(f"  觀察清單：無 watchlist_status.json，跳過")
+    html = html.replace('__WATCHNOTES_DATA__', watchnotes_json)
     html = html.replace('__UPDATE_TIME__', update_time)
     html = html.replace('__TOTAL_COUNT__', str(len(df)))
     html = html.replace('__HIST_DATA__', hist_json)
