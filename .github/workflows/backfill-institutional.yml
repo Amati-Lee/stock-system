@@ -1,0 +1,47 @@
+name: Backfill Institutional Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Number of trading days to backfill'
+        required: false
+        default: '60'
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Restore OHLC cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            pwa/ohlc
+            pwa/ohlc_backup
+          key: ohlc-data-${{ github.run_id }}
+          restore-keys: ohlc-data-
+
+      - name: Run backfill
+        run: python backfill_institutional.py ${{ github.event.inputs.days }}
+
+      - name: Verify backfill
+        run: |
+          python -c "
+          import json
+          with open('pwa/ohlc/2330.json') as f:
+              d = json.load(f)
+          has_inst = sum(1 for e in d if 'fi' in e)
+          print(f'2330: {has_inst}/{len(d)} days have institutional data')
+          "
