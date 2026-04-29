@@ -1146,11 +1146,13 @@ function toggleAnalysis(code) {
     if (panel) panel.classList.toggle('show');
 }
 function renderInstTag(d) {
-    var parts = [];
-    if (d.foreign) { var c = d.foreign > 0 ? '#ef5350' : '#26a69a'; parts.push('<span style="color:'+c+'">外 '+(d.foreign>0?'+':'')+d.foreign+'</span>'); }
-    if (d.trust) { var c = d.trust > 0 ? '#ef5350' : '#26a69a'; parts.push('<span style="color:'+c+'">投 '+(d.trust>0?'+':'')+d.trust+'</span>'); }
-    if (d.dealer) { var c = d.dealer > 0 ? '#ef5350' : '#26a69a'; parts.push('<span style="color:'+c+'">自 '+(d.dealer>0?'+':'')+d.dealer+'</span>'); }
-    if (parts.length === 0) return '';
+    if (d.foreign === undefined && d.trust === undefined && d.dealer === undefined) return '';
+    function fmt(label, val) {
+        var v = val || 0;
+        var c = v > 0 ? '#ef5350' : v < 0 ? '#26a69a' : '#888';
+        return '<span style="color:'+c+'">'+label+' '+(v>0?'+':'')+v+'</span>';
+    }
+    var parts = [fmt('外', d.foreign), fmt('投', d.trust), fmt('自', d.dealer)];
     return '<span class="inst-tag">' + parts.join(' ') + '</span>';
 }
 function renderAlerts() {
