@@ -102,8 +102,12 @@ if %errorlevel% neq 0 (
 echo.
 echo [Step 3] 部署到 Cloudflare...
 echo.
-set CLOUDFLARE_API_TOKEN=7NRf_D8SLdWVPtgvM_otnp1AUVD8Cz_lF7Z8ixeC
-set CLOUDFLARE_ACCOUNT_ID=49021099240f48de19359e92dd0732a0
+REM CLOUDFLARE_API_TOKEN 和 CLOUDFLARE_ACCOUNT_ID 從 Windows 環境變數讀取
+if not defined CLOUDFLARE_API_TOKEN (
+    echo ⚠️ 未設定 CLOUDFLARE_API_TOKEN 環境變數，跳過部署
+    if not "%1"=="auto" pause
+    exit /b 1
+)
 npx wrangler pages deploy pwa --project-name=stock-viewer --branch=main
 
 echo.
