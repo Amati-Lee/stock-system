@@ -117,7 +117,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add stock_data_*.csv stock_names_all.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json
+          git add stock_data_*.csv stock_names_all.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
+          git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%d) stock update"
           git pull --rebase || {
             if git diff --name-only --diff-filter=U | grep -q .; then
