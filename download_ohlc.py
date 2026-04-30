@@ -274,7 +274,14 @@ def merge_and_trim(existing_entries, new_entries, cutoff):
     for e in existing_entries:
         by_date[e['t']] = e
     for e in new_entries:
-        by_date[e['t']] = e
+        t = e['t']
+        if t in by_date:
+            # 保留舊資料的法人欄位（fi/ti/di）
+            old = by_date[t]
+            for k in ('fi', 'ti', 'di'):
+                if k in old and k not in e:
+                    e[k] = old[k]
+        by_date[t] = e
 
     merged = sorted(by_date.values(), key=lambda x: x['t'])
     return [e for e in merged if e['t'] >= cutoff]

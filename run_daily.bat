@@ -39,6 +39,8 @@ if exist "stock_data_%TODAY%.csv" (
     echo.
     python stock_alert.py
     echo.
+    echo ℹ️ AI 分析 / 觀察清單已由 GitHub Actions 產生（git pull 取得），跳過。
+    echo.
     echo [Step 2] 產生本地資料（突破訊號 CSV + PWA）...
     echo.
     python generate_pwa.py
@@ -74,6 +76,16 @@ echo.
 echo [Step 1.8] 起飛警示掃描...
 echo.
 python stock_alert.py
+
+echo.
+echo [Step 1.9] AI 分析起飛警示個股...
+echo.
+python stock_analyze.py
+
+echo.
+echo [Step 1.95] 觀察清單條件檢查...
+echo.
+python watchlist_check.py
 
 echo.
 echo [Step 2] 產生手機版 PWA...

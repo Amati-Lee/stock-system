@@ -1464,11 +1464,10 @@ function renderChart(code, ohlcData) {
                 value: d.v,
                 color: d.c >= prevClose ? 'rgba(239,83,80,0.5)' : 'rgba(38,166,154,0.5)'
             });
-            if (d.fi !== undefined || d.ti !== undefined || d.di !== undefined) {
-                chartInstData.fi.push({ time: dateStr, value: d.fi || 0, color: (d.fi||0) >= 0 ? 'rgba(255,152,0,0.7)' : 'rgba(255,152,0,0.3)' });
-                chartInstData.ti.push({ time: dateStr, value: d.ti || 0, color: (d.ti||0) >= 0 ? 'rgba(33,150,243,0.7)' : 'rgba(33,150,243,0.3)' });
-                chartInstData.di.push({ time: dateStr, value: d.di || 0, color: (d.di||0) >= 0 ? 'rgba(156,39,176,0.7)' : 'rgba(156,39,176,0.3)' });
-            }
+            var hasFi = d.fi !== undefined || d.ti !== undefined || d.di !== undefined;
+            chartInstData.fi.push({ time: dateStr, value: hasFi ? (d.fi || 0) : 0, color: (d.fi||0) >= 0 ? 'rgba(255,152,0,0.7)' : 'rgba(255,152,0,0.3)' });
+            chartInstData.ti.push({ time: dateStr, value: hasFi ? (d.ti || 0) : 0 });
+            chartInstData.di.push({ time: dateStr, value: hasFi ? (d.di || 0) : 0 });
         }
     }
 
@@ -1572,7 +1571,8 @@ function renderChart(code, ohlcData) {
 
     // === 下方法人買賣超圖 ===
     var instChart = null;
-    if (chartInstData.fi.length > 0) {
+    var hasInstData = chartInstData.fi.some(function(d) { return d.value !== 0; });
+    if (hasInstData) {
         instCont.innerHTML = '<div class="inst-legend"><span style="color:#ff9800">外資</span> <span style="color:#2196f3">投信</span> <span style="color:#9c27b0">自營</span> (張)</div>';
         var instDiv = document.createElement('div');
         instCont.appendChild(instDiv);
