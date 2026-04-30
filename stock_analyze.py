@@ -160,6 +160,13 @@ def analyze_stock(client, alert, csv_row, ohlc_summary):
 
 
 def main():
+    # 從 .env 載入環境變數（本機用；GitHub Actions 用 secrets）
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+    except ImportError:
+        pass  # python-dotenv 未安裝時跳過（GitHub Actions 不需要）
+
     # 檢查 API key
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
