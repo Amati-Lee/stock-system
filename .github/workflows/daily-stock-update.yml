@@ -10,6 +10,11 @@ on:
 permissions:
   contents: write
 
+# 防止雙重觸發衝突（GitHub cron + Cloudflare Worker 同時跑）
+concurrency:
+  group: daily-stock-update
+  cancel-in-progress: false  # 後到的排隊等，不直接取消（避免資料漏跑）
+
 jobs:
   update-and-deploy:
     runs-on: ubuntu-latest
