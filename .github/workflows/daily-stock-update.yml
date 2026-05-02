@@ -96,12 +96,21 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true'
         run: python download_institutional.py
 
+      - name: Download PE river data
+        if: steps.check_holiday.outputs.skip != 'true'
+        run: python download_pe.py
+
+      - name: Download conference dates
+        if: steps.check_holiday.outputs.skip != 'true'
+        run: python download_conference.py
+
       - name: Run stock alerts
         if: steps.check_holiday.outputs.skip != 'true'
         run: python stock_alert.py
 
       - name: AI stock analysis
         if: steps.check_holiday.outputs.skip != 'true'
+        continue-on-error: true
         run: python stock_analyze.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -120,7 +129,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add stock_data_*.csv stock_names_all.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
-          git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json
+          git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json
+          git add -f pe_history.json
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%d) stock update"
           git stash --include-untracked 2>/dev/null || true
           git pull --rebase || {

@@ -35,6 +35,14 @@ if exist "stock_data_%TODAY%.csv" (
     echo.
     python download_institutional.py
     echo.
+    echo [Step 1.7] 下載 PE 河流位置...
+    echo.
+    python download_pe.py
+    echo.
+    echo [Step 1.75] 下載法說會日期...
+    echo.
+    python download_conference.py
+    echo.
     echo [Step 1.8] 起飛警示掃描...
     echo.
     python stock_alert.py
@@ -71,6 +79,11 @@ echo.
 echo [Step 1.6] 下載三大法人資料...
 echo.
 python download_institutional.py
+
+echo.
+echo [Step 1.7] 下載 PE 河流位置...
+echo.
+python download_pe.py
 
 echo.
 echo [Step 1.8] 起飛警示掃描...

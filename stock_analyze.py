@@ -146,11 +146,11 @@ def analyze_stock(client, alert, csv_row, ohlc_summary):
             return parse_response(text)
         except Exception as e:
             err_msg = str(e)
-            # 帳單/權限錯誤，通知後中止
+            # 帳單/權限錯誤，通知後中止（但保留已分析的結果）
             if "credit balance" in err_msg or "billing" in err_msg.lower():
                 print(f"\n    API 餘額不足，中止分析")
                 send_telegram("Anthropic API 餘額不足，AI 個股分析已停止。請至 console.anthropic.com 加值。")
-                raise SystemExit(0)
+                return "BILLING_ERROR"
             if attempt < MAX_RETRIES:
                 print(f"    重試 ({attempt + 1}/{MAX_RETRIES})...")
                 time.sleep(2)
@@ -189,8 +189,20 @@ def main():
     print(f"AI 個股分析：{len(alerts)} 支警示股")
     print(f"使用模型：{MODEL}")
 
+    # 載入舊分析（失敗時保留舊資料）
+    old_results = {}
+    if os.path.exists(ANALYSIS_OUT):
+        try:
+            with open(ANALYSIS_OUT, "r", encoding="utf-8") as f:
+                old_data = json.load(f)
+            old_results = old_data.get("analysis", {})
+            print(f"  既有分析：{len(old_results)} 支（失敗時保留）")
+        except Exception:
+            pass
+
     client = Anthropic(api_key=api_key)
     results = {}
+    billing_error = False
 
     for i, alert in enumerate(alerts):
         code = alert["code"]
@@ -201,7 +213,10 @@ def main():
         ohlc_summary = load_ohlc_summary(code)
         analysis = analyze_stock(client, alert, csv_row, ohlc_summary)
 
-        if analysis:
+        if analysis == "BILLING_ERROR":
+            billing_error = True
+            break
+        elif analysis:
             results[code] = analysis
             print("OK")
         else:
@@ -211,18 +226,25 @@ def main():
         if i < len(alerts) - 1:
             time.sleep(0.5)
 
+    # 合併：新分析覆蓋舊的，未分析到的保留舊資料
+    merged = dict(old_results)
+    merged.update(results)
+
     # 寫入
     output = {
         "date": alerts_data["date"],
         "model": MODEL,
-        "count": len(results),
-        "analysis": results,
+        "count": len(merged),
+        "analysis": merged,
     }
     os.makedirs(os.path.dirname(ANALYSIS_OUT), exist_ok=True)
     with open(ANALYSIS_OUT, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print(f"\n分析完成：{len(results)}/{len(alerts)} 支")
+    if billing_error:
+        print(f"\n餘額不足，已分析 {len(results)} 支，保留舊資料共 {len(merged)} 支")
+    else:
+        print(f"\n分析完成：{len(results)}/{len(alerts)} 支（合併後 {len(merged)} 支）")
     print(f"輸出：{ANALYSIS_OUT}")
 
 
@@ -233,7 +255,8 @@ def send_telegram(text):
         data = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
         req = urllib.request.Request(
             TELEGRAM_URL, data=data,
-            headers={"Content-Type": "application/json"}, method="POST"
+            headers={"Content-Type": "application/json", "User-Agent": "stock-system/1.0"},
+            method="POST"
         )
         urllib.request.urlopen(req, timeout=10)
     except Exception as e:

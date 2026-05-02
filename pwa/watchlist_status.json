@@ -1,38 +1,44 @@
 {
-  "date": "2026-04-30",
+  "date": "2026-05-02",
   "trade_date": "20260430",
-  "count": 5,
+  "count": 7,
   "stocks": {
     "3005": {
-      "name": "����",
+      "name": "神基",
       "price": 97.6,
       "targets": {
-        "�n���i��": {
+        "積極進場": {
           "target_price": 100,
           "diff_pct": -2.4,
           "hit": true,
-          "note": "95-100 �i���ϡA�ح� 2/3"
+          "note": "95-100 進場區，建倉 2/3"
         },
-        "í���i��": {
+        "穩健進場": {
           "target_price": 90,
           "diff_pct": 8.4,
           "hit": false,
-          "note": "�����Ѧһ�����APE 10.7 ��"
+          "note": "除息參考價附近，PE 10.7 倍"
         },
-        "�O�u�i��": {
+        "保守進場": {
           "target_price": 88,
           "diff_pct": 10.9,
           "hit": false,
-          "note": "�w���w�B�A�C��1�i"
+          "note": "定期定額，每月 1 張"
         }
       },
-      "upcoming_dates": [],
+      "upcoming_dates": [
+        {
+          "date": "2026-05-10",
+          "event": "4月營收公告",
+          "days_left": 7
+        }
+      ],
       "watch": [
-        "�L�H���~�ȶi��",
-        "����꨾�w��i��",
-        "�񮧶i��(�����Ѧһ�90.5)",
-        "Q1�վl�����i��ĤG������",
-        "�ާQ�v5.35%�U�ɫO�@�̱j"
+        "無人機業務進度（倍數成長）",
+        "美國國防預算進度（主要客戶是美軍）",
+        "填息進度（除息參考價約 90.5）",
+        "Q1 財報重點看毛利率提升",
+        "殖利率 5.35% 下檔保護最強"
       ],
       "stop_loss": 78,
       "institutional": {
@@ -42,40 +48,46 @@
         "total": -560
       },
       "triggered": [
-        "�n���i��",
+        "積極進場",
         "trust_buy"
       ]
     },
     "3023": {
-      "name": "�H��",
+      "name": "信邦",
       "price": 283.5,
       "targets": {
-        "�n���i��": {
+        "積極進場": {
           "target_price": 275,
           "diff_pct": 3.1,
           "hit": false,
-          "note": "�X�z�i���ϡA�Ĥ@�夣�W�L 1/3�A���^�� 260 �A�[�X"
+          "note": "275 元合理進場區，第一批不超過 1/3，等回測 260 再加碼"
         },
-        "í���i��": {
+        "穩健進場": {
           "target_price": 240,
           "diff_pct": 18.1,
           "hit": false,
-          "note": "PE �^�� 18 ���϶��A�U�ɭ��I���p"
+          "note": "PE 回到 18 倍區間，下檔風險較小"
         },
-        "�O�u�i��": {
+        "保守進場": {
           "target_price": 230,
           "diff_pct": 23.3,
           "hit": false,
-          "note": "�� Q2 �]��(8�뤤��)���ҡA�ݺ��O�_���"
+          "note": "等 Q2 財報（8月中旬）數字驗證後再決定，重點看綠能是否止血"
         }
       },
-      "upcoming_dates": [],
+      "upcoming_dates": [
+        {
+          "date": "2026-05-10",
+          "event": "4月營收公告（通訊+工業佔比）",
+          "days_left": 7
+        }
+      ],
       "watch": [
-        "Figure AI / Agility Robotics �q���i��",
-        "���r�s�t�I�u�i��(2028�벣)",
-        "CMoney �w�X�� �X ��H�i�n�Ϥ��ƤW��",
-        "���禬�q�T+�u�~����O�_����",
-        "�w���w�B�����G�C�� 0.5-1 �i��������"
+        "Figure AI / Agility Robotics 量產進度新聞",
+        "銅鑼新廠施工進度（2028 投產）",
+        "CMoney 籌碼分（若投信開始進駐使分數上升）",
+        "通訊（AI伺服器）和工業（機器人）佔比是否提升",
+        "定期定額策略：每月固定買 0.5-1 張，等 2027 機器人題材"
       ],
       "stop_loss": 200,
       "institutional": {
@@ -87,41 +99,46 @@
       "triggered": []
     },
     "4931": {
-      "name": "�s���O",
+      "name": "新盛力",
       "price": 159.0,
       "targets": {
-        "�n���i��": {
+        "積極進場": {
           "target_price": 150,
           "diff_pct": 6.0,
           "hit": false,
-          "note": "�Ԧ^��u�A���夶�J�A�Ĥ@�夣�W�L 1/4"
+          "note": "拉回月線分批介入，第一批不超過部位 1/4"
         },
-        "í���i��": {
+        "穩健進場": {
           "target_price": 140,
           "diff_pct": 13.6,
           "hit": false,
-          "note": "�Ԧ^�u�u 130-140�APE �^�� 35 ���H�U"
+          "note": "拉回 130-140（季線位置），PE 回到 35 倍以下"
         },
-        "�O�u�i��": {
+        "保守進場": {
           "target_price": 130,
           "diff_pct": 22.3,
           "hit": false,
-          "note": "�� Q1 �]��+4���禬�Ʀr���ҫ�A�M�w"
+          "note": "等 Q1 財報+4月營收數字驗證後再決定"
         }
       },
       "upcoming_dates": [
         {
           "date": "2026-05-05",
-          "event": "Q1 �]���]��Q�v�BBBU�X�f�^",
-          "days_left": 4
+          "event": "Q1 財報（毛利率、BBU出貨）",
+          "days_left": 2
+        },
+        {
+          "date": "2026-05-10",
+          "event": "4月營收公告（能否回到年增正向）",
+          "days_left": 7
         }
       ],
       "watch": [
-        "4���禬��_�^��~�W���V�]������^",
-        "�x�F�q/���_��k�� BBU �X�f����",
-        "GB200 ���F���A���X�f�Ʀr",
-        "�ഫ���q�ŵo��i�ס]�}���ѥ��^",
-        "�����I�GPE>50 ���Ȱ��Q�A�U�ɭ��I -25~-30%"
+        "4月營收能否回到年增正向（最關鍵）",
+        "台達電/光寶科法說 BBU 出貨指引",
+        "GB200 出貨進度—輝達官方伺服器出貨數字",
+        "轉換公司債發行進度（會稀釋股本）",
+        "高風險警示：PE>50 估值偏貴，下檔風險 -25~-30%"
       ],
       "stop_loss": 110,
       "institutional": {
@@ -135,10 +152,38 @@
     "6197": {
       "name": "佳必琪",
       "price": 208.0,
-      "targets": {},
-      "upcoming_dates": [],
-      "watch": [],
-      "stop_loss": null,
+      "targets": {
+        "積極進場": {
+          "target_price": 175,
+          "diff_pct": 18.9,
+          "hit": false,
+          "note": "回到月線附近，分批 1/3"
+        },
+        "穩健進場": {
+          "target_price": 160,
+          "diff_pct": 30.0,
+          "hit": false,
+          "note": "PE 回到 15 倍區間"
+        },
+        "保守進場": {
+          "target_price": 150,
+          "diff_pct": 38.7,
+          "hit": false,
+          "note": "等 Q1 財報確認"
+        }
+      },
+      "upcoming_dates": [
+        {
+          "date": "2026-05-10",
+          "event": "4月營收公告",
+          "days_left": 7
+        }
+      ],
+      "watch": [
+        "投信買賣超是否轉正",
+        "1.6T ACC 認證進度"
+      ],
+      "stop_loss": 140,
       "institutional": {
         "foreign": 681,
         "trust": 0,
@@ -150,41 +195,46 @@
       ]
     },
     "6285": {
-      "name": "����",
+      "name": "啟碁",
       "price": 216.0,
       "targets": {
-        "�n���i��": {
+        "積極進場": {
           "target_price": 215,
           "diff_pct": 0.5,
           "hit": false,
-          "note": "200-215 �i���ϡA����� 1/3 ����"
+          "note": "200-215 進場區，分批先 1/3 部位"
         },
-        "í���i��": {
+        "穩健進場": {
           "target_price": 185,
           "diff_pct": 16.8,
           "hit": false,
-          "note": "�Ԧ^�u�u 180-185�A�A�[�X�� 2/3"
+          "note": "拉回 180-185（季線）再加碼到 2/3"
         },
-        "�O�u�i��": {
+        "保守進場": {
           "target_price": 180,
           "diff_pct": 20.0,
           "hit": false,
-          "note": "�� 6 �� SpaceX IPO �T�����ԤƦA�M�w"
+          "note": "等 6 月 SpaceX IPO 訊息明朗化再決定"
         }
       },
       "upcoming_dates": [
         {
           "date": "2026-05-06",
-          "event": "Q1 �]���]EPS 8.5+ �F��?�^",
-          "days_left": 5
+          "event": "Q1 財報（EPS 8.5+ 達標?）",
+          "days_left": 3
+        },
+        {
+          "date": "2026-05-10",
+          "event": "4月營收公告（3月歷史新高之後能否續強）",
+          "days_left": 7
         }
       ],
       "watch": [
-        "SpaceX IPO �i�� �X ����s�D�����v�T�ѻ�",
-        "Starlink �Τ�Ʀ����t��",
-        "AI-RAN �X�@�i�ס]NVIDIA O-RU ��X��ס^",
-        "�O�_�A�Q�C���`�N��/�B�m��",
-        "�`�N�Ѿ���i��A�C�J�B�m���"
+        "SpaceX IPO 進度—任何新聞都會直接影響股價",
+        "Starlink 用戶數成長速度",
+        "AI-RAN 合作進度（NVIDIA O-RU 整合方案）",
+        "是否再被列為注意股/處置股",
+        "注意股價回檔是進場機會，現價比 4 月高點回檔約 10-15%"
       ],
       "stop_loss": 160,
       "institutional": {
@@ -192,6 +242,100 @@
         "trust": -35,
         "dealer": -51,
         "total": 228
+      },
+      "triggered": []
+    },
+    "3081": {
+      "name": "聯亞",
+      "price": 2640.0,
+      "targets": {
+        "積極進場": {
+          "target_price": 2200,
+          "diff_pct": 20.0,
+          "hit": false,
+          "note": "跌破 BB 中軌 2428，技術面轉弱但為長期佈局點"
+        },
+        "穩健進場": {
+          "target_price": 2000,
+          "diff_pct": 32.0,
+          "hit": false,
+          "note": "接近 BB 下軌上方，技術面明顯支撐區，風險報酬比較優"
+        },
+        "保守進場": {
+          "target_price": 2400,
+          "diff_pct": 10.0,
+          "hit": false,
+          "note": "回測 2300-2400 前高區間確認企穩後進場，觀察量能放大"
+        }
+      },
+      "upcoming_dates": [
+        {
+          "date": "2026-05-10",
+          "event": "4月營收公告（CPO 出貨量）",
+          "days_left": 7
+        }
+      ],
+      "watch": [
+        "光通訊晶粒龍頭，CPO 題材股，受惠 AI 伺服器高速互連需求",
+        "成交量萎縮，市場參與度下降需警戒",
+        "MACD 柱狀圖 -38 為負，動能減弱，近 5 日連跌逾 18%",
+        "PE 567 極高，純題材推動，營運展現需待驗證",
+        "殖利率 0.02% 無下檔保護，純題材股操作"
+      ],
+      "stop_loss": 2350,
+      "institutional": {
+        "foreign": 40,
+        "trust": 76,
+        "dealer": 1,
+        "total": 117
+      },
+      "triggered": [
+        "trust_buy"
+      ]
+    },
+    "8054": {
+      "name": "安國",
+      "price": 106.0,
+      "targets": {
+        "積極進場": {
+          "target_price": 103.5,
+          "diff_pct": 2.4,
+          "hit": false,
+          "note": "突破短期下降趨勢線，量能放大確認反轉"
+        },
+        "穩健進場": {
+          "target_price": 100,
+          "diff_pct": 6.0,
+          "hit": false,
+          "note": "整數關卡支撐，等底部確認訊號"
+        },
+        "保守進場": {
+          "target_price": 95,
+          "diff_pct": 11.6,
+          "hit": false,
+          "note": "接近前低支撐區，風險報酬比最佳"
+        }
+      },
+      "upcoming_dates": [
+        {
+          "date": "2026-05-10",
+          "event": "4月營收公告",
+          "days_left": 7
+        }
+      ],
+      "watch": [
+        "急漲急跌後進入盤整，外資連續賣超（-1613張）",
+        "成交量萎縮，市場觀望氣氛濃厚",
+        "KD 指標處於低檔區，可能醞釀反彈",
+        "需觀察底部量能是否放大確認止跌",
+        "資訊安全晶片題材，長期受惠政策推動"
+      ],
+      "stop_loss": 90,
+      "institutional": {
+        "foreign": -205,
+        "trust": 0,
+        "dealer": -17,
+        "total": -221
       },
       "triggered": []
     }

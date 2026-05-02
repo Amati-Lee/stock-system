@@ -31,23 +31,26 @@ WATCHLIST_API = "https://stock-watchlist.juria-orch.workers.dev/watchlist"
 
 
 def load_notes():
-    """先從 KV API 讀取，失敗則 fallback 到本地 JSON"""
-    # 嘗試從 Cloudflare KV 讀取
+    """合併本地 JSON + KV API，KV 優先（同 code 以 KV 為準）"""
+    # 先讀本地
+    local = {}
+    if os.path.exists(NOTES_PATH):
+        with open(NOTES_PATH, "r", encoding="utf-8") as f:
+            local = json.load(f)
+        print(f"  觀察清單：本地 {len(local)} 支")
+
+    # 再讀 KV，合併（KV 覆蓋本地同 code）
     try:
         req = urllib.request.Request(WATCHLIST_API, headers={"User-Agent": "stock-system/1.0"})
         resp = urllib.request.urlopen(req, timeout=10)
-        data = json.loads(resp.read().decode("utf-8"))
-        if data:
-            print(f"  觀察清單：從 KV 載入 {len(data)} 支")
-            return data
+        kv = json.loads(resp.read().decode("utf-8"))
+        if kv:
+            print(f"  觀察清單：KV {len(kv)} 支")
+            local.update(kv)
     except Exception as e:
-        print(f"  KV 讀取失敗 ({e})，使用本地檔案")
+        print(f"  KV 讀取失敗 ({e})，僅用本地")
 
-    # Fallback: 本地 JSON
-    if not os.path.exists(NOTES_PATH):
-        return {}
-    with open(NOTES_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return local
 
 
 def load_latest_prices():
@@ -76,7 +79,8 @@ def send_telegram(text):
         data = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
         req = urllib.request.Request(
             TELEGRAM_URL, data=data,
-            headers={"Content-Type": "application/json"}, method="POST"
+            headers={"Content-Type": "application/json", "User-Agent": "stock-system/1.0"},
+            method="POST"
         )
         urllib.request.urlopen(req, timeout=10)
         print(f"  Telegram: OK")

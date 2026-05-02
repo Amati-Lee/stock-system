@@ -370,6 +370,10 @@ h1{font-size:22px;color:#333;margin-bottom:4px}
 .tg{background:#e8f5e9;color:#2e7d32}
 .tr{background:#fce4ec;color:#c62828}
 .tb{background:#e3f2fd;color:#1565c0}
+.tt{background:#f3e5f5;color:#7b1fa2}
+.tc{background:#e0f2f1;color:#00695c}
+.tc-soon{background:#fff8e1;color:#f57f17;font-weight:bold}
+.tgray{background:#f5f5f5;color:#999}
 .stock-details{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 8px;font-size:12px;color:#888}
 .stock-details .v{color:#333;font-weight:500}
 .hidden{display:none}
@@ -495,11 +499,20 @@ tr:nth-child(even){background:#fafafa}
 .chart-body{padding:8px}
 #chartContainer{width:100%;height:320px}
 #volumeContainer{width:100%;height:80px}
-#instContainer{width:100%;height:90px}
+#instContainer{width:100%}
+#instContainer.collapsed #instCharts{display:none}
+#instContainer.collapsed #instTabs{display:none !important}
+.inst-toggle{display:inline-block;padding:3px 10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:#aaa;border-radius:6px;font-size:11px;cursor:pointer;margin:4px 0 2px 8px;transition:all .2s}
+.inst-toggle.active{background:rgba(255,152,0,0.15);color:#ff9800;border-color:rgba(255,152,0,0.4)}
 .inst-legend{font-size:10px;padding:2px 8px;color:#aaa}
-.chart-drag-handle{width:100%;height:10px;cursor:ns-resize;display:flex;align-items:center;justify-content:center;touch-action:none}
-.chart-drag-handle::after{content:'';width:36px;height:3px;background:rgba(255,255,255,0.2);border-radius:2px}
+.inst-tab{display:inline-block;padding:2px 10px;font-size:10px;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin:0 2px;transition:all .2s}
+.inst-tab.active{color:#ff9800;border-bottom-color:#ff9800}
+.inst-sub{position:relative;margin-bottom:2px}
+.inst-sub-label{position:absolute;left:8px;top:2px;font-size:9px;color:#888;z-index:2;pointer-events:none}
+.chart-drag-handle{width:100%;height:14px;cursor:ns-resize;display:flex;align-items:center;justify-content:center;touch-action:none;position:relative;z-index:10}
+.chart-drag-handle::after{content:'';width:36px;height:3px;background:rgba(255,255,255,0.25);border-radius:2px}
 .chart-drag-handle:active::after{background:rgba(102,126,234,0.6)}
+#chartContainer,#volumeContainer{position:relative;z-index:1;overflow:hidden}
 </style>
 </head>
 <body>
@@ -533,6 +546,8 @@ tr:nth-child(even){background:#fafafa}
 <div class="cat-label">長線投資</div>
 <div class="btn" data-st="dividend">高殖利率</div>
 <div class="btn" data-st="value">價值投資</div>
+<div class="btn" data-st="pe_cheap">PE偏低</div>
+<div class="btn" data-st="pe_expensive">PE偏貴</div>
 
 <div class="cat-label">短線操作</div>
 <div class="btn" data-st="kd_golden">KD黃金交叉</div>
@@ -552,6 +567,17 @@ tr:nth-child(even){background:#fafafa}
 <div class="cat-label">漲跌停</div>
 <div class="btn" data-st="limit_up">今日漲停</div>
 <div class="btn" data-st="limit_down">今日跌停</div>
+
+<div class="cat-label">題材概念</div>
+<div class="btn" data-st="theme_CPO">CPO</div>
+<div class="btn" data-st="theme_AEC">AEC</div>
+<div class="btn" data-st="theme_ACC">ACC</div>
+<div class="btn" data-st="theme_BBU">BBU</div>
+<div class="btn" data-st="theme_HBM">HBM</div>
+<div class="btn" data-st="theme_liquid">液冷</div>
+<div class="btn" data-st="theme_server">AI伺服器</div>
+<div class="btn" data-st="theme_IC_design">IC設計</div>
+<div class="btn" data-st="conf">近期法說會</div>
 
 <div class="cat-label">趨勢轉強</div>
 <div class="btn" data-st="trend_price">價格上漲</div>
@@ -619,6 +645,8 @@ tr:nth-child(even){background:#fafafa}
 <th data-col="RSI">RSI</th>
 <th data-col="macd_status">MACD</th>
 <th data-col="bb_pos">BB%</th>
+<th data-col="pe_val">PE</th>
+<th data-col="pe_pct">PE%</th>
 <th data-col="成交量張">成交量</th>
 <th data-col="量比">量比</th>
 <th data-col="殖利率">殖利率</th>
@@ -662,7 +690,11 @@ tr:nth-child(even){background:#fafafa}
 <div class="chart-drag-handle" id="dragHandle1"></div>
 <div id="volumeContainer"></div>
 <div class="chart-drag-handle" id="dragHandle2"></div>
-<div id="instContainer"></div>
+<div id="instContainer" class="collapsed">
+<button class="inst-toggle" id="instToggle" onclick="toggleInstChart()">&#x1F4CA; 法人</button>
+<div id="instTabs" style="display:none"><span class="inst-tab active" onclick="switchInstTab(0)">外資</span><span class="inst-tab" onclick="switchInstTab(1)">投信</span><span class="inst-tab" onclick="switchInstTab(2)">自營</span><span class="inst-tab" onclick="switchInstTab(3)">合計</span></div>
+<div id="instCharts"></div>
+</div>
 </div>
 </div>
 </div>
@@ -675,6 +707,9 @@ var ALERTS = __ALERTS_DATA__;
 var ANALYSIS = __ANALYSIS_DATA__;
 var WATCHNOTES = __WATCHNOTES_DATA__;
 var INST = __INST_DATA__;
+var PE_RIVER = __PE_RIVER_DATA__;
+var THEMES = __THEME_DATA__;
+var CONF = __CONF_DATA__;
 var OHLC_CACHE = {};
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
@@ -703,6 +738,29 @@ document.addEventListener('DOMContentLoaded', function() {
         s.bb_pos = (ok(s.BB上軌) && ok(s.BB下軌) && s.BB上軌 !== s.BB下軌)
             ? Math.round((s.收盤價 - s.BB下軌) / (s.BB上軌 - s.BB下軌) * 1000) / 10
             : null;
+        // PE 河流位置
+        var peInfo = PE_RIVER[String(s.股票代號)];
+        if (peInfo) {
+            s.pe_val = peInfo.pe;
+            s.pe_pct = peInfo.pct;
+            s.pe_low = peInfo.low;
+            s.pe_high = peInfo.high;
+        }
+        // 題材標籤
+        var code = String(s.股票代號);
+        s.themes = [];
+        if (THEMES && THEMES.themes) {
+            for (var tk in THEMES.themes) {
+                if (THEMES.themes[tk].codes && THEMES.themes[tk].codes.indexOf(code) >= 0) {
+                    s.themes.push(tk);
+                }
+            }
+        }
+        // 法說會
+        if (CONF && CONF[code]) {
+            s.conf_date = CONF[code].date;
+            s.conf_days = CONF[code].days;
+        }
         data.push(s);
     }
 
@@ -969,6 +1027,8 @@ function doFilter() {
                 else if (st === 'kd_oversold') pass = ok(s.K值) && s.K值 <= pK;
                 else if (st === 'rsi_oversold') pass = ok(s.RSI) && s.RSI <= pRSI;
                 else if (st === 'bb_lower') pass = ok(s.bb_pos) && s.bb_pos <= 20;
+                else if (st === 'pe_cheap') pass = ok(s.pe_pct) && s.pe_pct <= 33;
+                else if (st === 'pe_expensive') pass = ok(s.pe_pct) && s.pe_pct >= 67;
                 else if (st === 'breakout_high') pass = ok(s.強度評分) && s.強度評分 >= 20;
                 else if (st === 'breakout_mid') pass = ok(s.強度評分) && s.強度評分 >= 10;
                 else if (st === 'breakout_multi') pass = ok(s.訊號數量) && s.訊號數量 >= 3;
@@ -978,6 +1038,8 @@ function doFilter() {
                 else if (st === 'trend_kd') pass = s.KD趨勢 === 'KD轉強';
                 else if (st === 'trend_rsi') pass = s.RSI趨勢 === 'RSI轉強';
                 else if (st === 'trend_vol') pass = s.量能趨勢 === '量能放大';
+                else if (st === 'conf') pass = s.conf_days != null && s.conf_days >= 0 && s.conf_days <= 30;
+                else if (st.indexOf('theme_') === 0) { var tk = st.substring(6); pass = s.themes && s.themes.indexOf(tk) >= 0; }
                 if (pass) mc++;
             }
             if (logic === 'or' && mc === 0) continue;
@@ -1057,6 +1119,23 @@ function renderCards() {
         if (s.kd_status) h += '<span class="tag ' + kc + '">KD ' + s.kd_status + '</span>';
         if (s.macd_status) h += '<span class="tag ' + mc + '">MACD ' + s.macd_status + '</span>';
         if (bc) h += '<span class="tag ' + bc + '">BB ' + fv(s.bb_pos, 1) + '%</span>';
+        if (ok(s.pe_val)) {
+            if (s.pe_val > 50) {
+                h += '<span class="tag tgray">PE ' + s.pe_val + '</span>';
+            } else if (ok(s.pe_pct)) {
+                var pec = s.pe_pct >= 67 ? 'tr' : s.pe_pct <= 33 ? 'tb' : 'tg';
+                h += '<span class="tag ' + pec + '" title="PE ' + s.pe_val + ' [' + (s.pe_low||'?') + '-' + (s.pe_high||'?') + ']">PE ' + s.pe_val + ' (' + s.pe_pct + '%)</span>';
+            }
+        }
+        if (s.themes && s.themes.length > 0) {
+            for (var ti = 0; ti < s.themes.length; ti++) {
+                h += '<span class="tag tt">' + s.themes[ti] + '</span>';
+            }
+        }
+        if (s.conf_days != null && s.conf_days >= 0) {
+            var cl = s.conf_days <= 7 ? 'tc-soon' : 'tc';
+            h += '<span class="tag ' + cl + '">法說 ' + s.conf_date.substring(5) + (s.conf_days === 0 ? ' 今天' : ' ' + s.conf_days + '天後') + '</span>';
+        }
         h += '</div>';
 
         // 趨勢指標行
@@ -1130,6 +1209,8 @@ function renderTable() {
         h += '<td>' + fv(s.RSI, 1) + '</td>';
         h += '<td style="color:' + mc + '">' + (s.macd_status || '') + '</td>';
         h += '<td>' + fv(s.bb_pos, 1) + '</td>';
+        h += '<td>' + (ok(s.pe_val) ? fv(s.pe_val, 1) : '-') + '</td>';
+        h += '<td>' + (ok(s.pe_pct) ? s.pe_pct : '-') + '</td>';
         h += '<td>' + (ok(s.成交量張) ? s.成交量張 : '') + '</td>';
         h += '<td>' + fv(s.量比, 2) + '</td>';
         h += '<td>' + fv(s.殖利率, 2) + '</td>';
@@ -1186,6 +1267,27 @@ function renderAlerts() {
         h += '<span class="alert-reasons">' + a.reasons.join('、') + '</span>';
         var instD = (INST && INST.data) ? INST.data[a.code] : null;
         if (instD) { h += renderInstTag(instD); }
+        var peInfo = PE_RIVER[a.code];
+        if (peInfo && peInfo.pe != null) {
+            if (peInfo.pe > 50) {
+                h += '<span class="tag tgray">PE ' + peInfo.pe + '</span>';
+            } else if (peInfo.pct != null) {
+                var pec = peInfo.pct >= 67 ? 'tr' : peInfo.pct <= 33 ? 'tb' : 'tg';
+                h += '<span class="tag ' + pec + '" title="PE ' + peInfo.pe + ' [' + (peInfo.low||'?') + '-' + (peInfo.high||'?') + ']">PE ' + peInfo.pe + ' (' + peInfo.pct + '%)</span>';
+            }
+        }
+        if (THEMES && THEMES.themes) {
+            for (var tk in THEMES.themes) {
+                if (THEMES.themes[tk].codes && THEMES.themes[tk].codes.indexOf(a.code) >= 0) {
+                    h += '<span class="tag tt">' + tk + '</span>';
+                }
+            }
+        }
+        var confInfo = CONF ? CONF[a.code] : null;
+        if (confInfo && confInfo.days >= 0) {
+            var cl = confInfo.days <= 7 ? 'tc-soon' : 'tc';
+            h += '<span class="tag ' + cl + '">法說 ' + confInfo.date.substring(5) + (confInfo.days === 0 ? ' 今天' : ' ' + confInfo.days + '天後') + '</span>';
+        }
         h += '</div>';
         h += '<div class="alert-right">';
         h += '<div class="alert-price">$' + a.close + '</div>';
@@ -1398,7 +1500,7 @@ function openChart(code) {
     var container = document.getElementById('chartContainer');
     container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:320px;color:#888">載入中...</div>';
     document.getElementById('volumeContainer').innerHTML = '';
-    document.getElementById('instContainer').innerHTML = '';
+    document.getElementById('instCharts').innerHTML = '';
     document.getElementById('chartInfo').innerHTML = '';
 
     if (OHLC_CACHE[code]) {
@@ -1444,9 +1546,10 @@ function renderChart(code, ohlcData) {
     var container = document.getElementById('chartContainer');
     var volContainer = document.getElementById('volumeContainer');
     var instCont = document.getElementById('instContainer');
+    var instChartsDiv = document.getElementById('instCharts');
     container.innerHTML = '';
     volContainer.innerHTML = '';
-    instCont.innerHTML = '';
+    instChartsDiv.innerHTML = '';
     try {
 
     if (ohlcData) {
@@ -1569,27 +1672,89 @@ function renderChart(code, ohlcData) {
     });
     volumeSeries.setData(chartVolumeData);
 
-    // === 下方法人買賣超圖 ===
-    var instChart = null;
+    // === 法人買賣超圖（可展開，單圖+標籤切換） ===
+    var instCharts = [];
     var hasInstData = chartInstData.fi.some(function(d) { return d.value !== 0; });
+    var instToggleBtn = document.getElementById('instToggle');
+    var instTabsDiv = document.getElementById('instTabs');
     if (hasInstData) {
-        instCont.innerHTML = '<div class="inst-legend"><span style="color:#ff9800">外資</span> <span style="color:#2196f3">投信</span> <span style="color:#9c27b0">自營</span> (張)</div>';
-        var instDiv = document.createElement('div');
-        instCont.appendChild(instDiv);
-        instChart = LightweightCharts.createChart(instDiv, Object.assign({
+        instCont.style.display = '';
+        instTabsDiv.style.display = '';
+        // 計算合計
+        var totalData = [];
+        for (var i = 0; i < chartInstData.fi.length; i++) {
+            var sum = (chartInstData.fi[i].value || 0) + (chartInstData.ti[i].value || 0) + (chartInstData.di[i].value || 0);
+            totalData.push({ time: chartInstData.fi[i].time, value: sum });
+        }
+        chartInstData.total = totalData;
+
+        // 四組資料定義
+        var instSubs = [
+            { key: 'fi', label: '外資', color: '#ff9800', dimColor: 'rgba(255,152,0,0.3)' },
+            { key: 'ti', label: '投信', color: '#2196f3', dimColor: 'rgba(33,150,243,0.3)' },
+            { key: 'di', label: '自營', color: '#9c27b0', dimColor: 'rgba(156,39,176,0.3)' },
+            { key: 'total', label: '合計', color: '#ef5350', dimColor: '#26a69a' }
+        ];
+
+        // 建立單一圖表
+        instChartsDiv.innerHTML = '';
+        var instChartDiv = document.createElement('div');
+        instChartsDiv.appendChild(instChartDiv);
+
+        var instChart = LightweightCharts.createChart(instChartDiv, Object.assign({
             width: instCont.clientWidth,
-            height: 70,
-            rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.1, bottom: 0.1 } },
+            height: 100,
+            rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.1, bottom: 0.05 } },
             timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: false, visible: false }
         }, darkOpts));
-        var fSeries = instChart.addHistogramSeries({ color: '#ff9800', priceLineVisible: false, lastValueVisible: false, priceFormat: { type: 'volume' } });
-        fSeries.setData(chartInstData.fi);
-        var tSeries = instChart.addLineSeries({ color: '#2196f3', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-        tSeries.setData(chartInstData.ti);
-        var dSeries = instChart.addLineSeries({ color: '#9c27b0', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-        dSeries.setData(chartInstData.di);
-        instChartInstance = instChart;
+
+        // 預建四組 series（只顯示當前選中的）
+        var instSeriesArr = [];
+        for (var si = 0; si < instSubs.length; si++) {
+            var sub = instSubs[si];
+            var isTotal = sub.key === 'total';
+            var barData = chartInstData[sub.key].map(function(d) {
+                if (isTotal) return { time: d.time, value: d.value, color: d.value >= 0 ? '#ef5350' : '#26a69a' };
+                return { time: d.time, value: d.value, color: d.value >= 0 ? sub.color : sub.dimColor };
+            });
+            var barSeries = instChart.addHistogramSeries({ priceLineVisible: false, lastValueVisible: false, priceFormat: { type: 'volume' }, visible: si === 0 });
+            barSeries.setData(barData);
+            // 累計線（只在合計時顯示）
+            var cumData = [];
+            var cum = 0;
+            for (var ci = 0; ci < chartInstData[sub.key].length; ci++) {
+                cum += chartInstData[sub.key][ci].value || 0;
+                cumData.push({ time: chartInstData[sub.key][ci].time, value: cum });
+            }
+            var lineSeries = instChart.addLineSeries({ color: '#ffd740', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, priceScaleId: 'cum', visible: si === 0 });
+            lineSeries.setData(cumData);
+            instSeriesArr.push({ bar: barSeries, line: lineSeries });
+        }
+        // 隱藏累計線的價格軸
+        instChart.priceScale('cum').applyOptions({ visible: false });
+
+        instCharts.push(instChart);
+        instChartInstance = instCharts;
+
+        // 切換標籤函數
+        window._instSeriesArr = instSeriesArr;
+        window._instChart = instChart;
+        window.switchInstTab = function(idx) {
+            var tabs = document.querySelectorAll('.inst-tab');
+            for (var t = 0; t < tabs.length; t++) tabs[t].className = 'inst-tab' + (t === idx ? ' active' : '');
+            for (var s = 0; s < instSeriesArr.length; s++) {
+                instSeriesArr[s].bar.applyOptions({ visible: s === idx });
+                instSeriesArr[s].line.applyOptions({ visible: s === idx });
+            }
+        };
+
+        // 如果之前是展開狀態，保持展開
+        if (!instCont.classList.contains('collapsed')) {
+            instToggleBtn.classList.add('active');
+        }
     } else {
+        instCont.style.display = 'none';
+        instTabsDiv.style.display = 'none';
         instChartInstance = null;
     }
 
@@ -1599,12 +1764,16 @@ function renderChart(code, ohlcData) {
         syncingTimeScale = true;
         if (source !== chart) chart.timeScale().setVisibleLogicalRange(range);
         if (source !== volChart) volChart.timeScale().setVisibleLogicalRange(range);
-        if (instChart && source !== instChart) instChart.timeScale().setVisibleLogicalRange(range);
+        for (var ic = 0; ic < instCharts.length; ic++) {
+            if (instCharts[ic] !== source) instCharts[ic].timeScale().setVisibleLogicalRange(range);
+        }
         syncingTimeScale = false;
     }
     chart.timeScale().subscribeVisibleLogicalRangeChange(function(range) { syncAll(chart, range); });
     volChart.timeScale().subscribeVisibleLogicalRangeChange(function(range) { syncAll(volChart, range); });
-    if (instChart) instChart.timeScale().subscribeVisibleLogicalRangeChange(function(range) { syncAll(instChart, range); });
+    for (var ic = 0; ic < instCharts.length; ic++) {
+        (function(c) { c.timeScale().subscribeVisibleLogicalRangeChange(function(range) { syncAll(c, range); }); })(instCharts[ic]);
+    }
 
     // === 十字線 OHLC + 量資訊 + 跨圖同步 ===
     var infoEl = document.getElementById('chartInfo');
@@ -1635,9 +1804,12 @@ function renderChart(code, ohlcData) {
         if (chartInstData.fi.length > 0 && chartInstData.fi[idx]) {
             var fi = chartInstData.fi[idx], ti = chartInstData.ti[idx], di = chartInstData.di[idx];
             if (fi && (fi.value || ti.value || di.value)) {
+                var total = (fi.value||0) + (ti.value||0) + (di.value||0);
+                var tc = total >= 0 ? '#ef5350' : '#26a69a';
                 infoEl.innerHTML += '<span style="color:#ff9800">外' + (fi.value>0?'+':'') + fi.value + '</span>' +
                     '<span style="color:#2196f3">投' + (ti.value>0?'+':'') + ti.value + '</span>' +
-                    '<span style="color:#9c27b0">自' + (di.value>0?'+':'') + di.value + '</span>';
+                    '<span style="color:#9c27b0">自' + (di.value>0?'+':'') + di.value + '</span>' +
+                    '<span style="color:' + tc + '">合' + (total>0?'+':'') + total + '</span>';
             }
         }
     }
@@ -1706,7 +1878,7 @@ function renderChart(code, ohlcData) {
     var rangeTo = chartCandleData.length - 0.5;
     chart.timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
     volChart.timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
-    if (instChart) instChart.timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
+    for (var ic = 0; ic < instCharts.length; ic++) instCharts[ic].timeScale().setVisibleLogicalRange({ from: rangeFrom, to: rangeTo });
     chartInstance = chart;
     volChartInstance = volChart;
 
@@ -1722,7 +1894,31 @@ function chartResize() {
     if (chartInstance) chartInstance.applyOptions({ width: c.clientWidth });
     if (volChartInstance) volChartInstance.applyOptions({ width: vc.clientWidth });
     var ic = document.getElementById('instContainer');
-    if (instChartInstance && ic) instChartInstance.applyOptions({ width: ic.clientWidth });
+    if (instChartInstance && ic) {
+        for (var i = 0; i < instChartInstance.length; i++) instChartInstance[i].applyOptions({ width: ic.clientWidth });
+    }
+}
+
+function toggleInstChart() {
+    var c = document.getElementById('instContainer');
+    var btn = document.getElementById('instToggle');
+    c.classList.toggle('collapsed');
+    btn.classList.toggle('active');
+    // 展開後需要 resize 讓圖表正確渲染
+    if (!c.classList.contains('collapsed') && instChartInstance) {
+        for (var i = 0; i < instChartInstance.length; i++) {
+            instChartInstance[i].timeScale().fitContent();
+        }
+        // 同步到主圖的可視範圍
+        if (chartInstance) {
+            var range = chartInstance.timeScale().getVisibleLogicalRange();
+            if (range) {
+                for (var i = 0; i < instChartInstance.length; i++) {
+                    instChartInstance[i].timeScale().setVisibleLogicalRange(range);
+                }
+            }
+        }
+    }
 }
 
 function closeChart(e) {
@@ -1730,9 +1926,15 @@ function closeChart(e) {
     document.getElementById('chartOverlay').className = 'chart-overlay';
     if (chartInstance) { chartInstance.remove(); chartInstance = null; }
     if (volChartInstance) { volChartInstance.remove(); volChartInstance = null; }
-    if (instChartInstance) { instChartInstance.remove(); instChartInstance = null; }
+    if (instChartInstance) {
+        for (var i = 0; i < instChartInstance.length; i++) instChartInstance[i].remove();
+        instChartInstance = null;
+    }
     window.removeEventListener('resize', chartResize);
     document.getElementById('chartInfo').innerHTML = '';
+    // 重設為收合狀態
+    document.getElementById('instContainer').classList.add('collapsed');
+    document.getElementById('instToggle').classList.remove('active');
 }
 
 // === 拖拉調整圖表高度 ===
@@ -1740,28 +1942,26 @@ function resizeChartById(id, h) {
     if (id === 'chartContainer' && chartInstance) chartInstance.applyOptions({ height: h });
     else if (id === 'volumeContainer' && volChartInstance) volChartInstance.applyOptions({ height: h });
     else if (id === 'instContainer' && instChartInstance) {
-        var legend = document.querySelector('#instContainer .inst-legend');
-        var legendH = legend ? legend.offsetHeight : 18;
-        instChartInstance.applyOptions({ height: Math.max(20, h - legendH) });
+        // instChartInstance is now an array
     }
 }
 (function() {
-    var dragging = false, startY = 0, aboveEl = null, belowEl = null, startAboveH = 0, startBelowH = 0;
     var pairs = [
-        { handle: 'dragHandle1', above: 'chartContainer', below: 'volumeContainer' },
-        { handle: 'dragHandle2', above: 'volumeContainer', below: 'instContainer' }
+        { handle: 'dragHandle1', above: 'chartContainer', below: 'volumeContainer', minA: 150, minB: 50 },
+        { handle: 'dragHandle2', above: 'volumeContainer', below: null, minA: 50, minB: 0 }
     ];
     pairs.forEach(function(p) {
         var h = document.getElementById(p.handle);
         if (!h) return;
+        var dragging = false, startY = 0, aboveEl = null, belowEl = null, startAboveH = 0, startBelowH = 0;
         function start(e) {
             e.preventDefault();
             dragging = true;
             aboveEl = document.getElementById(p.above);
-            belowEl = document.getElementById(p.below);
+            belowEl = p.below ? document.getElementById(p.below) : null;
             startY = e.touches ? e.touches[0].clientY : e.clientY;
             startAboveH = aboveEl.offsetHeight;
-            startBelowH = belowEl.offsetHeight;
+            startBelowH = belowEl ? belowEl.offsetHeight : 0;
             document.addEventListener('touchmove', move, { passive: false });
             document.addEventListener('mousemove', move);
             document.addEventListener('touchend', end);
@@ -1772,14 +1972,19 @@ function resizeChartById(id, h) {
             e.preventDefault();
             var y = e.touches ? e.touches[0].clientY : e.clientY;
             var delta = y - startY;
-            var newAbove = Math.max(40, startAboveH + delta);
-            var newBelow = Math.max(30, startBelowH - delta);
-            if (startAboveH + startBelowH - newAbove < 30) newAbove = startAboveH + startBelowH - 30;
-            if (startAboveH + startBelowH - newBelow < 40) newBelow = startAboveH + startBelowH - 40;
-            aboveEl.style.height = newAbove + 'px';
-            belowEl.style.height = newBelow + 'px';
-            resizeChartById(aboveEl.id, newAbove);
-            resizeChartById(belowEl.id, newBelow);
+            if (belowEl) {
+                var total = startAboveH + startBelowH;
+                var newAbove = Math.max(p.minA, Math.min(total - p.minB, startAboveH + delta));
+                var newBelow = total - newAbove;
+                aboveEl.style.height = newAbove + 'px';
+                belowEl.style.height = newBelow + 'px';
+                resizeChartById(aboveEl.id, newAbove);
+                resizeChartById(belowEl.id, newBelow);
+            } else {
+                var newH = Math.max(p.minA, startAboveH + delta);
+                aboveEl.style.height = newH + 'px';
+                resizeChartById(aboveEl.id, newH);
+            }
         }
         function end() {
             dragging = false;
@@ -2126,10 +2331,46 @@ def main():
         inst_json = '{}'
         print(f"  法人資料：無 institutional.json，跳過")
 
+    # 讀取 PE 河流位置
+    pe_path = os.path.join('pwa', 'pe_river.json')
+    if os.path.exists(pe_path):
+        with open(pe_path, 'r', encoding='utf-8') as f:
+            pe_json = f.read().strip()
+        print(f"  PE河流：{pe_path} 已載入")
+    else:
+        pe_json = '{}'
+        print(f"  PE河流：無 pe_river.json，跳過")
+
+    # 讀取題材標籤
+    theme_path = 'theme_tags.json'
+    if os.path.exists(theme_path):
+        with open(theme_path, 'r', encoding='utf-8') as f:
+            theme_json = f.read().strip()
+        theme_data = json.loads(theme_json)
+        theme_count = len(theme_data.get('themes', {}))
+        print(f"  題材標籤：{theme_count} 個題材")
+    else:
+        theme_json = '{}'
+        print(f"  題材標籤：無 theme_tags.json，跳過")
+
+    # 讀取法說會資料
+    conf_path = os.path.join('pwa', 'conferences.json')
+    if os.path.exists(conf_path):
+        with open(conf_path, 'r', encoding='utf-8') as f:
+            conf_json = f.read().strip()
+        conf_data = json.loads(conf_json)
+        print(f"  法說會：{len(conf_data)} 場")
+    else:
+        conf_json = '{}'
+        print(f"  法說會：無 conferences.json，跳過")
+
     html = html.replace('__STOCK_DATA__', json_data)
     html = html.replace('__ALERTS_DATA__', alerts_json)
     html = html.replace('__ANALYSIS_DATA__', analysis_json)
     html = html.replace('__INST_DATA__', inst_json)
+    html = html.replace('__PE_RIVER_DATA__', pe_json)
+    html = html.replace('__THEME_DATA__', theme_json)
+    html = html.replace('__CONF_DATA__', conf_json)
 
     # 讀取觀察清單狀態
     watchnotes_path = os.path.join('pwa', 'watchlist_status.json')
