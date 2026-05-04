@@ -108,6 +108,14 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true'
         run: python stock_alert.py
 
+      - name: AI stock analysis
+        if: steps.check_holiday.outputs.skip != 'true'
+        continue-on-error: true
+        timeout-minutes: 15
+        run: python stock_analyze.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
       - name: Check watchlist conditions
         if: steps.check_holiday.outputs.skip != 'true'
         run: python watchlist_check.py
@@ -153,4 +161,4 @@ jobs:
         run: |
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
-            -d '{"chat_id": "8786691885", "text": "📊 Stock PWA 已更新部署完成 ('"$(TZ=Asia/Taipei date +%Y-%m-%d %H:%M)"')"}'
+            -d '{"chat_id": "8786691885", "text": "📊 Stock PWA 已更新部署完成 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
