@@ -77,8 +77,16 @@ if exist "stock_data_%TODAY%.csv" (
 echo [Step 1] 下載數據 + 分析篩選...
 echo.
 python stock_system.py
+set STOCK_EXIT=%errorlevel%
 
-if %errorlevel% neq 0 (
+if %STOCK_EXIT% equ 2 (
+    echo.
+    echo ⚠️ 資料過期（API 尚未更新），跳過後續步驟
+    if not "%1"=="auto" pause
+    exit /b 0
+)
+
+if %STOCK_EXIT% neq 0 (
     echo.
     echo ❌ 執行失敗，請檢查網路連線
     if not "%1"=="auto" pause

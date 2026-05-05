@@ -1443,6 +1443,51 @@ def _verify_and_fix_prices(csv_path: str) -> int:
     return len(fixes)
 
 
+def _check_data_freshness(csv_path: str) -> bool:
+    """比對今日 CSV 與前一個 CSV 的收盤價，若 >95% 相同則判定為過期資料。
+    回傳 True = 資料新鮮, False = 資料過期。"""
+    import glob as _glob
+
+    base_dir = os.path.dirname(os.path.abspath(csv_path)) or "."
+    all_csvs = sorted(_glob.glob(os.path.join(base_dir, "stock_data_*.csv")))
+
+    abs_path = os.path.abspath(csv_path)
+    try:
+        idx = all_csvs.index(abs_path)
+    except ValueError:
+        return True
+    if idx == 0:
+        return True  # 沒有前日 CSV，無法比對
+
+    prev_csv = all_csvs[idx - 1]
+    prev_name = os.path.basename(prev_csv)
+
+    df_today = pd.read_csv(abs_path, encoding="utf-8-sig")
+    df_prev = pd.read_csv(prev_csv, encoding="utf-8-sig")
+
+    merged = pd.merge(
+        df_today[["股票代號", "收盤價"]],
+        df_prev[["股票代號", "收盤價"]],
+        on="股票代號", suffixes=("_today", "_prev")
+    )
+
+    if len(merged) == 0:
+        return True
+
+    same_count = (merged["收盤價_today"] == merged["收盤價_prev"]).sum()
+    same_pct = same_count / len(merged) * 100
+
+    if same_pct > 95:
+        print(f"\n   ⛔ 資料新鮮度檢查失敗！")
+        print(f"      與 {prev_name} 比對：{same_count}/{len(merged)} ({same_pct:.1f}%) 收盤價相同")
+        print(f"      判定為過期資料（API 尚未更新），刪除 {os.path.basename(csv_path)}")
+        os.remove(abs_path)
+        return False
+    else:
+        print(f"   ✅ 資料新鮮度通過（與 {prev_name} 相同率 {same_pct:.1f}%）")
+        return True
+
+
 # ============================================================
 # 主掃描流程
 # ============================================================
@@ -1741,6 +1786,10 @@ def run_screener(cfg: ScreenerConfig | None = None, deep: bool = False, save_csv
         csv_path = _save_stock_csv(csv_data)
         if csv_path:
             print(f"   成功：{csv_success} 筆")
+            if not _check_data_freshness(csv_path):
+                print("   ⚠️ 過期資料已刪除，pipeline 中止")
+                import sys
+                sys.exit(2)
             _verify_and_fix_prices(csv_path)
             _backfill_watchlist(csv_path)
             print(f"   💡 可使用 quick_filter.py 快速篩選")

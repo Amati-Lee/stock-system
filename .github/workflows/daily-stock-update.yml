@@ -85,31 +85,51 @@ jobs:
           restore-keys: ohlc-data-
 
       - name: Download stock data
+        id: download
         if: steps.check_holiday.outputs.skip != 'true'
-        run: python stock_system.py
+        run: |
+          python stock_system.py
+          echo "fresh=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Check data freshness
+        id: freshness
+        if: steps.check_holiday.outputs.skip != 'true'
+        run: |
+          if [ "${{ steps.download.outcome }}" = "failure" ]; then
+            TODAY=$(TZ=Asia/Taipei date +%Y%m%d)
+            if [ ! -f "stock_data_${TODAY}.csv" ]; then
+              echo "⛔ 資料過期或下載失敗，跳過後續步驟"
+              echo "stale=true" >> $GITHUB_OUTPUT
+            else
+              echo "stale=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "stale=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build OHLC from CSVs
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_ohlc.py
 
       - name: Download institutional data
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_institutional.py
 
       - name: Download PE river data
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_pe.py
 
       - name: Download conference dates
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_conference.py
 
       - name: Run stock alerts
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python stock_alert.py
 
       - name: AI stock analysis
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         continue-on-error: true
         timeout-minutes: 15
         run: python stock_analyze.py
@@ -117,15 +137,15 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Check watchlist conditions
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python watchlist_check.py
 
       - name: Generate PWA
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python generate_pwa.py
 
       - name: Commit new data
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -143,15 +163,22 @@ jobs:
           git push || { sleep 30 && git push; }
 
       - name: Deploy to Cloudflare Pages
-        if: steps.check_holiday.outputs.skip != 'true'
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: npx wrangler pages deploy pwa --project-name=stock-viewer --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Notify via Telegram
-        if: steps.check_holiday.outputs.skip != 'true' && success()
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true' && success()
         run: |
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
             -d '{"chat_id": "8786691885", "text": "📊 Stock PWA 已更新部署完成 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
+
+      - name: Notify stale data
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale == 'true'
+        run: |
+          curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
+            -H "Content-Type: application/json" \
+            -d '{"chat_id": "8786691885", "text": "⚠️ Stock 資料過期（API 未更新），今日未部署 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
