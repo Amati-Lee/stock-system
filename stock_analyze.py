@@ -83,14 +83,16 @@ def build_prompt(alert, csv_row, ohlc_summary):
 近5日K線:
 {ohlc_summary}
 
-請輸出以下 7 項分析（每項 1-3 句話，精簡直白）:
+請輸出以下 9 項分析（每項 1-3 句話，精簡直白）:
 1. 公司定位：這家公司做什麼、在產業鏈的位置
 2. 基本面優勢：從本益比、殖利率、市值等判斷
 3. 風險因素：包括流動性、產業、財務等風險
 4. 技術面判斷：從 KD/RSI/MACD/BB/量能判斷目前位階
 5. 策略建議：分「穩健型」和「積極型」各一句
-6. 客觀看法：你的整體評估
-7. 結論：一句話直白講，值不值得追
+6. 看多論點：站在最有利的角度，列出 2-3 個值得買入的理由
+7. 看空論點：站在最不利的角度，列出 2-3 個不該碰的理由
+8. 綜合判斷：權衡多空後的結論（偏多/中性/偏空）+ 一句話理由
+9. 結論：一句話直白講，值不值得追
 
 請用純文字回覆，格式如下（不要加 markdown）:
 公司定位: ...
@@ -99,7 +101,9 @@ def build_prompt(alert, csv_row, ohlc_summary):
 技術面判斷: ...
 穩健型策略: ...
 積極型策略: ...
-客觀看法: ...
+看多論點: ...
+看空論點: ...
+綜合判斷: ...
 結論: ..."""
 
 
@@ -113,7 +117,9 @@ def parse_response(text):
         "技術面判斷": "technical",
         "穩健型策略": "conservative",
         "積極型策略": "aggressive",
-        "客觀看法": "opinion",
+        "看多論點": "bull_case",
+        "看空論點": "bear_case",
+        "綜合判斷": "verdict",
         "結論": "conclusion",
     }
     for line in text.strip().split("\n"):
@@ -139,7 +145,7 @@ def analyze_stock(client, alert, csv_row, ohlc_summary):
         try:
             response = client.messages.create(
                 model=MODEL,
-                max_tokens=600,
+                max_tokens=800,
                 messages=[{"role": "user", "content": prompt}],
             )
             text = response.content[0].text

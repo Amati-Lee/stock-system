@@ -1251,7 +1251,8 @@ function renderAlerts() {
     var labels = [
         ['position', '公司定位'], ['fundamental', '基本面優勢'], ['risk', '風險因素'],
         ['technical', '技術面判斷'], ['conservative', '穩健型策略'], ['aggressive', '積極型策略'],
-        ['opinion', '客觀看法'], ['conclusion', '結論']
+        ['bull_case', '看多論點'], ['bear_case', '看空論點'],
+        ['verdict', '綜合判斷'], ['conclusion', '結論']
     ];
     var h = '<div class="alert-banner"><h3>&#x1F525; 起飛警示 (' + ALERTS.date + ')</h3>';
     for (var i = 0; i < ALERTS.alerts.length; i++) {
