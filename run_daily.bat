@@ -19,7 +19,13 @@ echo.
 echo [Step 0] 從 GitHub 同步最新資料...
 echo.
 git checkout -- ohlc_snapshot.tar.gz 2>nul
-git pull --ff-only
+git pull --rebase || (
+    echo ⚠️ pull --rebase 失敗，嘗試 reset 到 remote...
+    git rebase --abort 2>nul
+    git stash --include-untracked 2>nul
+    git pull --rebase
+    git stash pop 2>nul
+)
 
 for /f %%i in ('powershell -command "Get-Date -Format \"yyyyMMdd\""') do set TODAY=%%i
 
@@ -53,7 +59,16 @@ if exist "stock_data_%TODAY%.csv" (
     echo.
     python generate_pwa.py
     echo.
-    echo ✅ 完成！本地資料已產生，網站由 GitHub Actions 部署。
+    echo [Step 3] 推送資料到 GitHub...
+    echo.
+    git add stock_data_*.csv stock_names_all.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
+    git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json
+    git add -f pe_history.json
+    git diff --cached --quiet || git commit -m "data: %TODAY:~0,4%-%TODAY:~4,2%-%TODAY:~6,2% stock update (local)"
+    git pull --rebase -X theirs 2>nul
+    git push 2>nul || echo ⚠️ push 失敗（可能無網路），下次同步
+    echo.
+    echo ✅ 完成！本地資料已產生並同步。
     echo.
     if not "%1"=="auto" pause
     exit /b 0
@@ -122,6 +137,16 @@ if not defined CLOUDFLARE_API_TOKEN (
     exit /b 1
 )
 npx wrangler pages deploy pwa --project-name=stock-viewer --branch=main
+
+echo.
+echo [Step 4] 推送資料到 GitHub...
+echo.
+git add stock_data_*.csv stock_names_all.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
+git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json
+git add -f pe_history.json
+git diff --cached --quiet || git commit -m "data: %TODAY:~0,4%-%TODAY:~4,2%-%TODAY:~6,2% stock update (local)"
+git pull --rebase -X theirs 2>nul
+git push 2>nul || echo ⚠️ push 失敗（可能無網路），下次同步
 
 echo.
 echo ✅ 完成！ %date% %time%
