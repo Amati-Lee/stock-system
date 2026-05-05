@@ -206,14 +206,22 @@ def main():
         except Exception:
             pass
 
-    # 防重複：今天已分析過且數量足夠，跳過
-    if old_date == today_date and len(old_results) >= len(alerts) * 0.8:
-        print(f"AI 分析已是今日資料（{old_date}，{len(old_results)} 支），跳過重複呼叫")
+    # 防重複：今天已分析過且數量足夠且欄位完整，跳過
+    required_fields = {"position", "fundamental", "risk", "technical",
+                       "conservative", "aggressive", "bull_case", "bear_case",
+                       "verdict", "conclusion"}
+    complete_count = sum(1 for d in old_results.values()
+                        if isinstance(d, dict) and required_fields.issubset(d.keys()))
+    if old_date == today_date and complete_count >= len(alerts) * 0.8:
+        print(f"AI 分析已是今日資料（{old_date}，{complete_count}/{len(alerts)} 支欄位完整），跳過")
         return
 
-    # 找出今天尚未分析的股票（避免重跑已付費的）
-    alert_codes = {a["code"] for a in alerts}
-    already_done = set(old_results.keys()) if old_date == today_date else set()
+    # 找出今天尚未分析或欄位不完整的股票（避免重跑已付費的）
+    already_done = set()
+    if old_date == today_date:
+        for code, data in old_results.items():
+            if isinstance(data, dict) and required_fields.issubset(data.keys()):
+                already_done.add(code)
     to_analyze = [a for a in alerts if a["code"] not in already_done]
 
     if not to_analyze:
