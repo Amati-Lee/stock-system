@@ -192,28 +192,45 @@ def main():
         return
 
     alerts = alerts_data["alerts"]
-    print(f"AI 個股分析：{len(alerts)} 支警示股")
-    print(f"使用模型：{MODEL}")
+    today_date = alerts_data.get("date", "")
 
     # 載入舊分析（失敗時保留舊資料）
     old_results = {}
+    old_date = ""
     if os.path.exists(ANALYSIS_OUT):
         try:
             with open(ANALYSIS_OUT, "r", encoding="utf-8") as f:
                 old_data = json.load(f)
             old_results = old_data.get("analysis", {})
-            print(f"  既有分析：{len(old_results)} 支（失敗時保留）")
+            old_date = old_data.get("date", "")
         except Exception:
             pass
+
+    # 防重複：今天已分析過且數量足夠，跳過
+    if old_date == today_date and len(old_results) >= len(alerts) * 0.8:
+        print(f"AI 分析已是今日資料（{old_date}，{len(old_results)} 支），跳過重複呼叫")
+        return
+
+    # 找出今天尚未分析的股票（避免重跑已付費的）
+    alert_codes = {a["code"] for a in alerts}
+    already_done = set(old_results.keys()) if old_date == today_date else set()
+    to_analyze = [a for a in alerts if a["code"] not in already_done]
+
+    if not to_analyze:
+        print(f"AI 分析：{len(alerts)} 支皆已完成，無需重跑")
+        return
+
+    print(f"AI 個股分析：{len(to_analyze)}/{len(alerts)} 支待分析（已完成 {len(already_done)} 支）")
+    print(f"使用模型：{MODEL}")
 
     client = Anthropic(api_key=api_key)
     results = {}
     billing_error = False
 
-    for i, alert in enumerate(alerts):
+    for i, alert in enumerate(to_analyze):
         code = alert["code"]
         name = alert["name"]
-        print(f"  [{i+1}/{len(alerts)}] {code} {name}...", end=" ", flush=True)
+        print(f"  [{i+1}/{len(to_analyze)}] {code} {name}...", end=" ", flush=True)
 
         csv_row = load_csv_row(code)
         ohlc_summary = load_ohlc_summary(code)
@@ -229,11 +246,11 @@ def main():
             print("SKIP")
 
         # 避免 rate limit
-        if i < len(alerts) - 1:
+        if i < len(to_analyze) - 1:
             time.sleep(0.5)
 
-    # 合併：新分析覆蓋舊的，未分析到的保留舊資料
-    merged = dict(old_results)
+    # 合併：保留今日已分析的 + 新分析的
+    merged = dict(old_results) if old_date == today_date else {}
     merged.update(results)
 
     # 寫入
