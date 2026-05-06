@@ -164,7 +164,9 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
-        run: npx wrangler pages deploy pwa --project-name=stock-viewer --branch=main
+        run: |
+          rm -rf pwa/ohlc_backup
+          npx wrangler pages deploy pwa --project-name=stock-viewer --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
