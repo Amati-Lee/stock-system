@@ -1,27 +1,27 @@
 {
-  "date": "2026-05-05",
-  "trade_date": "20260505",
+  "date": "2026-05-06",
+  "trade_date": "20260506",
   "count": 7,
   "stocks": {
     "3005": {
       "name": "神基",
-      "price": 98.2,
+      "price": 97.5,
       "targets": {
         "積極進場": {
           "target_price": 100,
-          "diff_pct": -1.8,
+          "diff_pct": -2.5,
           "hit": true,
           "note": "95-100 進場區，建倉 2/3"
         },
         "穩健進場": {
           "target_price": 90,
-          "diff_pct": 9.1,
+          "diff_pct": 8.3,
           "hit": false,
           "note": "除息參考價附近，PE 10.7 倍"
         },
         "保守進場": {
           "target_price": 88,
-          "diff_pct": 11.6,
+          "diff_pct": 10.8,
           "hit": false,
           "note": "定期定額，每月 1 張"
         }
@@ -30,7 +30,7 @@
         {
           "date": "2026-05-10",
           "event": "4月營收公告",
-          "days_left": 4
+          "days_left": 3
         }
       ],
       "watch": [
@@ -42,35 +42,34 @@
       ],
       "stop_loss": 78,
       "institutional": {
-        "foreign": -945,
-        "trust": 138,
-        "dealer": -201,
-        "total": -1007
+        "foreign": -1274,
+        "trust": -94,
+        "dealer": -125,
+        "total": -1493
       },
       "triggered": [
-        "積極進場",
-        "trust_buy"
+        "積極進場"
       ]
     },
     "3023": {
       "name": "信邦",
-      "price": 289.0,
+      "price": 305.5,
       "targets": {
         "積極進場": {
           "target_price": 275,
-          "diff_pct": 5.1,
+          "diff_pct": 11.1,
           "hit": false,
           "note": "275 元合理進場區，第一批不超過 1/3，等回測 260 再加碼"
         },
         "穩健進場": {
           "target_price": 240,
-          "diff_pct": 20.4,
+          "diff_pct": 27.3,
           "hit": false,
           "note": "PE 回到 18 倍區間，下檔風險較小"
         },
         "保守進場": {
           "target_price": 230,
-          "diff_pct": 25.7,
+          "diff_pct": 32.8,
           "hit": false,
           "note": "等 Q2 財報（8月中旬）數字驗證後再決定，重點看綠能是否止血"
         }
@@ -79,7 +78,7 @@
         {
           "date": "2026-05-10",
           "event": "4月營收公告（通訊+工業佔比）",
-          "days_left": 4
+          "days_left": 3
         }
       ],
       "watch": [
@@ -91,10 +90,10 @@
       ],
       "stop_loss": 200,
       "institutional": {
-        "foreign": 889,
-        "trust": -46,
-        "dealer": -8,
-        "total": 835
+        "foreign": 2233,
+        "trust": -8,
+        "dealer": -24,
+        "total": 2202
       },
       "triggered": [
         "foreign_big_buy"
@@ -102,37 +101,32 @@
     },
     "4931": {
       "name": "新盛力",
-      "price": 156.0,
+      "price": 166.5,
       "targets": {
         "積極進場": {
           "target_price": 150,
-          "diff_pct": 4.0,
+          "diff_pct": 11.0,
           "hit": false,
           "note": "拉回月線分批介入，第一批不超過部位 1/4"
         },
         "穩健進場": {
           "target_price": 140,
-          "diff_pct": 11.4,
+          "diff_pct": 18.9,
           "hit": false,
           "note": "拉回 130-140（季線位置），PE 回到 35 倍以下"
         },
         "保守進場": {
           "target_price": 130,
-          "diff_pct": 20.0,
+          "diff_pct": 28.1,
           "hit": false,
           "note": "等 Q1 財報+4月營收數字驗證後再決定"
         }
       },
       "upcoming_dates": [
         {
-          "date": "2026-05-05",
-          "event": "Q1 財報（毛利率、BBU出貨）",
-          "days_left": -1
-        },
-        {
           "date": "2026-05-10",
           "event": "4月營收公告（能否回到年增正向）",
-          "days_left": 4
+          "days_left": 3
         }
       ],
       "watch": [
@@ -144,32 +138,32 @@
       ],
       "stop_loss": 110,
       "institutional": {
-        "foreign": 382,
+        "foreign": 183,
         "trust": 0,
-        "dealer": 25,
-        "total": 407
+        "dealer": 182,
+        "total": 364
       },
       "triggered": []
     },
     "6197": {
       "name": "佳必琪",
-      "price": 243.5,
+      "price": 234.5,
       "targets": {
         "積極進場": {
           "target_price": 175,
-          "diff_pct": 39.1,
+          "diff_pct": 34.0,
           "hit": false,
           "note": "回到月線附近，分批 1/3"
         },
         "穩健進場": {
           "target_price": 160,
-          "diff_pct": 52.2,
+          "diff_pct": 46.6,
           "hit": false,
           "note": "PE 回到 15 倍區間"
         },
         "保守進場": {
           "target_price": 150,
-          "diff_pct": 62.3,
+          "diff_pct": 56.3,
           "hit": false,
           "note": "等 Q1 財報確認"
         }
@@ -178,7 +172,7 @@
         {
           "date": "2026-05-10",
           "event": "4月營收公告",
-          "days_left": 4
+          "days_left": 3
         }
       ],
       "watch": [
@@ -187,14 +181,12 @@
       ],
       "stop_loss": 140,
       "institutional": {
-        "foreign": 2550,
+        "foreign": -36,
         "trust": 0,
-        "dealer": -344,
-        "total": 2207
+        "dealer": -246,
+        "total": -282
       },
-      "triggered": [
-        "foreign_big_buy"
-      ]
+      "triggered": []
     },
     "6285": {
       "name": "啟碁",
@@ -223,12 +215,12 @@
         {
           "date": "2026-05-06",
           "event": "Q1 財報（EPS 8.5+ 達標?）",
-          "days_left": 0
+          "days_left": -1
         },
         {
           "date": "2026-05-10",
           "event": "4月營收公告（3月歷史新高之後能否續強）",
-          "days_left": 4
+          "days_left": 3
         }
       ],
       "watch": [
@@ -240,10 +232,10 @@
       ],
       "stop_loss": 160,
       "institutional": {
-        "foreign": 1113,
-        "trust": -562,
-        "dealer": -88,
-        "total": 463
+        "foreign": 1216,
+        "trust": -377,
+        "dealer": -176,
+        "total": 663
       },
       "triggered": [
         "foreign_big_buy"
@@ -251,23 +243,23 @@
     },
     "3081": {
       "name": "聯亞",
-      "price": 2815.0,
+      "price": 2655.0,
       "targets": {
         "積極進場": {
           "target_price": 2200,
-          "diff_pct": 28.0,
+          "diff_pct": 20.7,
           "hit": false,
           "note": "跌破 BB 中軌 2428，技術面轉弱但為長期佈局點"
         },
         "穩健進場": {
           "target_price": 2000,
-          "diff_pct": 40.8,
+          "diff_pct": 32.8,
           "hit": false,
           "note": "接近 BB 下軌上方，技術面明顯支撐區，風險報酬比較優"
         },
         "保守進場": {
           "target_price": 2400,
-          "diff_pct": 17.3,
+          "diff_pct": 10.6,
           "hit": false,
           "note": "回測 2300-2400 前高區間確認企穩後進場，觀察量能放大"
         }
@@ -276,7 +268,7 @@
         {
           "date": "2026-05-10",
           "event": "4月營收公告（CPO 出貨量）",
-          "days_left": 4
+          "days_left": 3
         }
       ],
       "watch": [
@@ -288,34 +280,32 @@
       ],
       "stop_loss": 2350,
       "institutional": {
-        "foreign": -193,
-        "trust": 213,
-        "dealer": -18,
-        "total": 2
+        "foreign": -396,
+        "trust": -100,
+        "dealer": -63,
+        "total": -559
       },
-      "triggered": [
-        "trust_buy"
-      ]
+      "triggered": []
     },
     "8054": {
       "name": "安國",
-      "price": 112.0,
+      "price": 111.5,
       "targets": {
         "積極進場": {
           "target_price": 103.5,
-          "diff_pct": 8.2,
+          "diff_pct": 7.7,
           "hit": false,
           "note": "突破短期下降趨勢線，量能放大確認反轉"
         },
         "穩健進場": {
           "target_price": 100,
-          "diff_pct": 12.0,
+          "diff_pct": 11.5,
           "hit": false,
           "note": "整數關卡支撐，等底部確認訊號"
         },
         "保守進場": {
           "target_price": 95,
-          "diff_pct": 17.9,
+          "diff_pct": 17.4,
           "hit": false,
           "note": "接近前低支撐區，風險報酬比最佳"
         }
@@ -324,7 +314,7 @@
         {
           "date": "2026-05-10",
           "event": "4月營收公告",
-          "days_left": 4
+          "days_left": 3
         }
       ],
       "watch": [
@@ -336,10 +326,10 @@
       ],
       "stop_loss": 90,
       "institutional": {
-        "foreign": 369,
-        "trust": 5,
-        "dealer": 39,
-        "total": 413
+        "foreign": -415,
+        "trust": 7,
+        "dealer": -14,
+        "total": -422
       },
       "triggered": [
         "trust_buy"
