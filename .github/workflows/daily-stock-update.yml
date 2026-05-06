@@ -176,11 +176,11 @@ jobs:
         run: |
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
-            -d '{"chat_id": "8786691885", "text": "📊 Stock PWA 已更新部署完成 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
+            -d '{"broadcast": true, "text": "📊 Stock PWA 已更新部署完成 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
 
       - name: Notify stale data
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale == 'true'
         run: |
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
-            -d '{"chat_id": "8786691885", "text": "⚠️ Stock 資料過期（API 未更新），今日未部署 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
+            -d '{"broadcast": true, "text": "⚠️ Stock 資料過期（API 未更新），今日未部署 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
