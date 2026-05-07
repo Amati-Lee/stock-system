@@ -46,9 +46,15 @@
         "殖利率 5.35% 下檔保護最強"
       ],
       "stop_loss": 78,
-      "institutional": null,
+      "institutional": {
+        "foreign": 608,
+        "trust": -80,
+        "dealer": -14,
+        "total": 514
+      },
       "triggered": [
-        "積極進場"
+        "積極進場",
+        "foreign_big_buy"
       ]
     },
     "3023": {
@@ -89,7 +95,12 @@
         "定期定額策略：每月固定買 0.5-1 張，等 2027 機器人題材"
       ],
       "stop_loss": 200,
-      "institutional": null,
+      "institutional": {
+        "foreign": 435,
+        "trust": -39,
+        "dealer": 4,
+        "total": 400
+      },
       "triggered": []
     },
     "4931": {
@@ -178,7 +189,12 @@
         "1.6T ACC 認證進度"
       ],
       "stop_loss": 140,
-      "institutional": null,
+      "institutional": {
+        "foreign": -214,
+        "trust": 0,
+        "dealer": -9,
+        "total": -223
+      },
       "triggered": []
     },
     "6285": {
@@ -219,8 +235,16 @@
         "注意股價回檔是進場機會，現價比 4 月高點回檔約 10-15%"
       ],
       "stop_loss": 160,
-      "institutional": null,
-      "triggered": []
+      "institutional": {
+        "foreign": 11623,
+        "trust": 1022,
+        "dealer": 550,
+        "total": 13194
+      },
+      "triggered": [
+        "trust_buy",
+        "foreign_big_buy"
+      ]
     },
     "3081": {
       "name": "聯亞",

@@ -26,7 +26,7 @@
       "name": "亞矽",
       "close": 25.05,
       "chg_pct": 9.87,
-      "volume": 2942,
+      "volume": 2938,
       "avg_volume": 513,
       "score": 12,
       "reasons": [
@@ -95,7 +95,7 @@
       "name": "迅德",
       "close": 50.8,
       "chg_pct": 9.84,
-      "volume": 610,
+      "volume": 609,
       "avg_volume": 174,
       "score": 11,
       "reasons": [
@@ -112,12 +112,12 @@
       "name": "富致",
       "close": 66.9,
       "chg_pct": 9.85,
-      "volume": 936,
+      "volume": 923,
       "avg_volume": 268,
       "score": 11,
       "reasons": [
         "10日內漲停",
-        "爆量3.5倍",
+        "爆量3.4倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
@@ -214,7 +214,7 @@
       "name": "研通",
       "close": 31.15,
       "chg_pct": 9.49,
-      "volume": 2552,
+      "volume": 2543,
       "avg_volume": 493,
       "score": 11,
       "reasons": [
@@ -312,7 +312,7 @@
       "name": "光洋科",
       "close": 185.0,
       "chg_pct": 9.79,
-      "volume": 98221,
+      "volume": 98159,
       "avg_volume": 24694,
       "score": 10,
       "reasons": [
@@ -362,7 +362,7 @@
       "name": "致和證",
       "close": 34.3,
       "chg_pct": 9.94,
-      "volume": 10211,
+      "volume": 10202,
       "avg_volume": 3543,
       "score": 9,
       "reasons": [
@@ -413,7 +413,7 @@
       "name": "合晶",
       "close": 55.6,
       "chg_pct": 9.88,
-      "volume": 69286,
+      "volume": 69266,
       "avg_volume": 42434,
       "score": 9,
       "reasons": [
@@ -530,12 +530,12 @@
       "name": "健椿",
       "close": 47.25,
       "chg_pct": 6.9,
-      "volume": 2914,
+      "volume": 2899,
       "avg_volume": 564,
       "score": 9,
       "reasons": [
         "10日內漲停",
-        "爆量5.2倍",
+        "爆量5.1倍",
         "突破20日高",
         "突破布林上軌"
       ],
@@ -546,7 +546,7 @@
       "name": "霖宏",
       "close": 47.65,
       "chg_pct": 9.92,
-      "volume": 1660,
+      "volume": 1659,
       "avg_volume": 896,
       "score": 9,
       "reasons": [
@@ -613,7 +613,7 @@
       "name": "金山電",
       "close": 85.0,
       "chg_pct": 9.96,
-      "volume": 10045,
+      "volume": 10034,
       "avg_volume": 4564,
       "score": 9,
       "reasons": [
@@ -711,7 +711,7 @@
       "name": "宏遠證",
       "close": 16.05,
       "chg_pct": 6.64,
-      "volume": 7074,
+      "volume": 7060,
       "avg_volume": 2266,
       "score": 8,
       "reasons": [
@@ -759,7 +759,7 @@
       "name": "茂迪",
       "close": 30.3,
       "chg_pct": 9.98,
-      "volume": 13037,
+      "volume": 13026,
       "avg_volume": 8698,
       "score": 8,
       "reasons": [
@@ -791,7 +791,7 @@
       "name": "撼訊",
       "close": 72.6,
       "chg_pct": 10.0,
-      "volume": 763,
+      "volume": 762,
       "avg_volume": 515,
       "score": 8,
       "reasons": [
@@ -823,7 +823,7 @@
       "name": "環球晶",
       "close": 793.0,
       "chg_pct": 9.99,
-      "volume": 12736,
+      "volume": 12727,
       "avg_volume": 10442,
       "score": 8,
       "reasons": [
@@ -839,7 +839,7 @@
       "name": "青雲",
       "close": 522.0,
       "chg_pct": 9.89,
-      "volume": 1878,
+      "volume": 1874,
       "avg_volume": 2688,
       "score": 8,
       "reasons": [
@@ -871,7 +871,7 @@
       "name": "台燿",
       "close": 1445.0,
       "chg_pct": 9.89,
-      "volume": 4568,
+      "volume": 4565,
       "avg_volume": 8210,
       "score": 8,
       "reasons": [
@@ -887,11 +887,11 @@
       "name": "福邦證",
       "close": 16.7,
       "chg_pct": 5.03,
-      "volume": 7685,
+      "volume": 7671,
       "avg_volume": 1897,
       "score": 8,
       "reasons": [
-        "爆量4.1倍",
+        "爆量4.0倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
@@ -903,7 +903,7 @@
       "name": "信昌電",
       "close": 111.0,
       "chg_pct": 9.9,
-      "volume": 3541,
+      "volume": 3535,
       "avg_volume": 11331,
       "score": 8,
       "reasons": [
@@ -935,7 +935,7 @@
       "name": "世界",
       "close": 185.5,
       "chg_pct": 9.76,
-      "volume": 33737,
+      "volume": 33342,
       "avg_volume": 38081,
       "score": 8,
       "reasons": [
@@ -967,7 +967,7 @@
       "name": "久元",
       "close": 133.5,
       "chg_pct": 9.88,
-      "volume": 2649,
+      "volume": 2648,
       "avg_volume": 6487,
       "score": 8,
       "reasons": [
