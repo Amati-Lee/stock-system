@@ -1,7 +1,7 @@
 {
   "date": "2026-05-11",
   "threshold": 8,
-  "scanned": 10576,
+  "scanned": 10689,
   "alerts": [
     {
       "code": "2364",
@@ -27,7 +27,7 @@
       "name": "榮剛",
       "close": 40.15,
       "chg_pct": 10.0,
-      "volume": 18599,
+      "volume": 18608,
       "avg_volume": 4081,
       "score": 11,
       "reasons": [
@@ -44,12 +44,12 @@
       "name": "全宇昕",
       "close": 133.5,
       "chg_pct": 9.88,
-      "volume": 2722,
+      "volume": 2739,
       "avg_volume": 416,
       "score": 11,
       "reasons": [
         "10日內漲停",
-        "爆量6.5倍",
+        "爆量6.6倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
@@ -198,7 +198,7 @@
       "name": "台半",
       "close": 80.3,
       "chg_pct": 10.0,
-      "volume": 37387,
+      "volume": 37393,
       "avg_volume": 10208,
       "score": 11,
       "reasons": [
@@ -284,7 +284,7 @@
       "name": "驊訊",
       "close": 45.5,
       "chg_pct": 4.24,
-      "volume": 4281,
+      "volume": 4282,
       "avg_volume": 408,
       "score": 11,
       "reasons": [
@@ -352,7 +352,7 @@
       "name": "康和證",
       "close": 24.05,
       "chg_pct": 9.82,
-      "volume": 15472,
+      "volume": 15507,
       "avg_volume": 8131,
       "score": 9,
       "reasons": [
@@ -386,7 +386,7 @@
       "name": "譜瑞-KY",
       "close": 735.0,
       "chg_pct": 9.87,
-      "volume": 7153,
+      "volume": 7155,
       "avg_volume": 2613,
       "score": 9,
       "reasons": [
@@ -420,7 +420,7 @@
       "name": "中美晶",
       "close": 163.5,
       "chg_pct": 9.73,
-      "volume": 33850,
+      "volume": 33877,
       "avg_volume": 18606,
       "score": 9,
       "reasons": [
@@ -437,7 +437,7 @@
       "name": "今展科",
       "close": 48.6,
       "chg_pct": 9.95,
-      "volume": 3039,
+      "volume": 3042,
       "avg_volume": 1456,
       "score": 9,
       "reasons": [
@@ -454,7 +454,7 @@
       "name": "新應材",
       "close": 1175.0,
       "chg_pct": 8.29,
-      "volume": 9098,
+      "volume": 9112,
       "avg_volume": 3293,
       "score": 9,
       "reasons": [
@@ -471,7 +471,7 @@
       "name": "金益鼎",
       "close": 103.5,
       "chg_pct": 9.99,
-      "volume": 3617,
+      "volume": 3621,
       "avg_volume": 822,
       "score": 9,
       "reasons": [
@@ -487,7 +487,7 @@
       "name": "健椿",
       "close": 51.6,
       "chg_pct": 0.39,
-      "volume": 2284,
+      "volume": 2287,
       "avg_volume": 943,
       "score": 9,
       "reasons": [
@@ -504,7 +504,7 @@
       "name": "霖宏",
       "close": 57.6,
       "chg_pct": 9.92,
-      "volume": 2767,
+      "volume": 2779,
       "avg_volume": 1348,
       "score": 9,
       "reasons": [
@@ -555,7 +555,7 @@
       "name": "文曄",
       "close": 264.5,
       "chg_pct": 9.98,
-      "volume": 22124,
+      "volume": 22384,
       "avg_volume": 8488,
       "score": 9,
       "reasons": [
@@ -572,7 +572,7 @@
       "name": "信昌電",
       "close": 134.0,
       "chg_pct": 9.84,
-      "volume": 29013,
+      "volume": 29078,
       "avg_volume": 12199,
       "score": 9,
       "reasons": [
@@ -734,7 +734,7 @@
       "name": "廣穎",
       "close": 109.5,
       "chg_pct": 9.94,
-      "volume": 5387,
+      "volume": 5390,
       "avg_volume": 8235,
       "score": 8,
       "reasons": [
@@ -766,7 +766,7 @@
       "name": "群聯",
       "close": 2670.0,
       "chg_pct": 9.88,
-      "volume": 1763,
+      "volume": 1793,
       "avg_volume": 10313,
       "score": 8,
       "reasons": [
@@ -814,12 +814,12 @@
       "name": "智邦",
       "close": 2590.0,
       "chg_pct": 9.05,
-      "volume": 8473,
+      "volume": 8849,
       "avg_volume": 5045,
       "score": 8,
       "reasons": [
         "10日內漲停",
-        "增量1.7倍",
+        "增量1.8倍",
         "突破20日高",
         "創60日新高"
       ],
@@ -894,7 +894,7 @@
       "name": "普萊德",
       "close": 168.0,
       "chg_pct": 9.8,
-      "volume": 304,
+      "volume": 305,
       "avg_volume": 250,
       "score": 8,
       "reasons": [
@@ -927,7 +927,7 @@
       "name": "宜鼎",
       "close": 1760.0,
       "chg_pct": 10.0,
-      "volume": 3484,
+      "volume": 3485,
       "avg_volume": 5238,
       "score": 8,
       "reasons": [
@@ -943,7 +943,7 @@
       "name": "越峰",
       "close": 33.85,
       "chg_pct": 9.9,
-      "volume": 3484,
+      "volume": 3490,
       "avg_volume": 1509,
       "score": 8,
       "reasons": [
@@ -959,7 +959,7 @@
       "name": "新盛力",
       "close": 187.0,
       "chg_pct": 10.0,
-      "volume": 15890,
+      "volume": 15894,
       "avg_volume": 11812,
       "score": 8,
       "reasons": [
@@ -1007,7 +1007,7 @@
       "name": "環球晶",
       "close": 835.0,
       "chg_pct": 4.11,
-      "volume": 10932,
+      "volume": 10952,
       "avg_volume": 11753,
       "score": 8,
       "reasons": [
@@ -1103,7 +1103,7 @@
       "name": "台燿",
       "close": 1455.0,
       "chg_pct": 6.2,
-      "volume": 2574,
+      "volume": 2585,
       "avg_volume": 7566,
       "score": 8,
       "reasons": [
@@ -1135,7 +1135,7 @@
       "name": "研華",
       "close": 478.5,
       "chg_pct": 0.42,
-      "volume": 4852,
+      "volume": 5602,
       "avg_volume": 4191,
       "score": 8,
       "reasons": [
@@ -1183,7 +1183,7 @@
       "name": "應廣",
       "close": 104.0,
       "chg_pct": 9.82,
-      "volume": 632,
+      "volume": 633,
       "avg_volume": 632,
       "score": 8,
       "reasons": [
