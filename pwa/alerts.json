@@ -1,7 +1,7 @@
 {
   "date": "2026-05-13",
   "threshold": 8,
-  "scanned": 10826,
+  "scanned": 10903,
   "alerts": [
     {
       "code": "3149",
@@ -42,7 +42,7 @@
       "name": "京晨科",
       "close": 165.5,
       "chg_pct": 9.97,
-      "volume": 1944,
+      "volume": 1946,
       "avg_volume": 631,
       "score": 11,
       "reasons": [
@@ -93,7 +93,7 @@
       "name": "品安",
       "close": 57.2,
       "chg_pct": 10.0,
-      "volume": 12280,
+      "volume": 12297,
       "avg_volume": 3715,
       "score": 11,
       "reasons": [
@@ -144,7 +144,7 @@
       "name": "泓格",
       "close": 99.6,
       "chg_pct": 9.93,
-      "volume": 1674,
+      "volume": 1679,
       "avg_volume": 270,
       "score": 11,
       "reasons": [
@@ -161,7 +161,7 @@
       "name": "元太",
       "close": 215.0,
       "chg_pct": 9.97,
-      "volume": 38387,
+      "volume": 38403,
       "avg_volume": 10998,
       "score": 11,
       "reasons": [
@@ -263,7 +263,7 @@
       "name": "鈺鎧",
       "close": 49.15,
       "chg_pct": 7.2,
-      "volume": 6014,
+      "volume": 6020,
       "avg_volume": 1329,
       "score": 11,
       "reasons": [
@@ -297,12 +297,12 @@
       "name": "中探針",
       "close": 341.0,
       "chg_pct": 10.0,
-      "volume": 6185,
+      "volume": 6189,
       "avg_volume": 2171,
       "score": 9,
       "reasons": [
         "10日內漲停",
-        "增量2.8倍",
+        "增量2.9倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
@@ -331,7 +331,7 @@
       "name": "閎康",
       "close": 396.0,
       "chg_pct": 2.72,
-      "volume": 10449,
+      "volume": 10474,
       "avg_volume": 4503,
       "score": 9,
       "reasons": [
@@ -348,7 +348,7 @@
       "name": "臺慶科",
       "close": 213.0,
       "chg_pct": 9.79,
-      "volume": 10393,
+      "volume": 10424,
       "avg_volume": 4499,
       "score": 9,
       "reasons": [
@@ -365,7 +365,7 @@
       "name": "旺矽",
       "close": 5720.0,
       "chg_pct": 4.38,
-      "volume": 3018,
+      "volume": 3022,
       "avg_volume": 1310,
       "score": 9,
       "reasons": [
@@ -382,7 +382,7 @@
       "name": "金益鼎",
       "close": 114.0,
       "chg_pct": 3.17,
-      "volume": 2071,
+      "volume": 2074,
       "avg_volume": 1073,
       "score": 9,
       "reasons": [
@@ -416,12 +416,12 @@
       "name": "百徽",
       "close": 26.25,
       "chg_pct": 9.83,
-      "volume": 2045,
+      "volume": 2049,
       "avg_volume": 909,
       "score": 9,
       "reasons": [
         "10日內漲停",
-        "增量2.2倍",
+        "增量2.3倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
@@ -501,7 +501,7 @@
       "name": "久禾光",
       "close": 102.5,
       "chg_pct": 8.01,
-      "volume": 914,
+      "volume": 922,
       "avg_volume": 121,
       "score": 8,
       "reasons": [
@@ -533,7 +533,7 @@
       "name": "鈦昇",
       "close": 250.0,
       "chg_pct": 3.52,
-      "volume": 3190,
+      "volume": 3206,
       "avg_volume": 12616,
       "score": 8,
       "reasons": [
@@ -565,7 +565,7 @@
       "name": "日揚",
       "close": 95.1,
       "chg_pct": 9.94,
-      "volume": 1332,
+      "volume": 1338,
       "avg_volume": 1363,
       "score": 8,
       "reasons": [
@@ -677,7 +677,7 @@
       "name": "豪勉",
       "close": 45.1,
       "chg_pct": 10.0,
-      "volume": 4147,
+      "volume": 4151,
       "avg_volume": 3248,
       "score": 8,
       "reasons": [
@@ -693,7 +693,7 @@
       "name": "陽程",
       "close": 123.5,
       "chg_pct": 9.78,
-      "volume": 4790,
+      "volume": 4803,
       "avg_volume": 4260,
       "score": 8,
       "reasons": [
@@ -709,7 +709,7 @@
       "name": "信昌電",
       "close": 159.0,
       "chg_pct": 8.16,
-      "volume": 3380,
+      "volume": 3386,
       "avg_volume": 13736,
       "score": 8,
       "reasons": [
@@ -725,7 +725,7 @@
       "name": "金山電",
       "close": 106.0,
       "chg_pct": 8.5,
-      "volume": 5268,
+      "volume": 5292,
       "avg_volume": 6420,
       "score": 8,
       "reasons": [
@@ -741,7 +741,7 @@
       "name": "崴寶",
       "close": 598.0,
       "chg_pct": 7.75,
-      "volume": 263,
+      "volume": 266,
       "avg_volume": 206,
       "score": 8,
       "reasons": [
