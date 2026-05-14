@@ -91,11 +91,13 @@
       "stop_loss": 200,
       "institutional": {
         "foreign": -465,
-        "trust": -6,
-        "dealer": -36,
+        "trust": 14,
+        "dealer": -10,
         "total": -508
       },
-      "triggered": []
+      "triggered": [
+        "trust_buy"
+      ]
     },
     "4931": {
       "name": "新盛力",
@@ -174,11 +176,13 @@
       "stop_loss": 140,
       "institutional": {
         "foreign": -221,
-        "trust": -1,
-        "dealer": -139,
+        "trust": 10,
+        "dealer": -6,
         "total": -361
       },
-      "triggered": []
+      "triggered": [
+        "trust_buy"
+      ]
     },
     "6285": {
       "name": "啟碁",
