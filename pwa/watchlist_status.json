@@ -1,27 +1,27 @@
 {
-  "date": "2026-05-14",
-  "trade_date": "20260514",
+  "date": "2026-05-15",
+  "trade_date": "20260515",
   "count": 7,
   "stocks": {
     "3005": {
       "name": "神基",
-      "price": 103.5,
+      "price": 99.5,
       "targets": {
         "積極進場": {
           "target_price": 100,
-          "diff_pct": 3.5,
-          "hit": false,
+          "diff_pct": -0.5,
+          "hit": true,
           "note": "95-100 進場區，建倉 2/3"
         },
         "穩健進場": {
           "target_price": 90,
-          "diff_pct": 15.0,
+          "diff_pct": 10.6,
           "hit": false,
           "note": "除息參考價附近，PE 10.7 倍"
         },
         "保守進場": {
           "target_price": 88,
-          "diff_pct": 17.6,
+          "diff_pct": 13.1,
           "hit": false,
           "note": "定期定額，每月 1 張"
         }
@@ -30,7 +30,7 @@
         {
           "date": "2026-05-15",
           "event": "Q1 財報（毛利率、軍工占比）",
-          "days_left": 0
+          "days_left": -1
         }
       ],
       "watch": [
@@ -42,34 +42,34 @@
       ],
       "stop_loss": 78,
       "institutional": {
-        "foreign": 5693,
-        "trust": -25,
-        "dealer": 163,
-        "total": 5831
+        "foreign": -3008,
+        "trust": -82,
+        "dealer": -26,
+        "total": -3117
       },
       "triggered": [
-        "foreign_big_buy"
+        "積極進場"
       ]
     },
     "3023": {
       "name": "信邦",
-      "price": 293.0,
+      "price": 281.0,
       "targets": {
         "積極進場": {
           "target_price": 275,
-          "diff_pct": 6.5,
+          "diff_pct": 2.2,
           "hit": false,
           "note": "275 元合理進場區，第一批不超過 1/3，等回測 260 再加碼"
         },
         "穩健進場": {
           "target_price": 240,
-          "diff_pct": 22.1,
+          "diff_pct": 17.1,
           "hit": false,
           "note": "PE 回到 18 倍區間，下檔風險較小"
         },
         "保守進場": {
           "target_price": 230,
-          "diff_pct": 27.4,
+          "diff_pct": 22.2,
           "hit": false,
           "note": "等 Q2 財報（8月中旬）數字驗證後再決定，重點看綠能是否止血"
         }
@@ -78,7 +78,7 @@
         {
           "date": "2026-05-20",
           "event": "Q1 財報（毛利率、綠能衰退幅度）",
-          "days_left": 5
+          "days_left": 4
         }
       ],
       "watch": [
@@ -90,34 +90,32 @@
       ],
       "stop_loss": 200,
       "institutional": {
-        "foreign": -465,
-        "trust": 14,
-        "dealer": -10,
-        "total": -508
+        "foreign": -335,
+        "trust": -1,
+        "dealer": -8,
+        "total": -345
       },
-      "triggered": [
-        "trust_buy"
-      ]
+      "triggered": []
     },
     "4931": {
       "name": "新盛力",
-      "price": 198.5,
+      "price": 183.5,
       "targets": {
         "積極進場": {
           "target_price": 150,
-          "diff_pct": 32.3,
+          "diff_pct": 22.3,
           "hit": false,
           "note": "拉回月線分批介入，第一批不超過部位 1/4"
         },
         "穩健進場": {
           "target_price": 140,
-          "diff_pct": 41.8,
+          "diff_pct": 31.1,
           "hit": false,
           "note": "拉回 130-140（季線位置），PE 回到 35 倍以下"
         },
         "保守進場": {
           "target_price": 130,
-          "diff_pct": 52.7,
+          "diff_pct": 41.2,
           "hit": false,
           "note": "等 Q1 財報+4月營收數字驗證後再決定"
         }
@@ -132,32 +130,32 @@
       ],
       "stop_loss": 110,
       "institutional": {
-        "foreign": -1763,
+        "foreign": 400,
         "trust": 0,
-        "dealer": -41,
-        "total": -1804
+        "dealer": 159,
+        "total": 560
       },
       "triggered": []
     },
     "6197": {
       "name": "佳必琪",
-      "price": 226.5,
+      "price": 218.5,
       "targets": {
         "積極進場": {
           "target_price": 175,
-          "diff_pct": 29.4,
+          "diff_pct": 24.9,
           "hit": false,
           "note": "回到月線附近，分批 1/3"
         },
         "穩健進場": {
           "target_price": 160,
-          "diff_pct": 41.6,
+          "diff_pct": 36.6,
           "hit": false,
           "note": "PE 回到 15 倍區間"
         },
         "保守進場": {
           "target_price": 150,
-          "diff_pct": 51.0,
+          "diff_pct": 45.7,
           "hit": false,
           "note": "等 Q1 財報確認"
         }
@@ -166,7 +164,7 @@
         {
           "date": "2026-05-15",
           "event": "Q1 財報公布",
-          "days_left": 0
+          "days_left": -1
         }
       ],
       "watch": [
@@ -175,34 +173,32 @@
       ],
       "stop_loss": 140,
       "institutional": {
-        "foreign": -221,
-        "trust": 10,
-        "dealer": -6,
-        "total": -361
+        "foreign": 391,
+        "trust": 0,
+        "dealer": -16,
+        "total": 375
       },
-      "triggered": [
-        "trust_buy"
-      ]
+      "triggered": []
     },
     "6285": {
       "name": "啟碁",
-      "price": 262.0,
+      "price": 260.0,
       "targets": {
         "積極進場": {
           "target_price": 215,
-          "diff_pct": 21.9,
+          "diff_pct": 20.9,
           "hit": false,
           "note": "200-215 進場區，分批先 1/3 部位"
         },
         "穩健進場": {
           "target_price": 185,
-          "diff_pct": 41.6,
+          "diff_pct": 40.5,
           "hit": false,
           "note": "拉回 180-185（季線）再加碼到 2/3"
         },
         "保守進場": {
           "target_price": 180,
-          "diff_pct": 45.6,
+          "diff_pct": 44.4,
           "hit": false,
           "note": "等 6 月 SpaceX IPO 訊息明朗化再決定"
         }
@@ -217,32 +213,34 @@
       ],
       "stop_loss": 160,
       "institutional": {
-        "foreign": -2056,
-        "trust": -134,
-        "dealer": -765,
-        "total": -2955
+        "foreign": 3510,
+        "trust": -60,
+        "dealer": -330,
+        "total": 3120
       },
-      "triggered": []
+      "triggered": [
+        "foreign_big_buy"
+      ]
     },
     "3081": {
       "name": "聯亞",
-      "price": 2945.0,
+      "price": 2655.0,
       "targets": {
         "積極進場": {
           "target_price": 2200,
-          "diff_pct": 33.9,
+          "diff_pct": 20.7,
           "hit": false,
           "note": "跌破 BB 中軌 2428，技術面轉弱但為長期佈局點"
         },
         "穩健進場": {
           "target_price": 2000,
-          "diff_pct": 47.2,
+          "diff_pct": 32.8,
           "hit": false,
           "note": "接近 BB 下軌上方，技術面明顯支撐區，風險報酬比較優"
         },
         "保守進場": {
           "target_price": 2400,
-          "diff_pct": 22.7,
+          "diff_pct": 10.6,
           "hit": false,
           "note": "回測 2300-2400 前高區間確認企穩後進場，觀察量能放大"
         }
@@ -251,7 +249,7 @@
         {
           "date": "2026-05-15",
           "event": "Q1 財報（EPS、毛利率變化）",
-          "days_left": 0
+          "days_left": -1
         }
       ],
       "watch": [
@@ -263,34 +261,32 @@
       ],
       "stop_loss": 2350,
       "institutional": {
-        "foreign": -143,
-        "trust": 316,
-        "dealer": 1,
-        "total": 174
+        "foreign": -282,
+        "trust": -99,
+        "dealer": -66,
+        "total": -447
       },
-      "triggered": [
-        "trust_buy"
-      ]
+      "triggered": []
     },
     "8054": {
       "name": "安國",
-      "price": 101.0,
+      "price": 102.5,
       "targets": {
         "積極進場": {
           "target_price": 103.5,
-          "diff_pct": -2.4,
+          "diff_pct": -1.0,
           "hit": true,
           "note": "突破短期下降趨勢線，量能放大確認反轉"
         },
         "穩健進場": {
           "target_price": 100,
-          "diff_pct": 1.0,
+          "diff_pct": 2.5,
           "hit": false,
           "note": "整數關卡支撐，等底部確認訊號"
         },
         "保守進場": {
           "target_price": 95,
-          "diff_pct": 6.3,
+          "diff_pct": 7.9,
           "hit": false,
           "note": "接近前低支撐區，風險報酬比最佳"
         }
@@ -299,7 +295,7 @@
         {
           "date": "2026-05-15",
           "event": "Q1 財報（EPS、毛利率）",
-          "days_left": 0
+          "days_left": -1
         }
       ],
       "watch": [
@@ -311,10 +307,10 @@
       ],
       "stop_loss": 90,
       "institutional": {
-        "foreign": 240,
+        "foreign": -204,
         "trust": 0,
-        "dealer": -6,
-        "total": 234
+        "dealer": 27,
+        "total": -177
       },
       "triggered": [
         "積極進場"
