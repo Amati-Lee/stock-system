@@ -371,6 +371,7 @@ h1{font-size:22px;color:#333;margin-bottom:4px}
 .tr{background:#fce4ec;color:#c62828}
 .tb{background:#e3f2fd;color:#1565c0}
 .tt{background:#f3e5f5;color:#7b1fa2}
+.ti{background:#e3f2fd;color:#1565c0}
 .tc{background:#e0f2f1;color:#00695c}
 .tc-soon{background:#fff8e1;color:#f57f17;font-weight:bold}
 .tgray{background:#f5f5f5;color:#999}
@@ -440,8 +441,7 @@ tr:nth-child(even){background:#fafafa}
 .chart-mode-btn.active{background:rgba(102,126,234,0.3);color:#8da4ef;border-color:rgba(102,126,234,0.5)}
 .alert-banner{margin:12px;padding:14px 16px;background:linear-gradient(135deg,rgba(30,30,60,0.95),rgba(40,30,50,0.95));border:1px solid rgba(255,69,58,0.4);border-radius:14px}
 .alert-banner h3{margin:0 0 8px;font-size:14px;color:#fff;text-shadow:0 0 8px rgba(255,69,58,0.8);display:flex;align-items:center;gap:6px}
-.alert-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer}
-.alert-item:last-child{border-bottom:none}
+.alert-item{display:flex;justify-content:space-between;align-items:center;padding:10px 8px;margin-bottom:6px;background:rgba(255,255,255,0.04);border-radius:8px;border-left:3px solid rgba(255,69,58,0.5);cursor:pointer}
 .alert-left{display:flex;flex-direction:column;gap:2px}
 .alert-code{font-weight:bold;font-size:14px;color:#e0e0e0}
 .alert-reasons{font-size:11px;color:#aaa;line-height:1.4}
@@ -710,6 +710,7 @@ var INST = __INST_DATA__;
 var PE_RIVER = __PE_RIVER_DATA__;
 var THEMES = __THEME_DATA__;
 var CONF = __CONF_DATA__;
+var INDUSTRY = __INDUSTRY_DATA__;
 var OHLC_CACHE = {};
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
@@ -1265,6 +1266,8 @@ function renderAlerts() {
         h += '<div class="alert-left">';
         var emgTag = a.market === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '';
         h += '<span class="alert-code">' + a.code + ' ' + a.name + emgTag + '</span>';
+        var indText = INDUSTRY ? INDUSTRY[a.code] : '';
+        if (indText) { h += '<span class="tag ti">' + indText + '</span>'; }
         h += '<span class="alert-reasons">' + a.reasons.join('、') + '</span>';
         var instD = (INST && INST.data) ? INST.data[a.code] : null;
         if (instD) { h += renderInstTag(instD); }
@@ -2365,6 +2368,17 @@ def main():
         conf_json = '{}'
         print(f"  法說會：無 conferences.json，跳過")
 
+    # 讀取產業分類
+    industry_path = 'stock_industry.json'
+    if os.path.exists(industry_path):
+        with open(industry_path, 'r', encoding='utf-8') as f:
+            industry_json = f.read().strip()
+        industry_data = json.loads(industry_json)
+        print(f"  產業分類：{len(industry_data)} 家")
+    else:
+        industry_json = '{}'
+        print(f"  產業分類：無 stock_industry.json，跳過")
+
     html = html.replace('__STOCK_DATA__', json_data)
     html = html.replace('__ALERTS_DATA__', alerts_json)
     html = html.replace('__ANALYSIS_DATA__', analysis_json)
@@ -2372,6 +2386,7 @@ def main():
     html = html.replace('__PE_RIVER_DATA__', pe_json)
     html = html.replace('__THEME_DATA__', theme_json)
     html = html.replace('__CONF_DATA__', conf_json)
+    html = html.replace('__INDUSTRY_DATA__', industry_json)
 
     # 讀取觀察清單狀態
     watchnotes_path = os.path.join('pwa', 'watchlist_status.json')
