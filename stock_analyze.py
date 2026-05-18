@@ -10,6 +10,7 @@ import time
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ALERTS_PATH = os.path.join(SCRIPT_DIR, "pwa", "alerts.json")
 ANALYSIS_OUT = os.path.join(SCRIPT_DIR, "pwa", "analysis.json")
+INDUSTRY_PATH = os.path.join(SCRIPT_DIR, "stock_industry.json")
 MODEL = "claude-haiku-4-5-20251001"
 MAX_RETRIES = 2
 TELEGRAM_URL = "https://pomodoro-bot.juria-orch.workers.dev"
@@ -52,7 +53,15 @@ def load_ohlc_summary(code):
     return "\n".join(lines)
 
 
-def build_prompt(alert, csv_row, ohlc_summary):
+def load_industry():
+    """載入產業分類對照表"""
+    if not os.path.exists(INDUSTRY_PATH):
+        return {}
+    with open(INDUSTRY_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def build_prompt(alert, csv_row, ohlc_summary, industry=""):
     """組裝單支股票的分析 prompt"""
     code = alert["code"]
     name = alert["name"]
@@ -69,9 +78,12 @@ def build_prompt(alert, csv_row, ohlc_summary):
             fields.append(f"{key}: {val}")
     tech_str = "\n".join(fields) if fields else "無資料"
 
+    industry_line = f"產業別: {industry}" if industry else "產業別: 未知"
+
     return f"""你是台股分析師。請針對以下起飛警示股票，用繁體中文產出結構化分析。
 
 股票: {code} {name} ({market})
+{industry_line}
 警示得分: {alert['score']} 分
 警示原因: {reasons}
 當日收盤: {alert['close']}  漲跌: {alert['chg_pct']:+.2f}%
@@ -84,7 +96,7 @@ def build_prompt(alert, csv_row, ohlc_summary):
 {ohlc_summary}
 
 請輸出以下 9 項分析（每項 1-3 句話，精簡直白）:
-1. 公司定位：這家公司做什麼、在產業鏈的位置
+1. 公司定位：根據上方產業別，簡述公司在該產業的定位（若產業別為未知，僅寫「產業別未知，無法判斷」，不可自行猜測）
 2. 基本面優勢：從本益比、殖利率、市值等判斷
 3. 風險因素：包括流動性、產業、財務等風險
 4. 技術面判斷：從 KD/RSI/MACD/BB/量能判斷目前位階
@@ -137,9 +149,9 @@ def parse_response(text):
     return result
 
 
-def analyze_stock(client, alert, csv_row, ohlc_summary):
+def analyze_stock(client, alert, csv_row, ohlc_summary, industry=""):
     """呼叫 Claude API 分析單支股票"""
-    prompt = build_prompt(alert, csv_row, ohlc_summary)
+    prompt = build_prompt(alert, csv_row, ohlc_summary, industry)
 
     for attempt in range(MAX_RETRIES + 1):
         try:
@@ -231,6 +243,12 @@ def main():
     print(f"AI 個股分析：{len(to_analyze)}/{len(alerts)} 支待分析（已完成 {len(already_done)} 支）")
     print(f"使用模型：{MODEL}")
 
+    industry_map = load_industry()
+    if industry_map:
+        print(f"產業分類：已載入 {len(industry_map)} 家")
+    else:
+        print("產業分類：未找到 stock_industry.json，公司定位可能不準確")
+
     client = Anthropic(api_key=api_key)
     results = {}
     billing_error = False
@@ -242,7 +260,8 @@ def main():
 
         csv_row = load_csv_row(code)
         ohlc_summary = load_ohlc_summary(code)
-        analysis = analyze_stock(client, alert, csv_row, ohlc_summary)
+        industry = industry_map.get(code, "")
+        analysis = analyze_stock(client, alert, csv_row, ohlc_summary, industry)
 
         if analysis == "BILLING_ERROR":
             billing_error = True

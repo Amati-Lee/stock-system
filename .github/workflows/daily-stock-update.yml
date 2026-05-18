@@ -124,6 +124,10 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_conference.py
 
+      - name: Download industry classification
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
+        run: python download_industry.py
+
       - name: Run stock alerts
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python stock_alert.py
@@ -149,7 +153,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add stock_data_*.csv stock_names_all.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
+          git add stock_data_*.csv stock_names_all.json stock_industry.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
           git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json
           git add -f pe_history.json
           git add alerts_history/
