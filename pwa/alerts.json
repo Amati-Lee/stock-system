@@ -59,7 +59,7 @@
       "name": "驊訊",
       "close": 53.4,
       "chg_pct": 9.99,
-      "volume": 7161,
+      "volume": 7160,
       "avg_volume": 1733,
       "score": 11,
       "reasons": [
@@ -93,7 +93,7 @@
       "name": "今展科",
       "close": 56.9,
       "chg_pct": 7.97,
-      "volume": 7948,
+      "volume": 7939,
       "avg_volume": 2356,
       "score": 11,
       "reasons": [
@@ -229,7 +229,7 @@
       "name": "科嶠",
       "close": 259.5,
       "chg_pct": 9.96,
-      "volume": 2638,
+      "volume": 2637,
       "avg_volume": 876,
       "score": 11,
       "reasons": [
@@ -246,29 +246,12 @@
       "name": "晶焱",
       "close": 94.6,
       "chg_pct": 10.0,
-      "volume": 3238,
+      "volume": 3237,
       "avg_volume": 748,
       "score": 11,
       "reasons": [
         "10日內漲停",
         "爆量4.3倍",
-        "突破20日高",
-        "創60日新高",
-        "突破布林上軌"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "5321",
-      "name": "美而快",
-      "close": 35.4,
-      "chg_pct": 9.94,
-      "volume": 1285,
-      "avg_volume": 381,
-      "score": 11,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.4倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
@@ -315,7 +298,7 @@
       "name": "九暘",
       "close": 108.5,
       "chg_pct": 9.93,
-      "volume": 9360,
+      "volume": 9354,
       "avg_volume": 4006,
       "score": 9,
       "reasons": [
@@ -332,7 +315,7 @@
       "name": "蜜望實",
       "close": 125.5,
       "chg_pct": 9.61,
-      "volume": 27292,
+      "volume": 27285,
       "avg_volume": 11631,
       "score": 9,
       "reasons": [
@@ -400,7 +383,7 @@
       "name": "風青",
       "close": 24.5,
       "chg_pct": 9.87,
-      "volume": 7530,
+      "volume": 7529,
       "avg_volume": 1198,
       "score": 9,
       "reasons": [
@@ -433,7 +416,7 @@
       "name": "聯一光",
       "close": 52.9,
       "chg_pct": 9.87,
-      "volume": 10932,
+      "volume": 10920,
       "avg_volume": 2062,
       "score": 9,
       "reasons": [
@@ -449,7 +432,7 @@
       "name": "華容",
       "close": 33.95,
       "chg_pct": 9.87,
-      "volume": 33439,
+      "volume": 33418,
       "avg_volume": 12242,
       "score": 9,
       "reasons": [
@@ -483,7 +466,7 @@
       "name": "泰藝",
       "close": 60.8,
       "chg_pct": 9.95,
-      "volume": 10420,
+      "volume": 10392,
       "avg_volume": 3500,
       "score": 9,
       "reasons": [
@@ -517,7 +500,7 @@
       "name": "安勤",
       "close": 117.5,
       "chg_pct": 6.33,
-      "volume": 5623,
+      "volume": 5605,
       "avg_volume": 720,
       "score": 9,
       "reasons": [
@@ -550,7 +533,7 @@
       "name": "臺慶科",
       "close": 254.0,
       "chg_pct": 9.96,
-      "volume": 4785,
+      "volume": 4776,
       "avg_volume": 6038,
       "score": 8,
       "reasons": [
@@ -614,7 +597,7 @@
       "name": "國巨*",
       "close": 572.0,
       "chg_pct": 10.0,
-      "volume": 24696,
+      "volume": 24699,
       "avg_volume": 56165,
       "score": 8,
       "reasons": [
@@ -693,7 +676,7 @@
       "name": "凌陽創新",
       "close": 177.0,
       "chg_pct": 2.91,
-      "volume": 885,
+      "volume": 883,
       "avg_volume": 827,
       "score": 8,
       "reasons": [
@@ -741,11 +724,11 @@
       "name": "佳邦",
       "close": 93.4,
       "chg_pct": 6.14,
-      "volume": 7770,
+      "volume": 7725,
       "avg_volume": 2063,
       "score": 8,
       "reasons": [
-        "爆量3.8倍",
+        "爆量3.7倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
@@ -879,6 +862,22 @@
         "突破布林上軌"
       ],
       "market": "上市"
+    },
+    {
+      "code": "5321",
+      "name": "美而快",
+      "close": 35.4,
+      "chg_pct": 9.94,
+      "volume": 436,
+      "avg_volume": 381,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上櫃"
     },
     {
       "code": "2478",
