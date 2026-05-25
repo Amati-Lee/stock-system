@@ -1,5 +1,27 @@
 export default {
   async scheduled(event, env) {
+    // 先檢查今天是否已有成功的 workflow run，有就跳過
+    const today = new Date().toISOString().slice(0, 10); // UTC date
+    const checkResp = await fetch(
+      `https://api.github.com/repos/Amati-Lee/stock-system/actions/workflows/daily-stock-update.yml/runs?created=${today}&status=success&per_page=1`,
+      {
+        headers: {
+          'Authorization': `token ${env.GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'stock-cron-trigger',
+        },
+      }
+    );
+
+    if (checkResp.ok) {
+      const data = await checkResp.json();
+      if (data.total_count > 0) {
+        console.log(`Already ran successfully today (${today}), skipping.`);
+        return;
+      }
+    }
+
+    // 今天還沒成功跑過，觸發 workflow
     const resp = await fetch(
       'https://api.github.com/repos/Amati-Lee/stock-system/actions/workflows/daily-stock-update.yml/dispatches',
       {
@@ -19,7 +41,6 @@ export default {
     if (resp.status !== 204) {
       const body = await resp.text();
       console.error(`Trigger failed: ${resp.status} ${body}`);
-      // 用 Telegram 通知（不依賴 GitHub token，token 過期時也能通知）
       const twTime = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
       await fetch('https://pomodoro-bot.juria-orch.workers.dev', {
         method: 'POST',

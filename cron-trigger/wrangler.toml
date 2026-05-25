@@ -4,7 +4,7 @@ compatibility_date = "2024-01-01"
 
 [triggers]
 # Cloudflare cron: 0=Sun, 1=Mon, ..., 6=Sat（與標準 cron 相同）
-crons = ["30 7 * * 1-5"]
+crons = ["35 7 * * 1-5"]
 
 [observability]
 enabled = true
