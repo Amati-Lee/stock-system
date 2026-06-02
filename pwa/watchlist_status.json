@@ -37,9 +37,9 @@
       "stop_loss": 78,
       "institutional": {
         "foreign": -436,
-        "trust": -1519,
+        "trust": -1521,
         "dealer": 94,
-        "total": -1862
+        "total": -1864
       },
       "triggered": []
     },
@@ -196,9 +196,9 @@
       "stop_loss": 160,
       "institutional": {
         "foreign": 270,
-        "trust": 34,
+        "trust": 333,
         "dealer": -137,
-        "total": 167
+        "total": 466
       },
       "triggered": [
         "trust_buy"
