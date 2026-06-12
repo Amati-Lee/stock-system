@@ -66,7 +66,7 @@ if exist "stock_data_%TODAY%.csv" (
     echo [Step 3] 推送資料到 GitHub...
     echo.
     git add stock_data_*.csv stock_names_all.json stock_industry.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
-    git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json
+    git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json pwa/index.html pwa/sw.js
     git add -f pe_history.json
     git diff --cached --quiet || git commit -m "data: %TODAY:~0,4%-%TODAY:~4,2%-%TODAY:~6,2% stock update (local)"
     git pull --rebase -X theirs 2>nul
@@ -159,7 +159,7 @@ echo.
 echo [Step 4] 推送資料到 GitHub...
 echo.
 git add stock_data_*.csv stock_names_all.json stock_industry.json tw_stock_verified.txt watchlist.json ohlc_snapshot.tar.gz
-git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json
+git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json pwa/index.html pwa/sw.js
 git add -f pe_history.json
 git diff --cached --quiet || git commit -m "data: %TODAY:~0,4%-%TODAY:~4,2%-%TODAY:~6,2% stock update (local)"
 git pull --rebase -X theirs 2>nul
