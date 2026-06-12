@@ -3,9 +3,9 @@ name: Daily Stock Update
 on:
   # 手動觸發（手機 GitHub App 可用）
   workflow_dispatch:
-  # 雙重保險：GitHub cron + Cloudflare Worker 同時排程，先到先跑，重複跑也安全
+  # 備援：CF Worker 15:30 為主力，GitHub cron 17:00 補跑（僅在 CF 觸發失敗時才會實際執行）
   schedule:
-    - cron: '30 7 * * 1-5'  # UTC 07:30 = 台灣 15:30
+    - cron: '0 9 * * 1-5'  # UTC 09:00 = 台灣 17:00
 
 permissions:
   contents: write
@@ -20,9 +20,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Skip if already deployed today (backup cron guard)
+        id: check_already_ran
+        if: github.event_name == 'schedule'
+        run: |
+          TODAY=$(TZ=Asia/Taipei date +%Y-%m-%d)
+          # 查詢今天是否已有成功的 run（不含自己）
+          RUNS=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/daily-stock-update.yml/runs?created=${TODAY}&status=success&per_page=5" \
+            | jq "[.workflow_runs[] | select(.id != ${{ github.run_id }})] | length")
+          if [ "$RUNS" -gt 0 ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "✅ 今天已有成功的 run，備援 cron 跳過"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "⚠️ 今天尚無成功 run，備援 cron 開始執行"
+          fi
+
       - name: Check if Taiwan market is open today
         id: check_holiday
         run: |
+          # 備援 cron 若偵測到今天已成功，直接跳過
+          if [ "${{ steps.check_already_ran.outputs.skip }}" = "true" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ 今天已有成功部署，跳過"
+            exit 0
+          fi
+
           # 台灣國定假日（每年底更新下一年）
           TW_HOLIDAYS_2026="
           2026-01-01
