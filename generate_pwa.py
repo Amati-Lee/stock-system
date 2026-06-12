@@ -589,6 +589,9 @@ tr:nth-child(even){background:#fafafa}
 <div class="btn" data-st="inst_foreign_consec">外資連買</div>
 <div class="btn" data-st="inst_trust_consec">投信連買</div>
 <div class="btn" data-st="inst_all_buy">三大法人同買</div>
+<div class="btn" data-st="inst_ft_buy">外資+投信同買</div>
+<div class="btn" data-st="inst_foreign_turn">外資轉買</div>
+<div class="btn" data-st="inst_trust_turn">投信轉買</div>
 
 <div id="stParams" class="hidden">
 <div class="logic-box">
@@ -733,6 +736,14 @@ function instToday(code, field) {
     if (!INST || !INST.data || !INST.data[code]) return 0;
     var arr = INST.data[code][field];
     return (arr && arr.length > 0) ? arr[0] : 0;
+}
+// 法人轉買: 今天買超 + 前面至少 2 天賣超
+function instTurnBuy(code, field) {
+    if (!INST || !INST.data || !INST.data[code]) return false;
+    var arr = INST.data[code][field];
+    if (!arr || arr.length < 3) return false;
+    if (arr[0] <= 0) return false;
+    return arr[1] <= 0 && arr[2] <= 0;
 }
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
@@ -1065,6 +1076,9 @@ function doFilter() {
                 else if (st === 'inst_foreign_consec') pass = instConsec(s.股票代號, 'foreign') >= 3;
                 else if (st === 'inst_trust_consec') pass = instConsec(s.股票代號, 'trust') >= 3;
                 else if (st === 'inst_all_buy') pass = instToday(s.股票代號, 'foreign') > 0 && instToday(s.股票代號, 'trust') > 0 && instToday(s.股票代號, 'dealer') > 0;
+                else if (st === 'inst_ft_buy') pass = instToday(s.股票代號, 'foreign') > 0 && instToday(s.股票代號, 'trust') > 0;
+                else if (st === 'inst_foreign_turn') pass = instTurnBuy(s.股票代號, 'foreign');
+                else if (st === 'inst_trust_turn') pass = instTurnBuy(s.股票代號, 'trust');
                 else if (st.indexOf('theme_') === 0) { var tk = st.substring(6); pass = s.themes && s.themes.indexOf(tk) >= 0; }
                 if (pass) mc++;
             }
