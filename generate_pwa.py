@@ -585,6 +585,11 @@ tr:nth-child(even){background:#fafafa}
 <div class="btn" data-st="trend_rsi">RSI轉強</div>
 <div class="btn" data-st="trend_vol">量能放大</div>
 
+<div class="cat-label">法人籌碼</div>
+<div class="btn" data-st="inst_foreign_consec">外資連買</div>
+<div class="btn" data-st="inst_trust_consec">投信連買</div>
+<div class="btn" data-st="inst_all_buy">三大法人同買</div>
+
 <div id="stParams" class="hidden">
 <div class="logic-box">
 <div style="font-weight:bold;margin-bottom:6px;font-size:14px">策略組合</div>
@@ -712,6 +717,23 @@ var THEMES = __THEME_DATA__;
 var CONF = __CONF_DATA__;
 var INDUSTRY = __INDUSTRY_DATA__;
 var OHLC_CACHE = {};
+
+// 法人連續買超天數計算 (index 0 = 最新)
+function instConsec(code, field) {
+    if (!INST || !INST.data || !INST.data[code]) return 0;
+    var arr = INST.data[code][field];
+    if (!arr) return 0;
+    var c = 0;
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i] > 0) c++; else break;
+    }
+    return c;
+}
+function instToday(code, field) {
+    if (!INST || !INST.data || !INST.data[code]) return 0;
+    var arr = INST.data[code][field];
+    return (arr && arr.length > 0) ? arr[0] : 0;
+}
 var COMPARE_DEFAULT = '__COMPARE_DEFAULT__';
 var CURRENT_TRADE_DATE = '__CURRENT_TRADE_DATE__';
 var data = [];
@@ -1040,6 +1062,9 @@ function doFilter() {
                 else if (st === 'trend_rsi') pass = s.RSI趨勢 === 'RSI轉強';
                 else if (st === 'trend_vol') pass = s.量能趨勢 === '量能放大';
                 else if (st === 'conf') pass = s.conf_days != null && s.conf_days >= 0 && s.conf_days <= 30;
+                else if (st === 'inst_foreign_consec') pass = instConsec(s.股票代號, 'foreign') >= 3;
+                else if (st === 'inst_trust_consec') pass = instConsec(s.股票代號, 'trust') >= 3;
+                else if (st === 'inst_all_buy') pass = instToday(s.股票代號, 'foreign') > 0 && instToday(s.股票代號, 'trust') > 0 && instToday(s.股票代號, 'dealer') > 0;
                 else if (st.indexOf('theme_') === 0) { var tk = st.substring(6); pass = s.themes && s.themes.indexOf(tk) >= 0; }
                 if (pass) mc++;
             }

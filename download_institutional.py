@@ -140,6 +140,36 @@ def fetch_tpex(date_str):
     return result
 
 
+HISTORY_DAYS = 5  # 保留最近幾個交易日
+
+
+def load_existing():
+    """讀取現有 institutional.json，回傳 (dates, data) 或空值"""
+    if not os.path.exists(OUT_PATH):
+        return [], {}
+    try:
+        with open(OUT_PATH, "r", encoding="utf-8") as f:
+            existing = json.load(f)
+        # 新格式: dates + data with arrays
+        if "dates" in existing:
+            return existing["dates"], existing["data"]
+        # 舊格式: 單日，轉換為新格式
+        if "trade_date" in existing and "data" in existing:
+            td = existing["trade_date"]
+            old_data = {}
+            for code, vals in existing["data"].items():
+                old_data[code] = {
+                    "foreign": [vals.get("foreign", 0)],
+                    "trust": [vals.get("trust", 0)],
+                    "dealer": [vals.get("dealer", 0)],
+                    "total": [vals.get("total", 0)],
+                }
+            return [td], old_data
+    except Exception as e:
+        print(f"  讀取舊檔失敗: {e}")
+    return [], {}
+
+
 def main():
     trade_date = get_trade_date()
     print(f"下載三大法人資料: {trade_date}")
@@ -153,17 +183,53 @@ def main():
         print("無法取得法人資料")
         return
 
+    # 累積多日資料
+    dates, hist_data = load_existing()
+
+    # 如果今天已經在裡面，先移除（重跑時覆蓋）
+    if trade_date in dates:
+        idx = dates.index(trade_date)
+        dates.pop(idx)
+        for code in hist_data:
+            for key in ("foreign", "trust", "dealer", "total"):
+                arr = hist_data[code].get(key, [])
+                if idx < len(arr):
+                    arr.pop(idx)
+
+    # 把今天加到最前面（index 0 = 最新）
+    dates.insert(0, trade_date)
+
+    # 收集所有曾出現的股票代碼
+    all_codes = set(hist_data.keys()) | set(merged.keys())
+
+    new_data = {}
+    for code in all_codes:
+        old = hist_data.get(code, {})
+        today = merged.get(code, {})
+        new_data[code] = {
+            "foreign": [today.get("foreign", 0)] + old.get("foreign", []),
+            "trust": [today.get("trust", 0)] + old.get("trust", []),
+            "dealer": [today.get("dealer", 0)] + old.get("dealer", []),
+            "total": [today.get("total", 0)] + old.get("total", []),
+        }
+
+    # 只保留最近 N 天
+    if len(dates) > HISTORY_DAYS:
+        dates = dates[:HISTORY_DAYS]
+        for code in new_data:
+            for key in ("foreign", "trust", "dealer", "total"):
+                new_data[code][key] = new_data[code][key][:HISTORY_DAYS]
+
     output = {
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "trade_date": trade_date,
-        "count": len(merged),
-        "data": merged,
+        "dates": dates,
+        "count": len(new_data),
+        "data": new_data,
     }
 
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
     with open(OUT_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False)
-    print(f"輸出: {OUT_PATH} ({len(merged)} stocks)")
+    print(f"輸出: {OUT_PATH} ({len(new_data)} stocks, {len(dates)} days: {', '.join(dates)})")
 
     # 注入法人資料到 OHLC JSON
     inject_to_ohlc(merged, trade_date)
