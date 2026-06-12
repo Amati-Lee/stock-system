@@ -592,6 +592,7 @@ tr:nth-child(even){background:#fafafa}
 <div class="btn" data-st="inst_ft_buy">外資+投信同買</div>
 <div class="btn" data-st="inst_foreign_turn">外資轉買</div>
 <div class="btn" data-st="inst_trust_turn">投信轉買</div>
+<div class="btn" data-st="inst_ratio_high">法人佔比高</div>
 
 <div id="stParams" class="hidden">
 <div class="logic-box">
@@ -1079,6 +1080,7 @@ function doFilter() {
                 else if (st === 'inst_ft_buy') pass = instToday(s.股票代號, 'foreign') > 0 && instToday(s.股票代號, 'trust') > 0;
                 else if (st === 'inst_foreign_turn') pass = instTurnBuy(s.股票代號, 'foreign');
                 else if (st === 'inst_trust_turn') pass = instTurnBuy(s.股票代號, 'trust');
+                else if (st === 'inst_ratio_high') { var it = instToday(s.股票代號, 'total'); pass = it > 0 && ok(s.成交量張) && s.成交量張 >= 100 && (it / s.成交量張 * 100) >= 30; }
                 else if (st.indexOf('theme_') === 0) { var tk = st.substring(6); pass = s.themes && s.themes.indexOf(tk) >= 0; }
                 if (pass) mc++;
             }
