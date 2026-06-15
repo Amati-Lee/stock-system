@@ -176,15 +176,17 @@ def main():
                 f"{code} {name} ${price} 跌破停損 ${sl}"
             )
 
-        # 法人動向自動檢查
+        # 法人動向自動檢查（institutional.json 每欄位為陣列，[0]=最新）
         if inst:
-            trust_val = inst.get("trust", 0)
+            trust_raw = inst.get("trust", 0)
+            trust_val = trust_raw[0] if isinstance(trust_raw, list) else trust_raw
             if trust_val > 0:
                 entry["triggered"].append("trust_buy")
                 notifications.append(
                     f"{code} {name} 投信買超 {trust_val} 張"
                 )
-            foreign_val = inst.get("foreign", 0)
+            foreign_raw = inst.get("foreign", 0)
+            foreign_val = foreign_raw[0] if isinstance(foreign_raw, list) else foreign_raw
             if foreign_val > 500:
                 entry["triggered"].append("foreign_big_buy")
                 notifications.append(
