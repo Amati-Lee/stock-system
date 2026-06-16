@@ -1,4 +1,4 @@
-var CACHE_NAME = 'stock-viewer-20260615172233';
+var CACHE_NAME = 'stock-viewer-20260616081649';
 var ASSETS = ['./index.html', './manifest.json', './icons/icon-144.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', function(e) {

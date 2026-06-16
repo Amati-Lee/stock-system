@@ -1,228 +1,170 @@
 {
-  "date": "2026-06-15",
+  "date": "2026-06-16",
   "threshold": 8,
-  "scanned": 12557,
+  "scanned": 12616,
   "alerts": [
-    {
-      "code": "5230",
-      "name": "雷笛克光學",
-      "close": 19.3,
-      "chg_pct": 9.97,
-      "volume": 1267,
-      "avg_volume": 220,
-      "score": 11,
-      "reasons": [
-        "10日內漲停",
-        "爆量5.7倍",
-        "突破20日高",
-        "創60日新高",
-        "穿越MA10"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "4952",
-      "name": "凌通",
-      "close": 58.5,
-      "chg_pct": 8.74,
-      "volume": 4851,
-      "avg_volume": 1591,
-      "score": 10,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.0倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
-    },
     {
       "code": "5468",
       "name": "凱鈺",
-      "close": 23.9,
-      "chg_pct": 9.89,
-      "volume": 1474,
-      "avg_volume": 124,
-      "score": 10,
+      "close": 26.25,
+      "chg_pct": 9.83,
+      "volume": 4589,
+      "avg_volume": 195,
+      "score": 11,
       "reasons": [
         "10日內漲停",
-        "爆量11.9倍",
+        "爆量23.5倍",
         "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上櫃"
     },
     {
-      "code": "4716",
-      "name": "大立",
-      "close": 17.95,
-      "chg_pct": 8.46,
-      "volume": 3148,
-      "avg_volume": 745,
-      "score": 10,
+      "code": "5302",
+      "name": "太欣",
+      "close": 12.7,
+      "chg_pct": 9.96,
+      "volume": 6643,
+      "avg_volume": 890,
+      "score": 11,
       "reasons": [
         "10日內漲停",
-        "爆量4.2倍",
+        "爆量7.5倍",
         "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上櫃"
-    },
-    {
-      "code": "6916",
-      "name": "華凌",
-      "close": 21.55,
-      "chg_pct": 9.95,
-      "volume": 562,
-      "avg_volume": 132,
-      "score": 10,
-      "reasons": [
-        "10日內漲停",
-        "爆量4.3倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
     },
     {
       "code": "6494",
       "name": "九齊",
-      "close": 63.6,
-      "chg_pct": 9.84,
-      "volume": 1459,
-      "avg_volume": 380,
-      "score": 10,
+      "close": 68.8,
+      "chg_pct": 8.18,
+      "volume": 3120,
+      "avg_volume": 432,
+      "score": 11,
       "reasons": [
         "10日內漲停",
-        "爆量3.8倍",
+        "爆量7.2倍",
         "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上櫃"
     },
     {
-      "code": "2537",
-      "name": "聯上發",
-      "close": 12.1,
-      "chg_pct": 6.14,
-      "volume": 9217,
-      "avg_volume": 2428,
-      "score": 10,
+      "code": "4976",
+      "name": "佳凌",
+      "close": 38.05,
+      "chg_pct": 9.97,
+      "volume": 6809,
+      "avg_volume": 2175,
+      "score": 11,
       "reasons": [
         "10日內漲停",
-        "爆量3.8倍",
+        "爆量3.1倍",
         "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上市"
     },
     {
-      "code": "6202",
-      "name": "盛群",
-      "close": 65.2,
-      "chg_pct": 9.76,
-      "volume": 22672,
-      "avg_volume": 4074,
-      "score": 10,
+      "code": "6668",
+      "name": "中揚光",
+      "close": 43.8,
+      "chg_pct": 9.91,
+      "volume": 4960,
+      "avg_volume": 908,
+      "score": 11,
       "reasons": [
         "10日內漲停",
-        "爆量5.6倍",
+        "爆量5.5倍",
         "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上市"
     },
     {
-      "code": "3652",
-      "name": "精聯",
-      "close": 36.2,
-      "chg_pct": 1.83,
-      "volume": 968,
-      "avg_volume": 300,
-      "score": 10,
+      "code": "6517",
+      "name": "保勝光學",
+      "close": 76.6,
+      "chg_pct": 9.9,
+      "volume": 6237,
+      "avg_volume": 1236,
+      "score": 11,
       "reasons": [
         "10日內漲停",
-        "爆量3.2倍",
+        "爆量5.0倍",
         "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "6156",
-      "name": "松上",
-      "close": 22.6,
-      "chg_pct": 9.98,
-      "volume": 3712,
-      "avg_volume": 936,
-      "score": 10,
-      "reasons": [
-        "10日內漲停",
-        "爆量4.0倍",
-        "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上櫃"
     },
     {
-      "code": "6834",
-      "name": "天二科技",
-      "close": 90.9,
-      "chg_pct": 8.09,
-      "volume": 13199,
-      "avg_volume": 3692,
-      "score": 10,
+      "code": "4551",
+      "name": "智伸科",
+      "close": 183.5,
+      "chg_pct": 9.88,
+      "volume": 2379,
+      "avg_volume": 1310,
+      "score": 9,
       "reasons": [
         "10日內漲停",
-        "爆量3.6倍",
+        "增量1.8倍",
         "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上市"
     },
     {
-      "code": "703636",
+      "code": "706565",
       "name": "",
-      "close": 0.72,
-      "chg_pct": 105.71,
-      "volume": 679,
-      "avg_volume": 115,
+      "close": 1.8,
+      "chg_pct": 14.65,
+      "volume": 831,
+      "avg_volume": 184,
       "score": 9,
       "reasons": [
         "10日內漲停",
-        "爆量5.9倍",
+        "爆量4.5倍",
         "穿越MA20",
         "穿越MA10"
       ],
       "market": ""
     },
     {
-      "code": "703838",
+      "code": "707892",
       "name": "",
-      "close": 4.49,
-      "chg_pct": 19.73,
-      "volume": 393,
-      "avg_volume": 124,
+      "close": 1.83,
+      "chg_pct": 27.08,
+      "volume": 1056,
+      "avg_volume": 260,
       "score": 9,
       "reasons": [
         "10日內漲停",
-        "爆量3.2倍",
+        "爆量4.1倍",
         "穿越MA20",
         "穿越MA10"
       ],
       "market": ""
     },
     {
-      "code": "739442",
+      "code": "734782",
       "name": "",
-      "close": 0.84,
-      "chg_pct": 68.0,
-      "volume": 198,
-      "avg_volume": 105,
+      "close": 0.39,
+      "chg_pct": 18.18,
+      "volume": 200,
+      "avg_volume": 119,
       "score": 9,
       "reasons": [
         "10日內漲停",
-        "增量1.9倍",
+        "增量1.7倍",
         "突破20日高",
         "穿越MA20",
         "穿越MA10"
@@ -230,134 +172,71 @@
       "market": ""
     },
     {
-      "code": "707804",
-      "name": "",
-      "close": 1.04,
-      "chg_pct": 62.5,
-      "volume": 1097,
-      "avg_volume": 115,
-      "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "爆量9.6倍",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "705007",
-      "name": "",
-      "close": 0.56,
-      "chg_pct": 19.15,
-      "volume": 2243,
-      "avg_volume": 282,
-      "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "爆量7.9倍",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "707423",
-      "name": "",
-      "close": 1.5,
-      "chg_pct": 92.31,
-      "volume": 1471,
-      "avg_volume": 713,
-      "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "增量2.1倍",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "708409",
-      "name": "",
-      "close": 1.35,
-      "chg_pct": 26.17,
-      "volume": 657,
-      "avg_volume": 169,
-      "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.9倍",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "707394",
-      "name": "",
-      "close": 2.87,
-      "chg_pct": 72.89,
-      "volume": 1034,
-      "avg_volume": 331,
-      "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.1倍",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "707755",
-      "name": "",
-      "close": 2.01,
-      "chg_pct": 31.37,
-      "volume": 344,
-      "avg_volume": 110,
-      "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.1倍",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "708290",
-      "name": "",
-      "close": 1.18,
-      "chg_pct": 22.92,
-      "volume": 476,
-      "avg_volume": 147,
-      "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.2倍",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "707403",
-      "name": "",
-      "close": 1.65,
-      "chg_pct": 111.54,
-      "volume": 1859,
-      "avg_volume": 858,
+      "code": "6209",
+      "name": "今國光",
+      "close": 95.3,
+      "chg_pct": 9.92,
+      "volume": 49724,
+      "avg_volume": 23049,
       "score": 9,
       "reasons": [
         "10日內漲停",
         "增量2.2倍",
         "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
+        "創60日新高",
+        "突破布林上軌"
       ],
-      "market": ""
+      "market": "上市"
+    },
+    {
+      "code": "3550",
+      "name": "聯穎",
+      "close": 30.85,
+      "chg_pct": 9.98,
+      "volume": 10939,
+      "avg_volume": 6581,
+      "score": 9,
+      "reasons": [
+        "10日內漲停",
+        "增量1.7倍",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "3630",
+      "name": "新鉅科",
+      "close": 33.55,
+      "chg_pct": 10.0,
+      "volume": 8920,
+      "avg_volume": 2534,
+      "score": 9,
+      "reasons": [
+        "10日內漲停",
+        "爆量3.5倍",
+        "突破20日高",
+        "突破布林上軌"
+      ],
+      "market": "上櫃"
+    },
+    {
+      "code": "2243",
+      "name": "宏旭-KY",
+      "close": 44.95,
+      "chg_pct": 9.9,
+      "volume": 3124,
+      "avg_volume": 1932,
+      "score": 9,
+      "reasons": [
+        "10日內漲停",
+        "增量1.6倍",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
     },
     {
       "code": "704404",
@@ -376,460 +255,111 @@
       "market": ""
     },
     {
-      "code": "707268",
-      "name": "",
-      "close": 0.94,
-      "chg_pct": 23.68,
-      "volume": 1144,
-      "avg_volume": 224,
+      "code": "3504",
+      "name": "揚明光",
+      "close": 89.4,
+      "chg_pct": 8.89,
+      "volume": 9166,
+      "avg_volume": 3203,
       "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "爆量5.1倍",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "707447",
-      "name": "",
-      "close": 1.14,
-      "chg_pct": 28.09,
-      "volume": 714,
-      "avg_volume": 213,
-      "score": 9,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.3倍",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "4551",
-      "name": "智伸科",
-      "close": 167.0,
-      "chg_pct": 9.87,
-      "volume": 3128,
-      "avg_volume": 1203,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量2.6倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "4923",
-      "name": "力士",
-      "close": 51.0,
-      "chg_pct": 7.37,
-      "volume": 4156,
-      "avg_volume": 1522,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量2.7倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "707191",
-      "name": "",
-      "close": 2.84,
-      "chg_pct": 65.12,
-      "volume": 333,
-      "avg_volume": 249,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "708065",
-      "name": "",
-      "close": 2.0,
-      "chg_pct": 90.48,
-      "volume": 1016,
-      "avg_volume": 775,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "706938",
-      "name": "",
-      "close": 2.88,
-      "chg_pct": 74.55,
-      "volume": 28,
-      "avg_volume": 105,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "3527",
-      "name": "聚積",
-      "close": 65.3,
-      "chg_pct": 9.93,
-      "volume": 1224,
-      "avg_volume": 239,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "爆量5.1倍",
-        "突破20日高"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "739598",
-      "name": "",
-      "close": 1.88,
-      "chg_pct": 132.1,
-      "volume": 24,
-      "avg_volume": 124,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "704118",
-      "name": "",
-      "close": 4.06,
-      "chg_pct": 100.0,
-      "volume": 194,
-      "avg_volume": 338,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "8049",
-      "name": "晶采",
-      "close": 27.9,
-      "chg_pct": 6.08,
-      "volume": 832,
-      "avg_volume": 353,
-      "score": 8,
-      "reasons": [
-        "增量2.4倍",
-        "突破20日高",
-        "創60日新高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "6173",
-      "name": "信昌電",
-      "close": 304.0,
-      "chg_pct": 9.95,
-      "volume": 7687,
-      "avg_volume": 4428,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量1.7倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "3321",
-      "name": "同泰",
-      "close": 22.45,
-      "chg_pct": 9.78,
-      "volume": 1833,
-      "avg_volume": 1031,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量1.8倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "707322",
-      "name": "",
-      "close": 1.68,
-      "chg_pct": 80.65,
-      "volume": 202,
-      "avg_volume": 173,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "703902",
-      "name": "",
-      "close": 3.92,
-      "chg_pct": 145.0,
-      "volume": 13,
-      "avg_volume": 342,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "738140",
-      "name": "",
-      "close": 0.7,
-      "chg_pct": 29.63,
-      "volume": 115,
-      "avg_volume": 102,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "1714",
-      "name": "和桐",
-      "close": 16.7,
-      "chg_pct": 9.87,
-      "volume": 50826,
-      "avg_volume": 28740,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量1.8倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "8121",
-      "name": "越峰",
-      "close": 48.8,
-      "chg_pct": 9.91,
-      "volume": 6936,
-      "avg_volume": 3340,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量2.1倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "4534",
-      "name": "慶騰",
-      "close": 35.6,
-      "chg_pct": 7.88,
-      "volume": 6481,
-      "avg_volume": 3016,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量2.1倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "6153",
-      "name": "嘉聯益",
-      "close": 24.45,
-      "chg_pct": 9.89,
-      "volume": 21570,
-      "avg_volume": 11714,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量1.8倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "707936",
-      "name": "",
-      "close": 2.8,
-      "chg_pct": 62.79,
-      "volume": 313,
-      "avg_volume": 662,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "704203",
-      "name": "",
-      "close": 1.15,
-      "chg_pct": 43.75,
-      "volume": 70,
-      "avg_volume": 205,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "707024",
-      "name": "",
-      "close": 4.58,
-      "chg_pct": 70.9,
-      "volume": 134,
-      "avg_volume": 159,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "706002",
-      "name": "",
-      "close": 2.98,
-      "chg_pct": 98.67,
-      "volume": 21,
-      "avg_volume": 196,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "706508",
-      "name": "",
-      "close": 1.69,
-      "chg_pct": 83.7,
-      "volume": 30,
-      "avg_volume": 609,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "4721",
-      "name": "美琪瑪",
-      "close": 101.0,
-      "chg_pct": 9.78,
-      "volume": 4668,
-      "avg_volume": 1669,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量2.8倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "707287",
-      "name": "",
-      "close": 2.62,
-      "chg_pct": 103.1,
-      "volume": 169,
-      "avg_volume": 146,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "6259",
-      "name": "百徽",
-      "close": 30.35,
-      "chg_pct": 9.96,
-      "volume": 2913,
-      "avg_volume": 1020,
-      "score": 8,
       "reasons": [
         "10日內漲停",
         "增量2.9倍",
         "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "8071",
+      "name": "能率網通",
+      "close": 29.6,
+      "chg_pct": 9.83,
+      "volume": 9760,
+      "avg_volume": 4070,
+      "score": 9,
+      "reasons": [
+        "10日內漲停",
+        "增量2.4倍",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上櫃"
+    },
+    {
+      "code": "2342",
+      "name": "茂矽",
+      "close": 48.05,
+      "chg_pct": 9.95,
+      "volume": 15338,
+      "avg_volume": 8497,
+      "score": 9,
+      "reasons": [
+        "10日內漲停",
+        "增量1.8倍",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "2527",
+      "name": "宏璟",
+      "close": 39.95,
+      "chg_pct": 2.04,
+      "volume": 5496,
+      "avg_volume": 558,
+      "score": 8,
+      "reasons": [
+        "爆量9.8倍",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "6654",
+      "name": "天正國際",
+      "close": 207.0,
+      "chg_pct": 9.81,
+      "volume": 417,
+      "avg_volume": 181,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "增量2.3倍",
+        "突破20日高",
         "創60日新高"
       ],
       "market": "上櫃"
     },
     {
-      "code": "704699",
+      "code": "1714",
+      "name": "和桐",
+      "close": 17.95,
+      "chg_pct": 7.49,
+      "volume": 32707,
+      "avg_volume": 31053,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "702641",
       "name": "",
-      "close": 1.65,
-      "chg_pct": 132.39,
-      "volume": 2,
-      "avg_volume": 213,
+      "close": 0.79,
+      "chg_pct": 192.59,
+      "volume": 1,
+      "avg_volume": 214,
       "score": 8,
       "reasons": [
         "10日內漲停",
@@ -840,35 +370,100 @@
       "market": ""
     },
     {
-      "code": "3516",
-      "name": "亞帝歐",
-      "close": 27.1,
-      "chg_pct": 9.94,
-      "volume": 857,
-      "avg_volume": 209,
+      "code": "3008",
+      "name": "大立光",
+      "close": 4860.0,
+      "chg_pct": 9.95,
+      "volume": 3306,
+      "avg_volume": 2499,
       "score": 8,
       "reasons": [
         "10日內漲停",
-        "爆量4.1倍",
-        "突破20日高"
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "8996",
+      "name": "高力",
+      "close": 1380.0,
+      "chg_pct": 9.96,
+      "volume": 3490,
+      "avg_volume": 3536,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "2478",
+      "name": "大毅",
+      "close": 207.0,
+      "chg_pct": 9.81,
+      "volume": 16112,
+      "avg_volume": 11272,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "6488",
+      "name": "環球晶",
+      "close": 1045.0,
+      "chg_pct": 10.0,
+      "volume": 13056,
+      "avg_volume": 5647,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "增量2.3倍",
+        "突破20日高",
+        "創60日新高"
       ],
       "market": "上櫃"
     },
     {
-      "code": "6691",
-      "name": "洋基工程",
-      "close": 757.0,
-      "chg_pct": 9.87,
-      "volume": 2049,
-      "avg_volume": 685,
+      "code": "2305",
+      "name": "全友",
+      "close": 30.35,
+      "chg_pct": 9.96,
+      "volume": 1782,
+      "avg_volume": 6572,
       "score": 8,
       "reasons": [
         "10日內漲停",
-        "增量3.0倍",
         "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上市"
+    },
+    {
+      "code": "704656",
+      "name": "",
+      "close": 1.97,
+      "chg_pct": 462.86,
+      "volume": 12,
+      "avg_volume": 426,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "突破20日高",
+        "穿越MA20",
+        "穿越MA10"
+      ],
+      "market": ""
     },
     {
       "code": "702754",
@@ -887,147 +482,99 @@
       "market": ""
     },
     {
-      "code": "6693",
-      "name": "廣閎科",
-      "close": 185.5,
-      "chg_pct": 9.76,
-      "volume": 4089,
-      "avg_volume": 1517,
+      "code": "2493",
+      "name": "揚博",
+      "close": 250.0,
+      "chg_pct": 9.89,
+      "volume": 8089,
+      "avg_volume": 6897,
       "score": 8,
       "reasons": [
         "10日內漲停",
-        "增量2.7倍",
         "突破20日高",
-        "創60日新高"
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "706566",
+      "name": "",
+      "close": 1.81,
+      "chg_pct": 17.53,
+      "volume": 1241,
+      "avg_volume": 343,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "爆量3.6倍",
+        "穿越MA20"
+      ],
+      "market": ""
+    },
+    {
+      "code": "5328",
+      "name": "華容",
+      "close": 51.2,
+      "chg_pct": 9.99,
+      "volume": 37318,
+      "avg_volume": 34575,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上櫃"
     },
     {
-      "code": "2243",
-      "name": "宏旭-KY",
-      "close": 40.9,
-      "chg_pct": 9.95,
-      "volume": 3098,
-      "avg_volume": 1820,
+      "code": "3532",
+      "name": "台勝科",
+      "close": 394.5,
+      "chg_pct": 9.89,
+      "volume": 2404,
+      "avg_volume": 2932,
       "score": 8,
       "reasons": [
         "10日內漲停",
-        "增量1.7倍",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "2302",
+      "name": "麗正",
+      "close": 41.8,
+      "chg_pct": 10.0,
+      "volume": 12202,
+      "avg_volume": 6619,
+      "score": 8,
+      "reasons": [
+        "10日內漲停",
+        "增量1.8倍",
         "突破20日高",
         "創60日新高"
       ],
       "market": "上市"
     },
     {
-      "code": "704815",
-      "name": "",
-      "close": 2.8,
-      "chg_pct": 84.21,
-      "volume": 93,
-      "avg_volume": 1270,
+      "code": "5227",
+      "name": "立凱-KY",
+      "close": 37.3,
+      "chg_pct": 9.87,
+      "volume": 485,
+      "avg_volume": 392,
       "score": 8,
       "reasons": [
         "10日內漲停",
         "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "2484",
-      "name": "希華",
-      "close": 73.3,
-      "chg_pct": 9.9,
-      "volume": 85449,
-      "avg_volume": 36949,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "增量2.3倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "3236",
-      "name": "千如",
-      "close": 69.5,
-      "chg_pct": 9.97,
-      "volume": 38997,
-      "avg_volume": 8477,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "爆量4.6倍",
-        "突破20日高"
+        "創60日新高",
+        "突破布林上軌"
       ],
       "market": "上櫃"
-    },
-    {
-      "code": "706411",
-      "name": "",
-      "close": 3.0,
-      "chg_pct": 134.38,
-      "volume": 12,
-      "avg_volume": 177,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "00717",
-      "name": "",
-      "close": 15.04,
-      "chg_pct": 0.67,
-      "volume": 654,
-      "avg_volume": 206,
-      "score": 8,
-      "reasons": [
-        "爆量3.2倍",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "707382",
-      "name": "",
-      "close": 1.63,
-      "chg_pct": 66.33,
-      "volume": 518,
-      "avg_volume": 388,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
-    },
-    {
-      "code": "707354",
-      "name": "",
-      "close": 1.21,
-      "chg_pct": 51.25,
-      "volume": 177,
-      "avg_volume": 562,
-      "score": 8,
-      "reasons": [
-        "10日內漲停",
-        "突破20日高",
-        "穿越MA20",
-        "穿越MA10"
-      ],
-      "market": ""
     }
   ]
 }
