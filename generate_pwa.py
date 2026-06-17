@@ -593,6 +593,7 @@ tr:nth-child(even){background:#fafafa}
 <div class="btn" data-st="inst_foreign_turn">外資轉買</div>
 <div class="btn" data-st="inst_trust_turn">投信轉買</div>
 <div class="btn" data-st="inst_ratio_high">法人佔比高</div>
+<div class="btn" data-st="inst_retain_high">維持率高</div>
 
 <div id="stParams" class="hidden">
 <div class="logic-box">
@@ -737,6 +738,20 @@ function instToday(code, field) {
     if (!INST || !INST.data || !INST.data[code]) return 0;
     var arr = INST.data[code][field];
     return (arr && arr.length > 0) ? arr[0] : 0;
+}
+// 法人維持率: 累計淨買超 / 期間內峰值累計 (1.0=全留著)
+function instRetention(code, field) {
+    if (!INST || !INST.data || !INST.data[code]) return null;
+    var arr = INST.data[code][field];
+    if (!arr || arr.length < 3) return null;
+    // arr[0]=newest → 反轉成時間序
+    var cum = 0, peak = 0;
+    for (var i = arr.length - 1; i >= 0; i--) {
+        cum += arr[i];
+        if (cum > peak) peak = cum;
+    }
+    if (peak <= 0) return null;
+    return Math.round(cum / peak * 100) / 100;
 }
 // 法人轉買: 今天買超 + 前面至少 2 天賣超
 function instTurnBuy(code, field) {
@@ -1081,6 +1096,7 @@ function doFilter() {
                 else if (st === 'inst_foreign_turn') pass = instTurnBuy(s.股票代號, 'foreign');
                 else if (st === 'inst_trust_turn') pass = instTurnBuy(s.股票代號, 'trust');
                 else if (st === 'inst_ratio_high') { var it = instToday(s.股票代號, 'total'); pass = it > 0 && ok(s.成交量張) && s.成交量張 >= 100 && (it / s.成交量張 * 100) >= 30; }
+                else if (st === 'inst_retain_high') { var rf = instRetention(s.股票代號, 'foreign'), rt = instRetention(s.股票代號, 'trust'); var cf = instConsec(s.股票代號, 'foreign'), ct = instConsec(s.股票代號, 'trust'); pass = (rf !== null && rf >= 0.8 && cf >= 3) || (rt !== null && rt >= 0.8 && ct >= 3); }
                 else if (st.indexOf('theme_') === 0) { var tk = st.substring(6); pass = s.themes && s.themes.indexOf(tk) >= 0; }
                 if (pass) mc++;
             }
@@ -1273,14 +1289,22 @@ function toggleAnalysis(code) {
     var panel = document.getElementById('analysis-' + code);
     if (panel) panel.classList.toggle('show');
 }
-function renderInstTag(d) {
+function renderInstTag(d, code) {
     if (d.foreign === undefined && d.trust === undefined && d.dealer === undefined) return '';
-    function fmt(label, val) {
-        var v = val || 0;
+    function fmt(label, arr) {
+        var v = Array.isArray(arr) ? (arr[0] || 0) : (arr || 0);
         var c = v > 0 ? '#ef5350' : v < 0 ? '#26a69a' : '#888';
         return '<span style="color:'+c+'">'+label+' '+(v>0?'+':'')+v+'</span>';
     }
     var parts = [fmt('外', d.foreign), fmt('投', d.trust), fmt('自', d.dealer)];
+    if (code) {
+        var rf = instRetention(code, 'foreign'), rt = instRetention(code, 'trust');
+        var best = (rf !== null && rt !== null) ? Math.max(rf, rt) : (rf !== null ? rf : rt);
+        if (best !== null) {
+            var rc = best >= 0.8 ? '#ffd54f' : best >= 0.5 ? '#aaa' : '#666';
+            parts.push('<span style="color:'+rc+'">維持'+best.toFixed(2)+'</span>');
+        }
+    }
     return '<span class="inst-tag">' + parts.join(' ') + '</span>';
 }
 function renderAlerts() {
@@ -1311,7 +1335,7 @@ function renderAlerts() {
         if (indText) { h += '<span class="tag ti">' + indText + '</span>'; }
         h += '<span class="alert-reasons">' + a.reasons.join('、') + '</span>';
         var instD = (INST && INST.data) ? INST.data[a.code] : null;
-        if (instD) { h += renderInstTag(instD); }
+        if (instD) { h += renderInstTag(instD, a.code); }
         var peInfo = PE_RIVER[a.code];
         if (peInfo && peInfo.pe != null) {
             if (peInfo.pe > 50) {
@@ -1378,7 +1402,7 @@ function renderWatchlist() {
         h += '<span class="watch-price">$' + s.price + '</span>';
         h += '</div>';
         // 法人動向
-        if (s.institutional) { h += '<div class="watch-inst">' + renderInstTag(s.institutional) + '</div>'; }
+        if (s.institutional) { h += '<div class="watch-inst">' + renderInstTag(s.institutional, code) + '</div>'; }
         // 目標價
         var tkeys = Object.keys(s.targets || {});
         if (tkeys.length > 0) {
