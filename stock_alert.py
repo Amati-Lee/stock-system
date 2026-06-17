@@ -298,6 +298,11 @@ def main():
             mkt_map = json.load(f)
         print(f"市場分類：{len(mkt_map)} 支股票")
 
+    # 排除權證（70/72/73 開頭的 6 碼）
+    WARRANT_PREFIX = ('70', '72', '73')
+    codes = [c for c in codes if not (len(c) == 6 and c[:2] in WARRANT_PREFIX)]
+    print(f"排除權證後：{len(codes)} 支")
+
     # 掃描全部
     alerts = []
     scanned = 0
