@@ -19,6 +19,7 @@ echo.
 echo [Step 0] 從 GitHub 同步最新資料...
 echo.
 git checkout -- ohlc_snapshot.tar.gz 2>nul
+git checkout -- pwa/ 2>nul
 git pull --rebase || (
     echo ⚠️ pull --rebase 失敗，嘗試 reset 到 remote...
     git rebase --abort 2>nul
