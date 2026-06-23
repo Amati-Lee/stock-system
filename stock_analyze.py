@@ -11,6 +11,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ALERTS_PATH = os.path.join(SCRIPT_DIR, "pwa", "alerts.json")
 ANALYSIS_OUT = os.path.join(SCRIPT_DIR, "pwa", "analysis.json")
 INDUSTRY_PATH = os.path.join(SCRIPT_DIR, "stock_industry.json")
+GLOBAL_PATH = os.path.join(SCRIPT_DIR, "pwa", "global_indicators.json")
 MODEL = "claude-haiku-4-5-20251001"
 MAX_RETRIES = 2
 TELEGRAM_URL = "https://pomodoro-bot.juria-orch.workers.dev"
@@ -61,7 +62,25 @@ def load_industry():
         return json.load(f)
 
 
-def build_prompt(alert, csv_row, ohlc_summary, industry=""):
+def load_global_indicators():
+    """載入全球關鍵指標（VIX、費半、美元指數）"""
+    if not os.path.exists(GLOBAL_PATH):
+        return ""
+    with open(GLOBAL_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    indicators = data.get("indicators", {})
+    if not indicators:
+        return ""
+    lines = []
+    for key in ["VIX", "SOX", "DXY"]:
+        ind = indicators.get(key)
+        if ind:
+            sign = "+" if ind["chg_pct"] >= 0 else ""
+            lines.append(f"{ind['label']}: {ind['close']} ({sign}{ind['chg_pct']}%)")
+    return "\n".join(lines)
+
+
+def build_prompt(alert, csv_row, ohlc_summary, industry="", global_summary=""):
     """組裝單支股票的分析 prompt"""
     code = alert["code"]
     name = alert["name"]
@@ -101,6 +120,9 @@ def build_prompt(alert, csv_row, ohlc_summary, industry=""):
 
 近5日K線:
 {ohlc_summary}
+
+國際環境:
+{global_summary if global_summary else "無資料"}
 
 請輸出以下 9 項分析（每項 1-3 句話，精簡直白）:
 1. 公司定位：根據上方產業別，簡述公司在該產業的定位（若產業別為未知，僅寫「產業別未知，無法判斷」，不可自行猜測）
@@ -156,9 +178,9 @@ def parse_response(text):
     return result
 
 
-def analyze_stock(client, alert, csv_row, ohlc_summary, industry=""):
+def analyze_stock(client, alert, csv_row, ohlc_summary, industry="", global_summary=""):
     """呼叫 Claude API 分析單支股票"""
-    prompt = build_prompt(alert, csv_row, ohlc_summary, industry)
+    prompt = build_prompt(alert, csv_row, ohlc_summary, industry, global_summary)
 
     for attempt in range(MAX_RETRIES + 1):
         try:
@@ -256,6 +278,12 @@ def main():
     else:
         print("產業分類：未找到 stock_industry.json，公司定位可能不準確")
 
+    global_summary = load_global_indicators()
+    if global_summary:
+        print(f"國際指標：已載入")
+    else:
+        print("國際指標：無資料（可先跑 download_global.py）")
+
     client = Anthropic(api_key=api_key)
     results = {}
     billing_error = False
@@ -268,7 +296,7 @@ def main():
         csv_row = load_csv_row(code)
         ohlc_summary = load_ohlc_summary(code)
         industry = industry_map.get(code, "")
-        analysis = analyze_stock(client, alert, csv_row, ohlc_summary, industry)
+        analysis = analyze_stock(client, alert, csv_row, ohlc_summary, industry, global_summary)
 
         if analysis == "BILLING_ERROR":
             billing_error = True

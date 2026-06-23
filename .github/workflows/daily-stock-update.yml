@@ -152,6 +152,11 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_industry.py
 
+      - name: Download global indicators (VIX, SOX, DXY)
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
+        continue-on-error: true
+        run: python download_global.py
+
       - name: Run stock alerts
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python stock_alert.py
