@@ -3341,6 +3341,10 @@ function renderAlerts() {
         h += '<div class="alert-price">$' + a.close + '</div>';
         h += '<div class="alert-chg" style="color:' + clr + '">' + sign + a.chg_pct + '%</div>';
         h += '<span class="alert-score">&#x2B50; ' + a.score + '分</span>';
+        if (a.hurst != null) {
+            var hc = a.hurst >= 0.55 ? '#4fc3f7' : a.hurst <= 0.45 ? '#ffa726' : '#aaa';
+            h += '<span style="display:inline-block;padding:2px 6px;border-radius:10px;font-size:10px;color:' + hc + ';border:1px solid ' + hc + ';margin-top:2px">H=' + a.hurst + '</span>';
+        }
         h += '</div></div>';
         if (hasAna) {
             var d = ana[a.code];

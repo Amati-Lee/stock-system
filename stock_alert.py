@@ -10,6 +10,7 @@ import csv
 import subprocess
 import sys
 from datetime import datetime
+import numpy as np
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OHLC_DIR = os.path.join(SCRIPT_DIR, "pwa", "ohlc")
@@ -98,6 +99,43 @@ def is_crossing_above_ma(ohlc, period):
     today_close = closes[-1]
     yesterday_close = closes[-2]
     return yesterday_close < ma_yesterday and today_close > ma_today
+
+
+def hurst_exponent(closes, min_window=10):
+    """R/S 法計算 Hurst 指數（衡量趨勢持續性 vs 均值回歸）
+    H > 0.5 趨勢持續型，H < 0.5 均值回歸型，H ≈ 0.5 隨機漫步
+    使用對數報酬率（非原始價格）避免非穩態漂移造成 H 虛高
+    """
+    prices = np.array(closes, dtype=float)
+    if len(prices) < min_window * 4 + 1:
+        return None
+    # 轉為對數報酬率
+    ts = np.diff(np.log(prices))
+    n = len(ts)
+    if n < min_window * 4:
+        return None
+    max_k = n // min_window
+    sizes = []
+    rs_means = []
+    for k in range(min_window, max_k * min_window + 1, min_window):
+        rs_list = []
+        for start in range(0, n - k + 1, k):
+            segment = ts[start:start + k]
+            mean = segment.mean()
+            deviate = np.cumsum(segment - mean)
+            r = deviate.max() - deviate.min()
+            s = segment.std(ddof=1)
+            if s > 0:
+                rs_list.append(r / s)
+        if rs_list:
+            sizes.append(k)
+            rs_means.append(np.mean(rs_list))
+    if len(sizes) < 3:
+        return None
+    log_sizes = np.log(sizes)
+    log_rs = np.log(rs_means)
+    H = np.polyfit(log_sizes, log_rs, 1)[0]
+    return round(float(H), 3)
 
 
 def is_new_high(ohlc, period):
@@ -191,6 +229,22 @@ def score_stock(code, ohlc, daily_row):
             score += 1
             reasons.append("MACD黃金交叉")
 
+    # 10. Hurst 指數：趨勢持續型加分，均值回歸型扣分
+    h = hurst_exponent(closes) if len(closes) >= 60 else None
+    if h is not None:
+        if h >= 0.6:
+            score += 2
+            reasons.append(f"趨勢持續H={h}")
+        elif h >= 0.55:
+            score += 1
+            reasons.append(f"偏趨勢H={h}")
+        elif h <= 0.4:
+            score -= 2
+            reasons.append(f"均值回歸H={h}")
+        elif h <= 0.45:
+            score -= 1
+            reasons.append(f"偏回歸H={h}")
+
     if score < THRESHOLD:
         return None
 
@@ -206,6 +260,7 @@ def score_stock(code, ohlc, daily_row):
         "volume": today_vol,
         "avg_volume": round(avg_vol),
         "score": score,
+        "hurst": h,
         "reasons": reasons,
     }
 
@@ -356,8 +411,9 @@ def main():
         print()
         for a in alerts:
             reasons_str = "、".join(a["reasons"])
+            h_str = f"  H={a['hurst']}" if a.get("hurst") is not None else ""
             print(f"  ★ {a['code']} {a['name']}  ${a['close']}  "
-                  f"{a['chg_pct']:+.2f}%  得分:{a['score']}  "
+                  f"{a['chg_pct']:+.2f}%  得分:{a['score']}{h_str}  "
                   f"[{reasons_str}]")
     print(f"\n輸出：{ALERTS_OUT}")
 

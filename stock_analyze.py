@@ -80,6 +80,12 @@ def build_prompt(alert, csv_row, ohlc_summary, industry=""):
 
     industry_line = f"產業別: {industry}" if industry else "產業別: 未知"
 
+    hurst = alert.get("hurst")
+    if hurst is not None:
+        hurst_line = f"Hurst 指數: {hurst}（{'趨勢持續型' if hurst > 0.55 else '均值回歸型' if hurst < 0.45 else '接近隨機'}）"
+    else:
+        hurst_line = "Hurst 指數: 資料不足"
+
     return f"""你是台股分析師。請針對以下起飛警示股票，用繁體中文產出結構化分析。
 
 股票: {code} {name} ({market})
@@ -88,6 +94,7 @@ def build_prompt(alert, csv_row, ohlc_summary, industry=""):
 警示原因: {reasons}
 當日收盤: {alert['close']}  漲跌: {alert['chg_pct']:+.2f}%
 日均量: {alert['avg_volume']} 張  當日量: {alert['volume']} 張
+{hurst_line}
 
 技術指標:
 {tech_str}
