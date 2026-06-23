@@ -72,11 +72,13 @@ def load_global_indicators():
     if not indicators:
         return ""
     lines = []
-    for key in ["VIX", "SOX", "DXY"]:
+    for key in ["DJI", "SPX", "NASDAQ", "VIX", "SOX", "DXY"]:
         ind = indicators.get(key)
         if ind:
             sign = "+" if ind["chg_pct"] >= 0 else ""
-            lines.append(f"{ind['label']}: {ind['close']} ({sign}{ind['chg_pct']}%)")
+            h = ind.get("hurst")
+            h_str = f" [H={h}{'趨勢' if h > 0.55 else '回歸' if h < 0.45 else '隨機'}]" if h else ""
+            lines.append(f"{ind['label']}: {ind['close']} ({sign}{ind['chg_pct']}%){h_str}")
     return "\n".join(lines)
 
 
