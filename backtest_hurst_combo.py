@@ -120,7 +120,7 @@ def main():
     ohlc_files = sorted(glob.glob(os.path.join(OHLC_DIR, "*.json")))
     print(f"OHLC files: {len(ohlc_files)}")
 
-    TEST_OFFSETS = [20, 25, 30, 35, 40, 45, 50, 55, 60]
+    TEST_OFFSETS = list(range(20, 201, 5))  # 20, 25, 30, ... 200
 
     all_records = []
     skipped = 0
