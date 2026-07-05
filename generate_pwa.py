@@ -3,6 +3,7 @@ generate_pwa.py
 讀取最新 stock_data CSV，產出完整 PWA 到 pwa/ 目錄
 """
 import pandas as pd
+import numpy as np
 import json
 import os
 import glob
@@ -665,6 +666,7 @@ tr:nth-child(even){background:#fafafa}
 <th data-col="漲跌幅">漲跌%</th>
 <th data-col="強度評分">強度</th>
 <th data-col="訊號數量">訊號數</th>
+<th data-col="Hurst">H</th>
 </tr></thead>
 <tbody id="tableBody"></tbody>
 </table>
@@ -1248,7 +1250,7 @@ function renderTable() {
     }
     var tbody = document.getElementById('tableBody');
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="17" class="empty">沒有符合條件的股票</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="20" class="empty">沒有符合條件的股票</td></tr>';
         return;
     }
     var h = '';
@@ -1279,6 +1281,8 @@ function renderTable() {
         h += '<td style="color:' + chgColor + '">' + chgText + '</td>';
         h += '<td>' + (ok(s.強度評分) ? s.強度評分 : '') + '</td>';
         h += '<td>' + (ok(s.訊號數量) ? s.訊號數量 : '') + '</td>';
+        var hc2 = ok(s.Hurst) ? (s.Hurst >= 0.55 ? '#4fc3f7' : s.Hurst <= 0.45 ? '#ffa726' : '#aaa') : '';
+        h += '<td style="color:' + hc2 + '">' + (ok(s.Hurst) ? s.Hurst : '') + '</td>';
         h += '</tr>';
     }
     tbody.innerHTML = h;
@@ -2140,6 +2144,60 @@ MANIFEST = {
 }
 
 
+def hurst_exponent(closes, min_window=10):
+    """R/S 法計算 Hurst 指數"""
+    prices = np.array(closes, dtype=float)
+    if len(prices) < min_window * 4 + 1:
+        return None
+    ts = np.diff(np.log(prices))
+    n = len(ts)
+    if n < min_window * 4:
+        return None
+    max_k = n // min_window
+    sizes = []
+    rs_means = []
+    for k in range(min_window, max_k * min_window + 1, min_window):
+        rs_list = []
+        for start in range(0, n - k + 1, k):
+            segment = ts[start:start + k]
+            mean = segment.mean()
+            deviate = np.cumsum(segment - mean)
+            r = deviate.max() - deviate.min()
+            s = segment.std(ddof=1)
+            if s > 0:
+                rs_list.append(r / s)
+        if rs_list:
+            sizes.append(k)
+            rs_means.append(np.mean(rs_list))
+    if len(sizes) < 3:
+        return None
+    log_sizes = np.log(sizes)
+    log_rs = np.log(rs_means)
+    H = np.polyfit(log_sizes, log_rs, 1)[0]
+    return round(float(H), 3)
+
+
+def compute_hurst_column(df):
+    """從 OHLC 檔案計算每支股票的 Hurst 指數"""
+    ohlc_dir = os.path.join("pwa", "ohlc")
+    hurst_vals = {}
+    computed = 0
+    for code in df['股票代號'].astype(str):
+        path = os.path.join(ohlc_dir, f"{code}.json")
+        if not os.path.exists(path):
+            continue
+        with open(path, "r", encoding="utf-8") as f:
+            ohlc = json.load(f)
+        closes = [r["c"] for r in ohlc]
+        h = hurst_exponent(closes)
+        if h is not None:
+            hurst_vals[code] = h
+            computed += 1
+    df['Hurst'] = df['股票代號'].astype(str).map(hurst_vals)
+    print(f"  Hurst: {computed} 筆有值")
+    return df
+
+
 def ensure_ohlc_up_to_date():
     """確保 OHLC 與最新 CSV 同日，否則自動跑 download_ohlc.py + stock_alert.py"""
     csvs = sorted(glob.glob("stock_data_*.csv"))
@@ -2236,6 +2294,10 @@ def main():
     df = compute_breakout(df, csv_files)
     breakout_count = (df['強度評分'] > 0).sum() if '強度評分' in df.columns else 0
     print(f"  突破: {breakout_count} 筆有訊號")
+
+    # 計算 Hurst 指數
+    print("  計算 Hurst 指數...")
+    df = compute_hurst_column(df)
 
     # 輸出突破訊號 Excel
     if '強度評分' in df.columns:
@@ -2353,6 +2415,8 @@ def main():
         '漲跌幅', '價格趨勢', 'KD趨勢', 'RSI趨勢', '量能趨勢', 'K值變化', 'RSI變化',
         # 突破欄位
         '強度評分', '訊號數量', '訊號',
+        # Hurst
+        'Hurst',
         # 市場分類
         '市場'
     ]

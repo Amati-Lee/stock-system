@@ -161,6 +161,10 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python stock_alert.py
 
+      - name: Scan candidates (Hurst + retention + limit-up + vol)
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
+        run: python scan_candidates.py
+
       - name: AI stock analysis
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         continue-on-error: true
@@ -186,6 +190,7 @@ jobs:
           git add -f pwa/alerts.json pwa/analysis.json pwa/institutional.json pwa/watchlist_status.json pwa/pe_river.json pwa/conferences.json pwa/index.html pwa/sw.js
           git add -f pe_history.json
           git add alerts_history/
+          git add candidates_history/
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%d) stock update"
           git stash --include-untracked 2>/dev/null || true
           git pull --rebase -X theirs || {
