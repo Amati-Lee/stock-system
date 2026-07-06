@@ -1330,8 +1330,15 @@ function renderAlerts() {
         var clr = a.chg_pct >= 0 ? '#ef5350' : '#26a69a';
         var sign = a.chg_pct >= 0 ? '+' : '';
         var hasAna = !!ana[a.code];
+        var isDiverg = a.hurst != null && a.hurst >= 0.6 && a.chg_pct < 0;
+        if (isDiverg) {
+            var rf = instRetention(a.code, 'foreign'), rt = instRetention(a.code, 'trust');
+            var rMax = (rf != null && rt != null) ? Math.max(rf, rt) : (rf != null ? rf : rt);
+            isDiverg = rMax != null && rMax >= 1.0;
+        }
+        var divStyle = isDiverg ? 'border:2px solid #ef5350;box-shadow:0 0 8px rgba(255,69,58,0.4)' : '';
         h += '<div>';
-        h += '<div class="alert-item" onclick="' + (hasAna ? 'toggleAnalysis(\'' + a.code + '\')' : 'openChart(\'' + a.code + '\')') + '">';
+        h += '<div class="alert-item" style="' + divStyle + '" onclick="' + (hasAna ? 'toggleAnalysis(\'' + a.code + '\')' : 'openChart(\'' + a.code + '\')') + '">';
         h += '<div class="alert-left">';
         var emgTag = a.market === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '';
         h += '<span class="alert-code">' + a.code + ' ' + a.name + emgTag + '</span>';
@@ -1369,6 +1376,9 @@ function renderAlerts() {
         if (a.hurst != null) {
             var hc = a.hurst >= 0.55 ? '#4fc3f7' : a.hurst <= 0.45 ? '#ffa726' : '#aaa';
             h += '<span style="display:inline-block;padding:2px 6px;border-radius:10px;font-size:10px;color:' + hc + ';border:1px solid ' + hc + ';margin-top:2px">H=' + a.hurst + '</span>';
+        }
+        if (isDiverg) {
+            h += '<span style="display:inline-block;padding:2px 6px;border-radius:10px;font-size:10px;color:#ef5350;border:1px solid #ef5350;margin-top:2px;background:rgba(239,83,80,0.15)">&#x1F3AF; 蓄勢</span>';
         }
         h += '</div></div>';
         if (hasAna) {
