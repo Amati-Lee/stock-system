@@ -1,27 +1,27 @@
 {
-  "date": "2026-07-07",
-  "trade_date": "20260707",
+  "date": "2026-07-08",
+  "trade_date": "20260708",
   "count": 8,
   "stocks": {
     "3005": {
       "name": "神基",
-      "price": 107.0,
+      "price": 107.5,
       "targets": {
         "積極進場": {
           "target_price": 100,
-          "diff_pct": 7.0,
+          "diff_pct": 7.5,
           "hit": false,
           "note": "95-100 進場區，建倉 2/3"
         },
         "穩健進場": {
           "target_price": 90,
-          "diff_pct": 18.9,
+          "diff_pct": 19.4,
           "hit": false,
           "note": "除息參考價附近，PE 10.7 倍"
         },
         "保守進場": {
           "target_price": 88,
-          "diff_pct": 21.6,
+          "diff_pct": 22.2,
           "hit": false,
           "note": "定期定額，每月 1 張"
         }
@@ -37,55 +37,57 @@
       "stop_loss": 78,
       "institutional": {
         "foreign": [
+          163,
           397,
           0,
           3032,
-          -165,
-          0
+          -165
         ],
         "trust": [
+          21,
           -393,
           0,
           -632,
-          -3664,
-          0
+          -3664
         ],
         "dealer": [
+          57,
           27,
           0,
           212,
-          -52,
-          0
+          -52
         ],
         "total": [
+          241,
           32,
           0,
           2612,
-          -3881,
-          0
+          -3881
         ]
       },
-      "triggered": []
+      "triggered": [
+        "trust_buy"
+      ]
     },
     "3023": {
       "name": "信邦",
-      "price": 325.0,
+      "price": 319.5,
       "targets": {
         "積極進場": {
           "target_price": 275,
-          "diff_pct": 18.2,
+          "diff_pct": 16.2,
           "hit": false,
           "note": "275 元合理進場區，第一批不超過 1/3，等回測 260 再加碼"
         },
         "穩健進場": {
           "target_price": 240,
-          "diff_pct": 35.4,
+          "diff_pct": 33.1,
           "hit": false,
           "note": "PE 回到 18 倍區間，下檔風險較小"
         },
         "保守進場": {
           "target_price": 230,
-          "diff_pct": 41.3,
+          "diff_pct": 38.9,
           "hit": false,
           "note": "等 Q2 財報（8月中旬）數字驗證後再決定，重點看綠能是否止血"
         }
@@ -101,32 +103,32 @@
       "stop_loss": 200,
       "institutional": {
         "foreign": [
+          -524,
           -1555,
           0,
           -1545,
-          -1432,
-          0
+          -1432
         ],
         "trust": [
+          42,
           1169,
           0,
           979,
-          943,
-          0
+          943
         ],
         "dealer": [
+          21,
           37,
           0,
           23,
-          63,
-          0
+          63
         ],
         "total": [
+          -462,
           -349,
           0,
           -543,
-          -426,
-          0
+          -426
         ]
       },
       "triggered": [
@@ -135,23 +137,23 @@
     },
     "4931": {
       "name": "新盛力",
-      "price": 247.5,
+      "price": 272.0,
       "targets": {
         "積極進場": {
           "target_price": 150,
-          "diff_pct": 65.0,
+          "diff_pct": 81.3,
           "hit": false,
           "note": "拉回月線分批介入，第一批不超過部位 1/4"
         },
         "穩健進場": {
           "target_price": 140,
-          "diff_pct": 76.8,
+          "diff_pct": 94.3,
           "hit": false,
           "note": "拉回 130-140（季線位置），PE 回到 35 倍以下"
         },
         "保守進場": {
           "target_price": 130,
-          "diff_pct": 90.4,
+          "diff_pct": 109.2,
           "hit": false,
           "note": "等 Q1 財報+4月營收數字驗證後再決定"
         }
@@ -167,11 +169,11 @@
       "stop_loss": 110,
       "institutional": {
         "foreign": [
+          -32,
           -851,
           -9,
           56,
-          -42,
-          222
+          -42
         ],
         "trust": [
           0,
@@ -181,41 +183,41 @@
           0
         ],
         "dealer": [
+          34,
           -20,
           49,
           -1,
-          -6,
-          -13
+          -6
         ],
         "total": [
+          2,
           -871,
           41,
           55,
-          -48,
-          209
+          -48
         ]
       },
       "triggered": []
     },
     "6197": {
       "name": "佳必琪",
-      "price": 360.0,
+      "price": 369.0,
       "targets": {
         "積極進場": {
           "target_price": 175,
-          "diff_pct": 105.7,
+          "diff_pct": 110.9,
           "hit": false,
           "note": "回到月線附近，分批 1/3"
         },
         "穩健進場": {
           "target_price": 160,
-          "diff_pct": 125.0,
+          "diff_pct": 130.6,
           "hit": false,
           "note": "PE 回到 15 倍區間"
         },
         "保守進場": {
           "target_price": 150,
-          "diff_pct": 140.0,
+          "diff_pct": 146.0,
           "hit": false,
           "note": "等 Q1 財報確認"
         }
@@ -228,32 +230,32 @@
       "stop_loss": 140,
       "institutional": {
         "foreign": [
+          -295,
           -484,
           0,
           363,
-          905,
-          0
+          905
         ],
         "trust": [
+          3,
           2,
           0,
           1,
-          1,
-          0
+          1
         ],
         "dealer": [
+          75,
           -171,
           0,
           69,
-          150,
-          0
+          150
         ],
         "total": [
+          -217,
           -654,
           0,
           433,
-          1056,
-          0
+          1056
         ]
       },
       "triggered": [
@@ -262,23 +264,23 @@
     },
     "6285": {
       "name": "啟碁",
-      "price": 243.5,
+      "price": 251.5,
       "targets": {
         "積極進場": {
           "target_price": 215,
-          "diff_pct": 13.3,
+          "diff_pct": 17.0,
           "hit": false,
           "note": "200-215 進場區，分批先 1/3 部位"
         },
         "穩健進場": {
           "target_price": 185,
-          "diff_pct": 31.6,
+          "diff_pct": 35.9,
           "hit": false,
           "note": "拉回 180-185（季線）再加碼到 2/3"
         },
         "保守進場": {
           "target_price": 180,
-          "diff_pct": 35.3,
+          "diff_pct": 39.7,
           "hit": false,
           "note": "等 6 月 SpaceX IPO 訊息明朗化再決定"
         }
@@ -294,55 +296,57 @@
       "stop_loss": 160,
       "institutional": {
         "foreign": [
+          436,
           -1064,
           0,
           -377,
-          417,
-          0
+          417
         ],
         "trust": [
+          2,
           0,
           0,
           20,
-          23,
-          0
+          23
         ],
         "dealer": [
+          244,
           -136,
           0,
           48,
-          124,
-          0
+          124
         ],
         "total": [
+          681,
           -1200,
           0,
           -309,
-          564,
-          0
+          564
         ]
       },
-      "triggered": []
+      "triggered": [
+        "trust_buy"
+      ]
     },
     "3081": {
       "name": "聯亞",
-      "price": 1905.0,
+      "price": 2095.0,
       "targets": {
         "積極進場": {
           "target_price": 2200,
-          "diff_pct": -13.4,
+          "diff_pct": -4.8,
           "hit": true,
           "note": "跌破 BB 中軌 2428，技術面轉弱但為長期佈局點"
         },
         "穩健進場": {
           "target_price": 2000,
-          "diff_pct": -4.8,
-          "hit": true,
+          "diff_pct": 4.8,
+          "hit": false,
           "note": "接近 BB 下軌上方，技術面明顯支撐區，風險報酬比較優"
         },
         "保守進場": {
           "target_price": 2400,
-          "diff_pct": -20.6,
+          "diff_pct": -12.7,
           "hit": true,
           "note": "回測 2300-2400 前高區間確認企穩後進場，觀察量能放大"
         }
@@ -358,37 +362,36 @@
       "stop_loss": 2350,
       "institutional": {
         "foreign": [
+          81,
           -57,
           -304,
           99,
-          572,
-          166
+          572
         ],
         "trust": [
+          72,
           42,
           -155,
           -129,
-          -428,
-          -369
+          -428
         ],
         "dealer": [
+          44,
           -12,
           41,
           -19,
-          -5,
-          27
+          -5
         ],
         "total": [
+          197,
           -27,
           -417,
           -50,
-          140,
-          -176
+          140
         ]
       },
       "triggered": [
         "積極進場",
-        "穩健進場",
         "保守進場",
         "stop_loss",
         "trust_buy"
@@ -396,23 +399,23 @@
     },
     "8054": {
       "name": "安國",
-      "price": 102.5,
+      "price": 100.5,
       "targets": {
         "積極進場": {
           "target_price": 103.5,
-          "diff_pct": -1.0,
+          "diff_pct": -2.9,
           "hit": true,
           "note": "突破短期下降趨勢線，量能放大確認反轉"
         },
         "穩健進場": {
           "target_price": 100,
-          "diff_pct": 2.5,
+          "diff_pct": 0.5,
           "hit": false,
           "note": "整數關卡支撐，等底部確認訊號"
         },
         "保守進場": {
           "target_price": 95,
-          "diff_pct": 7.9,
+          "diff_pct": 5.8,
           "hit": false,
           "note": "接近前低支撐區，風險報酬比最佳"
         }
@@ -428,32 +431,32 @@
       "stop_loss": 90,
       "institutional": {
         "foreign": [
+          -137,
           -92,
           -227,
           -682,
-          -969,
-          -300
+          -969
         ],
         "trust": [
           0,
           0,
           0,
-          5,
-          0
+          0,
+          5
         ],
         "dealer": [
+          -62,
           -28,
           -19,
           4,
-          -26,
-          1
+          -26
         ],
         "total": [
+          -199,
           -121,
           -246,
           -678,
-          -989,
-          -299
+          -989
         ]
       },
       "triggered": [
@@ -462,23 +465,23 @@
     },
     "4749": {
       "name": "新應材",
-      "price": 899.0,
+      "price": 877.0,
       "targets": {
         "積極進場": {
           "target_price": 1200,
-          "diff_pct": -25.1,
+          "diff_pct": -26.9,
           "hit": true,
           "note": "短線追高至1190-1200區間，設定緊密停損在1150以防快速回檔"
         },
         "穩健進場": {
           "target_price": 1000,
-          "diff_pct": -10.1,
+          "diff_pct": -12.3,
           "hit": true,
           "note": "回檔至布林中軌附近，PE回到合理區間再考慮"
         },
         "保守進場": {
           "target_price": 850,
-          "diff_pct": 5.8,
+          "diff_pct": 3.2,
           "hit": false,
           "note": "回檔20-30%後進場較安全，等基本面驗證"
         }
@@ -494,32 +497,32 @@
       "stop_loss": 1150,
       "institutional": {
         "foreign": [
+          -150,
           -152,
           -10,
           -158,
-          -75,
-          49
+          -75
         ],
         "trust": [
           0,
+          0,
           -279,
           10,
-          15,
-          1
+          15
         ],
         "dealer": [
+          -42,
           -19,
           32,
           2,
-          -6,
-          31
+          -6
         ],
         "total": [
+          -192,
           -171,
           -257,
           -146,
-          -66,
-          80
+          -66
         ]
       },
       "triggered": [
