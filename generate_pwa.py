@@ -1330,11 +1330,11 @@ function renderAlerts() {
         var clr = a.chg_pct >= 0 ? '#ef5350' : '#26a69a';
         var sign = a.chg_pct >= 0 ? '+' : '';
         var hasAna = !!ana[a.code];
-        var isDiverg = a.hurst != null && a.hurst >= 0.6 && a.chg_pct < 0;
+        var isDiverg = a.hurst != null && a.hurst >= 0.45 && a.hurst <= 0.55;
         if (isDiverg) {
             var rf = instRetention(a.code, 'foreign'), rt = instRetention(a.code, 'trust');
             var rMax = (rf != null && rt != null) ? Math.max(rf, rt) : (rf != null ? rf : rt);
-            isDiverg = rMax != null && rMax >= 1.0;
+            isDiverg = rMax != null && rMax >= 0.8;
         }
         var divStyle = isDiverg ? 'border:2px solid #ef5350;box-shadow:0 0 8px rgba(255,69,58,0.4)' : '';
         h += '<div>';
