@@ -34,6 +34,8 @@ SNAPSHOT_MIN_STOCKS = 5000  # snapshot 最少要有這麼多支才算有效
 TWSE_MI_INDEX = "https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date={date}&type=ALLBUT0999"
 # 櫃買中心 OpenAPI（收盤後即時更新）
 TPEX_API = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
+# 櫃買中心歷史收盤行情（用於回補前幾天資料）
+TPEX_HISTORY = "https://www.tpex.org.tw/web/stock/aftertrading/daily_close_quotes/stk_quote_result.php?l=zh-tw&d={roc_date}&stkno=&o=json"
 
 
 def roc_to_western(roc_date):
@@ -149,9 +151,54 @@ def fetch_tpex():
     return result, trade_date
 
 
+def fetch_tpex_date(date_str):
+    """
+    從櫃買中心歷史 API 下載指定日期全市場 OHLCV。
+    date_str: "YYYYMMDD"
+    回傳 (dict[code] -> {t,o,h,l,c,v}, actual_date)
+    """
+    dt = datetime.strptime(date_str, "%Y%m%d")
+    roc_year = dt.year - 1911
+    roc_date = f"{roc_year}/{dt.month:02d}/{dt.day:02d}"
+    url = TPEX_HISTORY.format(roc_date=roc_date)
+    try:
+        resp = requests.get(url, timeout=30)
+    except requests.exceptions.SSLError:
+        resp = requests.get(url, timeout=30, verify=False)
+    resp.raise_for_status()
+    data = resp.json()
+
+    if data.get("stat") != "ok":
+        return {}, None
+    tables = data.get("tables", [])
+    if not tables or not tables[0].get("data"):
+        return {}, None
+
+    result = {}
+    actual_date = date_str
+    for row in tables[0]["data"]:
+        try:
+            code = row[0].strip()
+            if not code or len(code) != 4:
+                continue
+            o = round(safe_float(row[4]), 2)
+            h = round(safe_float(row[5]), 2)
+            low = round(safe_float(row[6]), 2)
+            c = round(safe_float(row[2]), 2)
+            v = int(safe_float(row[8])) // 1000
+        except (ValueError, IndexError):
+            continue
+        if o <= 0 or c <= 0:
+            continue
+        result[code] = {"t": date_str, "o": o, "h": h, "l": low, "c": c, "v": v}
+
+    return result, date_str if result else None
+
+
 def fetch_from_api():
     """
     從證交所/櫃買中心下載最新全市場 OHLCV。
+    同時抓前 1-2 天的 TWSE 資料，修正可能的盤前舊資料。
     回傳 (dict[code] -> list[{t,o,h,l,c,v}], trade_date_str)
     """
     if requests is None:
@@ -162,25 +209,38 @@ def fetch_from_api():
     trade_date = None
 
     # --- TWSE (上市) via MI_INDEX ---
-    today_str = datetime.now().strftime("%Y%m%d")
-    try:
-        twse_data, twse_date = fetch_twse(today_str)
-        if twse_data:
-            trade_date = twse_date
-            for code, entry in twse_data.items():
-                result[code] = [entry]
-            print(f"  TWSE: {len(twse_data)} 支 (日期: {twse_date})")
-        else:
-            print(f"  TWSE: 無資料 (可能非交易日)")
-    except Exception as e:
-        print(f"  ⚠ TWSE API 失敗: {e}")
+    # 抓今天 + 前 2 天，確保前一交易日收盤價正確（修正盤前 CSV 的舊資料）
+    today = datetime.now()
+    twse_dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(3)]
+    for date_str in twse_dates:
+        try:
+            twse_data, twse_date = fetch_twse(date_str)
+            if twse_data:
+                if trade_date is None or (twse_date and twse_date > trade_date):
+                    trade_date = twse_date
+                for code, entry in twse_data.items():
+                    if code not in result:
+                        result[code] = []
+                    result[code].append(entry)
+                if date_str == twse_dates[0]:
+                    print(f"  TWSE: {len(twse_data)} 支 (日期: {twse_date})")
+                else:
+                    print(f"  TWSE 回補: {len(twse_data)} 支 (日期: {twse_date})")
+            elif date_str == twse_dates[0]:
+                print(f"  TWSE: 無資料 (可能非交易日)")
+        except Exception as e:
+            if date_str == twse_dates[0]:
+                print(f"  ⚠ TWSE API 失敗: {e}")
 
     # --- TPEx (上櫃) ---
+    # 先抓最新一天，再回補前 2 天
     try:
         tpex_data, tpex_date = fetch_tpex()
         if tpex_data:
             for code, entry in tpex_data.items():
-                result[code] = [entry]
+                if code not in result:
+                    result[code] = []
+                result[code].append(entry)
             print(f"  TPEx: {len(tpex_data)} 支 (日期: {tpex_date})")
             if tpex_date and (trade_date is None or tpex_date > trade_date):
                 trade_date = tpex_date
@@ -188,6 +248,20 @@ def fetch_from_api():
             print(f"  TPEx: 無資料")
     except Exception as e:
         print(f"  ⚠ TPEx API 失敗: {e}")
+
+    # TPEx 回補前 2 天
+    tpex_dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(1, 3)]
+    for date_str in tpex_dates:
+        try:
+            tpex_hist, tpex_hist_date = fetch_tpex_date(date_str)
+            if tpex_hist:
+                for code, entry in tpex_hist.items():
+                    if code not in result:
+                        result[code] = []
+                    result[code].append(entry)
+                print(f"  TPEx 回補: {len(tpex_hist)} 支 (日期: {tpex_hist_date})")
+        except Exception:
+            pass
 
     return result, trade_date
 
