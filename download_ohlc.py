@@ -532,8 +532,11 @@ def main():
             print(f"  ⚠ OHLC 太淺: {shallow_count}/{len(existing)} 支不到 20 筆，強制全量 CSV 掃描")
             since_date = None
         else:
-            since_date = min(latest_dates.values())
-            print(f"  增量 CSV: 掃描 {since_date} 之後")
+            # 往前多推 5 天，確保近期 CSV 都被掃描（防止 existing 資料損壞時漏修）
+            raw_since = min(latest_dates.values())
+            pushed = (datetime.strptime(raw_since, '%Y%m%d') - timedelta(days=5)).strftime('%Y%m%d')
+            since_date = pushed
+            print(f"  增量 CSV: 掃描 {since_date} 之後 (原始: {raw_since})")
     else:
         print("  全量 CSV: 掃描所有")
     csv_data = scan_csvs(since_date)

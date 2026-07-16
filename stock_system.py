@@ -1301,7 +1301,10 @@ def _save_stock_csv(csv_data: list[dict]) -> str | None:
         return None
 
     df_all = pd.DataFrame(csv_data)
-    csv_filename = f"stock_data_{datetime.now().strftime('%Y%m%d')}.csv"
+    # 使用台灣時區決定日期，避免 UTC 深夜跑時產生錯誤日期的 CSV
+    from zoneinfo import ZoneInfo
+    tw_now = datetime.now(ZoneInfo("Asia/Taipei"))
+    csv_filename = f"stock_data_{tw_now.strftime('%Y%m%d')}.csv"
     df_all.to_csv(csv_filename, index=False, encoding="utf-8-sig")
 
     print(f"\n📊 CSV 數據已儲存：{csv_filename}")
