@@ -1301,10 +1301,26 @@ def _save_stock_csv(csv_data: list[dict]) -> str | None:
         return None
 
     df_all = pd.DataFrame(csv_data)
-    # 使用台灣時區決定日期，避免 UTC 深夜跑時產生錯誤日期的 CSV
-    from zoneinfo import ZoneInfo
-    tw_now = datetime.now(ZoneInfo("Asia/Taipei"))
-    csv_filename = f"stock_data_{tw_now.strftime('%Y%m%d')}.csv"
+
+    # 從 CSV 資料的「交易日」欄位取日期（最可靠，來自 yfinance 實際交易日）
+    trading_dates = df_all["交易日"].dropna().unique()
+    if len(trading_dates) > 0:
+        csv_date = str(sorted(trading_dates)[-1]).replace("-", "")[:8]
+    else:
+        from zoneinfo import ZoneInfo
+        csv_date = datetime.now(ZoneInfo("Asia/Taipei")).strftime("%Y%m%d")
+    csv_filename = f"stock_data_{csv_date}.csv"
+
+    # 如果同一天的 CSV 已存在且資料筆數更多，跳過覆蓋（防止深夜重跑產生劣質資料）
+    if os.path.exists(csv_filename):
+        try:
+            existing_df = pd.read_csv(csv_filename, encoding="utf-8-sig")
+            if len(existing_df) >= len(df_all):
+                print(f"\n⚠️ {csv_filename} 已存在且有 {len(existing_df)} 筆（新資料 {len(df_all)} 筆），跳過覆蓋")
+                return csv_filename
+        except Exception:
+            pass
+
     df_all.to_csv(csv_filename, index=False, encoding="utf-8-sig")
 
     print(f"\n📊 CSV 數據已儲存：{csv_filename}")
