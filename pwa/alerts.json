@@ -1,233 +1,139 @@
 {
-  "date": "2026-07-27",
+  "date": "2026-07-28",
   "threshold": 8,
-  "scanned": 3915,
+  "scanned": 3980,
   "alerts": [
     {
-      "code": "4442",
-      "name": "竣邦-KY",
-      "close": 59.7,
-      "chg_pct": 0.0,
-      "volume": 567,
-      "avg_volume": 155,
-      "score": 11,
-      "hurst": 0.471,
+      "code": "4976",
+      "name": "佳凌",
+      "close": 34.3,
+      "chg_pct": 1.18,
+      "volume": 12203,
+      "avg_volume": 1806,
+      "score": 8,
+      "hurst": 0.704,
       "reasons": [
         "10日內漲停",
-        "爆量3.7倍",
-        "突破20日高",
-        "創60日新高",
-        "突破布林上軌"
+        "爆量6.8倍",
+        "趨勢持續H=0.704"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "3362",
+      "name": "先進光",
+      "close": 158.0,
+      "chg_pct": -4.53,
+      "volume": 24796,
+      "avg_volume": 4218,
+      "score": 8,
+      "hurst": 0.75,
+      "reasons": [
+        "10日內漲停",
+        "爆量5.9倍",
+        "趨勢持續H=0.75"
       ],
       "market": "上櫃"
     },
     {
-      "code": "1799",
-      "name": "易威",
-      "close": 39.3,
-      "chg_pct": 0.0,
-      "volume": 918,
-      "avg_volume": 219,
-      "score": 11,
-      "hurst": 0.508,
+      "code": "3441",
+      "name": "聯一光",
+      "close": 77.2,
+      "chg_pct": 9.19,
+      "volume": 26713,
+      "avg_volume": 4953,
+      "score": 8,
+      "hurst": 0.771,
       "reasons": [
         "10日內漲停",
-        "爆量4.2倍",
-        "突破20日高",
-        "創60日新高",
-        "突破布林上軌"
+        "爆量5.4倍",
+        "趨勢持續H=0.771"
       ],
       "market": "上櫃"
     },
     {
       "code": "6804",
       "name": "明係",
-      "close": 18.9,
-      "chg_pct": 0.0,
-      "volume": 488,
-      "avg_volume": 166,
-      "score": 10,
+      "close": 19.0,
+      "chg_pct": 0.53,
+      "volume": 742,
+      "avg_volume": 189,
+      "score": 8,
       "hurst": 0.561,
       "reasons": [
         "10日內漲停",
-        "增量2.9倍",
-        "突破20日高",
-        "創60日新高",
+        "爆量3.9倍",
         "突破布林上軌",
         "偏趨勢H=0.561"
       ],
       "market": "上櫃"
     },
     {
-      "code": "6598",
-      "name": "ABC-KY",
-      "close": 30.0,
-      "chg_pct": 8.3,
-      "volume": 1306,
-      "avg_volume": 526,
-      "score": 9,
-      "hurst": 0.486,
-      "reasons": [
-        "10日內漲停",
-        "增量2.5倍",
-        "突破20日高",
-        "創60日新高",
-        "突破布林上軌"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "6577",
-      "name": "勁豐",
-      "close": 89.5,
-      "chg_pct": 0.0,
-      "volume": 2617,
-      "avg_volume": 436,
-      "score": 8,
-      "hurst": 0.678,
-      "reasons": [
-        "10日內漲停",
-        "爆量6.0倍",
-        "趨勢持續H=0.678"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "3362",
-      "name": "先進光",
-      "close": 165.5,
-      "chg_pct": 0.0,
-      "volume": 6950,
-      "avg_volume": 3981,
-      "score": 8,
-      "hurst": 0.75,
-      "reasons": [
-        "10日內漲停",
-        "增量1.7倍",
-        "穿越MA20",
-        "趨勢持續H=0.75"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "00668",
+      "code": "00652",
       "name": "",
-      "close": 61.85,
-      "chg_pct": 1.14,
-      "volume": 22,
-      "avg_volume": 121,
+      "close": 33.18,
+      "chg_pct": 0.18,
+      "volume": 531,
+      "avg_volume": 346,
       "score": 8,
-      "hurst": 0.55,
+      "hurst": 0.651,
       "reasons": [
+        "增量1.5倍",
         "突破20日高",
         "創60日新高",
-        "穿越MA20",
         "穿越MA10",
-        "偏趨勢H=0.55"
+        "趨勢持續H=0.651"
       ],
       "market": ""
     },
     {
-      "code": "2850",
-      "name": "新產",
-      "close": 158.0,
-      "chg_pct": 7.12,
-      "volume": 1208,
-      "avg_volume": 246,
+      "code": "4442",
+      "name": "竣邦-KY",
+      "close": 62.5,
+      "chg_pct": 4.69,
+      "volume": 262,
+      "avg_volume": 183,
       "score": 8,
-      "hurst": 0.53,
+      "hurst": 0.471,
       "reasons": [
-        "爆量4.9倍",
+        "10日內漲停",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
       ],
-      "market": "上市"
+      "market": "上櫃"
     },
     {
-      "code": "6586",
-      "name": "醣基",
-      "close": 133.5,
-      "chg_pct": 13.14,
-      "volume": 1611,
-      "avg_volume": 1627,
+      "code": "3595",
+      "name": "山太士",
+      "close": 1490.0,
+      "chg_pct": -20.53,
+      "volume": 1080,
+      "avg_volume": 312,
       "score": 8,
-      "hurst": 0.62,
+      "hurst": 0.663,
       "reasons": [
         "10日內漲停",
-        "穿越MA20",
-        "穿越MA10",
-        "趨勢持續H=0.62"
+        "爆量3.5倍",
+        "趨勢持續H=0.663"
       ],
       "market": "興櫃"
     },
     {
-      "code": "00702",
-      "name": "",
-      "close": 25.06,
-      "chg_pct": 0.24,
-      "volume": 129,
-      "avg_volume": 100,
-      "score": 8,
-      "hurst": 0.556,
-      "reasons": [
-        "突破20日高",
-        "創60日新高",
-        "穿越MA20",
-        "穿越MA10",
-        "偏趨勢H=0.556"
-      ],
-      "market": ""
-    },
-    {
-      "code": "6863",
-      "name": "永道-KY",
-      "close": 125.5,
-      "chg_pct": 6.81,
-      "volume": 840,
-      "avg_volume": 188,
-      "score": 8,
-      "hurst": 0.54,
-      "reasons": [
-        "爆量4.5倍",
-        "突破20日高",
-        "創60日新高",
-        "突破布林上軌"
-      ],
-      "market": "上市"
-    },
-    {
       "code": "6588",
       "name": "東典光電",
-      "close": 89.6,
-      "chg_pct": 0.0,
-      "volume": 4474,
-      "avg_volume": 900,
+      "close": 93.0,
+      "chg_pct": 3.79,
+      "volume": 10273,
+      "avg_volume": 1105,
       "score": 8,
       "hurst": 0.719,
       "reasons": [
         "10日內漲停",
-        "爆量5.0倍",
+        "爆量9.3倍",
         "趨勢持續H=0.719"
       ],
       "market": "上櫃"
-    },
-    {
-      "code": "2408",
-      "name": "南亞科",
-      "close": 436.0,
-      "chg_pct": 8.73,
-      "volume": 81191,
-      "avg_volume": 90057,
-      "score": 8,
-      "hurst": 0.617,
-      "reasons": [
-        "10日內漲停",
-        "穿越MA20",
-        "穿越MA10",
-        "趨勢持續H=0.617"
-      ],
-      "market": "上市"
     }
   ]
 }
