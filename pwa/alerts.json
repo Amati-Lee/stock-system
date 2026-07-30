@@ -1,263 +1,106 @@
 {
-  "date": "2026-07-29",
+  "date": "2026-07-30",
   "threshold": 8,
-  "scanned": 4048,
+  "scanned": 4128,
   "alerts": [
     {
-      "code": "3441",
-      "name": "聯一光",
-      "close": 84.8,
+      "code": "4442",
+      "name": "竣邦-KY",
+      "close": 66.3,
       "chg_pct": 0.0,
-      "volume": 58723,
-      "avg_volume": 10162,
+      "volume": 1357,
+      "avg_volume": 315,
       "score": 11,
-      "hurst": 0.731,
+      "hurst": 0.471,
       "reasons": [
         "10日內漲停",
-        "爆量5.8倍",
-        "突破20日高",
-        "突破布林上軌",
-        "趨勢持續H=0.731"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "2923",
-      "name": "鼎固-KY",
-      "close": 41.0,
-      "chg_pct": 8.9,
-      "volume": 1062,
-      "avg_volume": 237,
-      "score": 11,
-      "hurst": 0.484,
-      "reasons": [
-        "10日內漲停",
-        "爆量4.5倍",
+        "爆量4.3倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌"
       ],
-      "market": "上市"
+      "market": "上櫃"
+    },
+    {
+      "code": "00689R",
+      "name": "",
+      "close": 22.99,
+      "chg_pct": 2.04,
+      "volume": 278,
+      "avg_volume": 104,
+      "score": 8,
+      "hurst": 0.831,
+      "reasons": [
+        "增量2.7倍",
+        "突破20日高",
+        "創60日新高",
+        "穿越MA10",
+        "趨勢持續H=0.831"
+      ],
+      "market": ""
     },
     {
       "code": "4976",
       "name": "佳凌",
-      "close": 37.7,
-      "chg_pct": 9.91,
-      "volume": 13072,
-      "avg_volume": 2304,
-      "score": 10,
+      "close": 33.95,
+      "chg_pct": -9.95,
+      "volume": 20536,
+      "avg_volume": 2875,
+      "score": 8,
       "hurst": 0.704,
       "reasons": [
         "10日內漲停",
-        "爆量5.7倍",
-        "穿越MA20",
+        "爆量7.1倍",
         "趨勢持續H=0.704"
       ],
       "market": "上市"
     },
     {
-      "code": "6738",
-      "name": "鼎��",
-      "close": 73.4,
-      "chg_pct": 0.27,
-      "volume": 1151,
-      "avg_volume": 254,
-      "score": 10,
-      "hurst": 0.665,
-      "reasons": [
-        "爆量4.5倍",
-        "突破20日高",
-        "創60日新高",
-        "突破布林上軌",
-        "趨勢持續H=0.665"
-      ],
-      "market": "興櫃"
-    },
-    {
-      "code": "1419",
-      "name": "新紡",
-      "close": 70.1,
-      "chg_pct": 2.79,
-      "volume": 502,
-      "avg_volume": 152,
-      "score": 10,
-      "hurst": 0.655,
-      "reasons": [
-        "爆量3.3倍",
-        "突破20日高",
-        "創60日新高",
-        "突破布林上軌",
-        "趨勢持續H=0.655"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "4442",
-      "name": "竣邦-KY",
-      "close": 62.1,
-      "chg_pct": 0.0,
-      "volume": 1502,
-      "avg_volume": 303,
-      "score": 10,
-      "hurst": 0.471,
-      "reasons": [
-        "10日內漲停",
-        "爆量5.0倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "00652",
-      "name": "",
-      "close": 33.62,
-      "chg_pct": 1.33,
-      "volume": 812,
-      "avg_volume": 343,
-      "score": 9,
-      "hurst": 0.651,
-      "reasons": [
-        "增量2.4倍",
-        "突破20日高",
-        "創60日新高",
-        "穿越MA20",
-        "趨勢持續H=0.651"
-      ],
-      "market": ""
-    },
-    {
-      "code": "009817",
-      "name": "",
-      "close": 9.4,
-      "chg_pct": 1.18,
-      "volume": 5581,
-      "avg_volume": 1675,
-      "score": 9,
-      "hurst": 0.737,
-      "reasons": [
-        "爆量3.3倍",
-        "突破20日高",
-        "創60日新高",
-        "趨勢持續H=0.737"
-      ],
-      "market": ""
-    },
-    {
-      "code": "6598",
-      "name": "ABC-KY",
-      "close": 30.95,
-      "chg_pct": 6.36,
-      "volume": 1242,
-      "avg_volume": 622,
-      "score": 8,
-      "hurst": 0.486,
-      "reasons": [
-        "10日內漲停",
-        "增量2.0倍",
-        "突破20日高",
-        "創60日新高"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "009810",
-      "name": "",
-      "close": 20.82,
-      "chg_pct": 0.73,
-      "volume": 108,
-      "avg_volume": 190,
-      "score": 8,
-      "hurst": 0.801,
-      "reasons": [
-        "突破20日高",
-        "創60日新高",
-        "穿越MA20",
-        "趨勢持續H=0.801"
-      ],
-      "market": ""
-    },
-    {
       "code": "3362",
       "name": "先進光",
-      "close": 173.5,
+      "close": 156.5,
       "chg_pct": 0.0,
-      "volume": 23151,
-      "avg_volume": 6072,
+      "volume": 24752,
+      "avg_volume": 6326,
       "score": 8,
-      "hurst": 0.733,
+      "hurst": 0.75,
       "reasons": [
         "10日內漲停",
-        "爆量3.8倍",
-        "趨勢持續H=0.733"
+        "爆量3.9倍",
+        "趨勢持續H=0.75"
       ],
       "market": "上櫃"
     },
     {
-      "code": "3595",
-      "name": "山太士",
-      "close": 1350.0,
-      "chg_pct": -9.4,
-      "volume": 1576,
-      "avg_volume": 355,
+      "code": "3441",
+      "name": "聯一光",
+      "close": 76.4,
+      "chg_pct": 0.0,
+      "volume": 37349,
+      "avg_volume": 8586,
       "score": 8,
-      "hurst": 0.663,
+      "hurst": 0.771,
       "reasons": [
         "10日內漲停",
         "爆量4.4倍",
-        "趨勢持續H=0.663"
-      ],
-      "market": "興櫃"
-    },
-    {
-      "code": "6588",
-      "name": "東典光電",
-      "close": 89.9,
-      "chg_pct": 0.0,
-      "volume": 15061,
-      "avg_volume": 2357,
-      "score": 8,
-      "hurst": 0.719,
-      "reasons": [
-        "10日內漲停",
-        "爆量6.4倍",
-        "趨勢持續H=0.719"
+        "趨勢持續H=0.771"
       ],
       "market": "上櫃"
     },
     {
-      "code": "3504",
-      "name": "揚明光",
-      "close": 68.6,
-      "chg_pct": 9.94,
-      "volume": 6588,
-      "avg_volume": 1318,
+      "code": "5880",
+      "name": "合庫金",
+      "close": 27.0,
+      "chg_pct": 3.45,
+      "volume": 70684,
+      "avg_volume": 19422,
       "score": 8,
-      "hurst": 0.591,
+      "hurst": 0.512,
       "reasons": [
-        "10日內漲停",
-        "爆量5.0倍",
-        "穿越MA10",
-        "偏趨勢H=0.591"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "2832",
-      "name": "台產",
-      "close": 56.9,
-      "chg_pct": 1.07,
-      "volume": 374,
-      "avg_volume": 235,
-      "score": 8,
-      "hurst": 0.47,
-      "reasons": [
-        "增量1.6倍",
+        "爆量3.6倍",
         "突破20日高",
         "創60日新高",
-        "穿越MA20",
-        "穿越MA10"
+        "突破布林上軌"
       ],
       "market": "上市"
     }
