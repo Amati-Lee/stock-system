@@ -174,8 +174,16 @@ def fetch_tpex_date(date_str):
     if not tables or not tables[0].get("data"):
         return {}, None
 
+    # ⚠ 這個 API 查「過去日期」不會回傳該日資料，一律回傳最新交易日的行情。
+    #   所以絕不能用 date_str 蓋章 —— 那會把最新一天的價格寫進過去的日期，
+    #   連週末都會生出假列（2026-07-18 起已污染 9 個週末、約 870 支上櫃股）。
+    #   一律以 API 自己回報的日期為準，要不要採用由呼叫端判斷。
+    actual_date = data.get("date") or ""
+    if not (len(actual_date) == 8 and actual_date.isdigit()):
+        tbl_date = (tables[0].get("date") or "").replace("/", "")
+        actual_date = roc_to_western(tbl_date) if tbl_date else date_str
+
     result = {}
-    actual_date = date_str
     for row in tables[0]["data"]:
         try:
             code = row[0].strip()
@@ -190,9 +198,9 @@ def fetch_tpex_date(date_str):
             continue
         if o <= 0 or c <= 0:
             continue
-        result[code] = {"t": date_str, "o": o, "h": h, "l": low, "c": c, "v": v}
+        result[code] = {"t": actual_date, "o": o, "h": h, "l": low, "c": c, "v": v}
 
-    return result, date_str if result else None
+    return result, actual_date if result else None
 
 
 def fetch_from_api():
@@ -249,11 +257,18 @@ def fetch_from_api():
     except Exception as e:
         print(f"  ⚠ TPEx API 失敗: {e}")
 
-    # TPEx 回補前 2 天
+    # TPEx 回補前 2 天（只補平日，且必須確認 API 回的就是那一天）
     tpex_dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(1, 3)]
     for date_str in tpex_dates:
+        if datetime.strptime(date_str, "%Y%m%d").weekday() >= 5:
+            print(f"  TPEx 回補跳過 {date_str}：週末不是交易日")
+            continue
         try:
             tpex_hist, tpex_hist_date = fetch_tpex_date(date_str)
+            if tpex_hist and tpex_hist_date != date_str:
+                # API 忽略指定日期、回傳最新交易日 → 丟掉，寧可缺一天也不要寫錯日期
+                print(f"  TPEx 回補跳過 {date_str}：API 實際回傳 {tpex_hist_date}")
+                continue
             if tpex_hist:
                 for code, entry in tpex_hist.items():
                     if code not in result:
