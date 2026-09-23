@@ -140,6 +140,16 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_institutional.py
 
+      # 融資融券：回測用的另一條資料軸（法人＝主力，融資＝散戶槓桿）。
+      # ⭐ 刻意跑 --days 5 而不是只抓當天：已存在的日期會直接跳過、不發請求，
+      #    所以成本幾乎是零，但**任何一天漏掉都會在接下來 5 天內自己補回來**。
+      #    （法人資料就是因為漏掉的那天沒有人再回頭看，才破了 65 個洞）
+      # ⚠️ 必須排在 download_ohlc.py 之後：它要讀 pwa/ohlc 取交易日曆。
+      - name: Download margin trading balance
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
+        continue-on-error: true
+        run: python download_margin.py --days 5
+
       - name: Download PE river data
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_pe.py
@@ -191,6 +201,7 @@ jobs:
           git add -f pe_history.json
           git add alerts_history/
           git add candidates_history/
+          git add margin_history/
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%d) stock update"
           git stash --include-untracked 2>/dev/null || true
           git pull --rebase -X theirs || {
