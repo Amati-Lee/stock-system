@@ -88,6 +88,26 @@ def report(title, recs, bench_note=""):
     print()
 
 
+def report_payoff(title, recs):
+    """⭐ 勝率之外還要看賺賠比 —— 40% 勝率但賺賠比 3:1 是賺錢的。
+    前面只看勝率與平均報酬，這一塊一直沒量。"""
+    print(f"  {title:<26}", end="")
+    for h in HOLD_DAYS:
+        rs = [r["rets"][h] for r in recs if h in r["rets"]]
+        if not rs:
+            print(f"{'—':>40}", end="")
+            continue
+        win = [x for x in rs if x > 0]
+        loss = [x for x in rs if x <= 0]
+        aw = sum(win) / len(win) if win else 0.0
+        al = abs(sum(loss) / len(loss)) if loss else 0.0
+        pr = (aw / al) if al > 0 else float("inf")
+        p = len(win) / len(rs)
+        ev = p * aw - (1 - p) * al          # 每筆期望值（%）
+        print(f" | {h}D 贏{aw:+5.1f}% 輸{-al:+5.1f}% 賺賠比{pr:4.2f} 期望值{ev:+5.2f}%", end="")
+    print()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--persist", type=int, default=5)
@@ -229,6 +249,14 @@ def main():
     report("B 只有籌碼反向", B)
     report(f"C 只有技術持續{N}天", C)
     report("D 籌碼 ＋ 技術", D)
+    print("=" * 128)
+
+    print("\n【賺賠比與期望值】⭐ 勝率一樣不代表一樣 —— 贏的時候贏多少才是重點")
+    print("-" * 128)
+    report_payoff("A 全市場基準", A)
+    report_payoff("B 只有籌碼反向", B)
+    report_payoff(f"C 只有技術持續{N}天", C)
+    report_payoff("D 籌碼 ＋ 技術", D)
     print("=" * 128)
 
     # 加值分解：相對基準的勝率差
