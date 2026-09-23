@@ -354,9 +354,28 @@ def load_existing_ohlc():
     return existing, latest_dates
 
 
+# 週末假列的清除統計（merge_and_trim 累加，main() 印出）
+WEEKEND_PURGE = {"rows": 0, "codes": 0, "checked": 0}
+
+
+def is_trading_weekday(t):
+    """台股週末不開盤 —— 週末的列一定是假資料，不可能有正確版本可還原。
+
+    這些列是櫃買歷史 API「日期蓋章」bug 的產物（見 fetch_tpex_date）。
+    根因修掉之後新的不會再生，但**既有的不會自己消失**：
+    CSV 裡沒有週末，所以 merge 時沒有任何東西會覆蓋它們。
+    CI 的 pwa/ohlc 存在 Actions cache 裡會一直帶著走，只能在這裡攔掉。
+    """
+    try:
+        return datetime.strptime(t, '%Y%m%d').weekday() < 5
+    except (ValueError, TypeError):
+        return True  # 日期格式怪的不在這裡判，留給後面
+
+
 def merge_and_trim(existing_entries, new_entries, cutoff):
     """
-    合併既有與新 OHLC 資料，去重（新資料優先），排序，裁剪過期資料。
+    合併既有與新 OHLC 資料，去重（新資料優先），排序，裁剪過期資料，
+    並濾掉週末假列（不分來源，這是合併的唯一出口）。
     cutoff: "YYYYMMDD" 字串
     """
     by_date = {}
@@ -373,7 +392,14 @@ def merge_and_trim(existing_entries, new_entries, cutoff):
         by_date[t] = e
 
     merged = sorted(by_date.values(), key=lambda x: x['t'])
-    return [e for e in merged if e['t'] >= cutoff]
+    merged = [e for e in merged if e['t'] >= cutoff]
+
+    kept = [e for e in merged if is_trading_weekday(e['t'])]
+    WEEKEND_PURGE["checked"] += len(merged)
+    if len(kept) != len(merged):
+        WEEKEND_PURGE["rows"] += len(merged) - len(kept)
+        WEEKEND_PURGE["codes"] += 1
+    return kept
 
 
 def save_snapshot():
@@ -591,6 +617,14 @@ def main():
         with open(fpath, 'w', encoding='utf-8') as f:
             json.dump(merged, f, ensure_ascii=False, separators=(',', ':'))
         written += 1
+
+    # 週末假列攔截結果：**永遠印**，含「掃過幾列、攔掉 0 列」。
+    # 只在有攔到時才出聲的防線，看起來跟根本沒裝一樣。
+    if WEEKEND_PURGE["rows"]:
+        print(f"  🧹 濾掉週末假列 {WEEKEND_PURGE['rows']} 列（{WEEKEND_PURGE['codes']} 支）"
+              f"／掃過 {WEEKEND_PURGE['checked']} 列")
+    else:
+        print(f"  🧹 週末假列：掃過 {WEEKEND_PURGE['checked']} 列，無假列")
 
     # 6. 健��檢查 + 備份���理
     if api_date:
