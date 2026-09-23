@@ -6,6 +6,7 @@ download_institutional.py — 下載三大法人買賣超資料
 import json
 import os
 import glob
+import time
 import urllib.request
 import ssl
 from datetime import datetime
@@ -170,12 +171,46 @@ def load_existing():
     return [], {}
 
 
+FETCH_RETRIES = 3
+RETRY_WAIT = 20  # 秒；T86 收盤後才發布，15:30 那班常常搶太早
+
+
+def fetch_with_retry(fn, date_str, label):
+    """單次失敗不算失敗 —— 重試幾次再放棄，每次都把拿到幾支印出來"""
+    for attempt in range(1, FETCH_RETRIES + 1):
+        result = fn(date_str)
+        if result:
+            if attempt > 1:
+                print(f"  {label}: 第 {attempt} 次才成功")
+            return result
+        if attempt < FETCH_RETRIES:
+            print(f"  {label}: 第 {attempt} 次抓到 0 支，{RETRY_WAIT} 秒後重試")
+            time.sleep(RETRY_WAIT)
+    print(f"  {label}: 重試 {FETCH_RETRIES} 次都是 0 支")
+    return {}
+
+
 def main():
     trade_date = get_trade_date()
     print(f"下載三大法人資料: {trade_date}")
 
-    twse = fetch_twse(trade_date)
-    tpex = fetch_tpex(trade_date)
+    twse = fetch_with_retry(fetch_twse, trade_date, "TWSE")
+    tpex = fetch_with_retry(fetch_tpex, trade_date, "TPEx")
+
+    # 兩個市場的結果都要報，含 0 —— 只在有問題時才出聲的檢查等於沒有檢查
+    print(f"  結果: 上市 {len(twse)} 支、上櫃 {len(tpex)} 支")
+
+    # ⚠ 任一市場整個掛掉就不要寫。
+    #   下面累積歷史時，沒抓到的代號會被填 0（見 new_data 那段），
+    #   而「外資 0 張」和「沒有資料」在檔案裡長得一模一樣，**事後分不出來**。
+    #   寧可這天空著，交給 17:00 那班或 backfill_institutional.py 補，
+    #   也不要寫一整個市場的假 0 進去。
+    #   （2026-09-23 查到：上市有 28/152 天是整天 0，就是這樣來的）
+    if not twse or not tpex:
+        missing = "上市" if not twse else "上櫃"
+        print(f"  ⛔ {missing}整個市場抓不到，本次不寫入（避免寫進假的 0）。"
+              f"事後補：python backfill_institutional.py 130")
+        return
 
     # 合併
     merged = {**twse, **tpex}
