@@ -150,6 +150,17 @@ jobs:
         continue-on-error: true
         run: python download_margin.py --days 5
 
+      # 大戶持股（集保股權分散表）：週資料，每週五一期。
+      # ⭐ 每天跑而不是排在星期幾：TDCC 的發布時差不確定（週五的資料不知道
+      #    週一還是週三才出），猜錯就漏一整週。這支只有「冒出新一期」才寫檔，
+      #    重複跑會自己跳過，所以每天問一次最安全，成本是一個請求。
+      # ⛔ 沒有回補功能：TDCC OpenData 的 scaDate 參數完全無效（一律回最新一期，
+      #    而且 HTTP 200、格式正確、看起來成功），歷史只能單支查 ⇒ 不可能補。
+      - name: Download shareholder distribution (大戶持股)
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
+        continue-on-error: true
+        run: python download_holders.py
+
       - name: Download PE river data
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python download_pe.py
@@ -202,6 +213,7 @@ jobs:
           git add alerts_history/
           git add candidates_history/
           git add margin_history/
+          git add holders_history/
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%d) stock update"
           git stash --include-untracked 2>/dev/null || true
           git pull --rebase -X theirs || {
