@@ -186,6 +186,15 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python scan_candidates.py
 
+      # 預先登記的每日記錄。規則凍結於 PREREGISTRATION.md（2026-09-24）。
+      # ⛔ 只記錄「今天有哪些股票符合哪個假設」，**不計算任何報酬**。
+      #    開盲前算報酬 ＝ 偷看 ＝ 該次驗證作廢。
+      # ⚠️ 必須排在 OHLC／融資／大戶三個下載之後。
+      - name: Record pre-registered signals
+        if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
+        continue-on-error: true
+        run: python prereg_record.py
+
       - name: AI stock analysis
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         continue-on-error: true
@@ -214,6 +223,7 @@ jobs:
           git add candidates_history/
           git add margin_history/
           git add holders_history/
+          git add prereg_log/
           git diff --cached --quiet || git commit -m "data: $(date -u +%Y-%m-%d) stock update"
           git stash --include-untracked 2>/dev/null || true
           git pull --rebase -X theirs || {
