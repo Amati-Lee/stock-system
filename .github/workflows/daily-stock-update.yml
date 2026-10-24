@@ -122,24 +122,41 @@ jobs:
         id: download
         if: steps.check_holiday.outputs.skip != 'true'
         run: |
+          # ⭐ 先記下「下載前手上最新的交易日」。freshness 閘門比的是這個數字有沒有
+          #    往前走。這一行必須在 python 之前，否則 python 失敗時整步中斷就記不到。
+          BEFORE=$(ls stock_data_*.csv 2>/dev/null | sed 's/.*stock_data_//;s/\.csv$//' | sort | tail -1)
+          echo "before=${BEFORE:-none}" >> $GITHUB_OUTPUT
+          echo "下載前最新交易日：${BEFORE:-（一份都沒有）}"
           python stock_system.py
-          echo "fresh=true" >> $GITHUB_OUTPUT
         continue-on-error: true
 
+      # ⛔⛔ 判準是「最新交易日有沒有往前走」，不是「今天日期的 CSV 在不在」。
+      #     stock_system.py 的檔名取自資料自己的「交易日」欄位（_save_stock_csv），
+      #     所以臨時休市那天抓到的是昨天的資料、檔名也是昨天，而且因為檔案已存在
+      #     還會「跳過覆蓋」然後正常退出 0 ——
+      #     舊版只在 download 失敗時才檢查 CSV，於是 2026-10-23 颱風假整條照跑，
+      #     把 10/22 的收盤蓋上 10/23 的日期發布出去。
+      #     用「有沒有更新的交易日」同時解決三件事：
+      #       休市日擋得住 / 盤中搶跑擋得住 / 同一天重跑不會再覆蓋一次當天結果，
+      #     而「上一次跑到一半死掉」仍然補得起來（CSV 沒 commit，BEFORE 還是舊的）。
       - name: Check data freshness
         id: freshness
         if: steps.check_holiday.outputs.skip != 'true'
         run: |
-          if [ "${{ steps.download.outcome }}" = "failure" ]; then
-            TODAY=$(TZ=Asia/Taipei date +%Y%m%d)
-            if [ ! -f "stock_data_${TODAY}.csv" ]; then
-              echo "⛔ 資料過期或下載失敗，跳過後續步驟"
-              echo "stale=true" >> $GITHUB_OUTPUT
-            else
-              echo "stale=false" >> $GITHUB_OUTPUT
-            fi
+          BEFORE="${{ steps.download.outputs.before }}"
+          AFTER=$(ls stock_data_*.csv 2>/dev/null | sed 's/.*stock_data_//;s/\.csv$//' | sort | tail -1)
+          AFTER=${AFTER:-none}
+          echo "下載步驟結果：${{ steps.download.outcome }}"
+          echo "最新交易日：${BEFORE:-none} → ${AFTER}"
+
+          if [ "$AFTER" = "none" ] || [ "$AFTER" = "$BEFORE" ]; then
+            echo "stale=true" >> $GITHUB_OUTPUT
+            echo "last=${BEFORE:-none}" >> $GITHUB_OUTPUT
+            echo "⛔ 沒有拿到比 ${BEFORE:-（無）} 更新的交易日，跳過後續所有步驟（不重建、不部署、不 commit）"
+            echo "::warning::本次沒有新的交易日資料（停在 ${BEFORE:-none}），可能是臨時休市、盤後資料還沒出、或下載失敗"
           else
             echo "stale=false" >> $GITHUB_OUTPUT
+            echo "✅ 拿到新的交易日 ${AFTER}"
           fi
 
       - name: Build OHLC from CSVs
@@ -260,9 +277,13 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"broadcast": true, "text": "📊 Stock PWA 已更新部署完成 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
 
+      # 已知的國定假日在 check_holiday 就擋掉了，不會走到這裡。
+      # 會走到這裡的是：臨時休市（颱風假）、盤後資料還沒出就手動跑、下載失敗。
+      # ⭐ 這三種都是「該讓他知道」的，不是雜訊 —— 2026-10-23 那次就是沒人收到通知。
       - name: Notify stale data
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale == 'true'
         run: |
+          LAST="${{ steps.freshness.outputs.last }}"
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
-            -d '{"broadcast": true, "text": "⚠️ Stock 資料過期（API 未更新），今日未部署 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
+            -d '{"broadcast": true, "text": "⚠️ Stock 今日未部署：沒有拿到新的交易日資料，停在 '"${LAST}"'。可能是臨時休市、盤後資料還沒出、或下載失敗 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
