@@ -37,6 +37,11 @@ jobs:
             echo "⚠️ 今天尚無成功 run，備援 cron 開始執行"
           fi
 
+      # ⚠️ checkout 必須排在假日判斷之前：休市日清單的唯一來源是 repo 裡的
+      #    holidays.txt，沒有 checkout 就讀不到。（休市日多跑這一步約 20 秒）
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Check if Taiwan market is open today
         id: check_holiday
         run: |
@@ -47,45 +52,50 @@ jobs:
             exit 0
           fi
 
-          # 台灣國定假日（每年底更新下一年）
-          TW_HOLIDAYS_2026="
-          2026-01-01
-          2026-02-16
-          2026-02-17
-          2026-02-18
-          2026-02-19
-          2026-02-20
-          2026-02-27
-          2026-04-03
-          2026-04-06
-          2026-05-01
-          2026-06-19
-          2026-09-25
-          2026-09-28
-          2026-10-09
-          2026-10-26
-          2026-12-25
-          "
-          # 2026 補班日（週六上班，但這裡不需要處理，因為 cron 只跑週一到五）
+          # 休市日清單的唯一來源 = holidays.txt（run_daily.bat 讀的是同一份）。
+          # ⛔ 不要在這裡再寫死第二份：2026-10 就是因為兩份不同步才漏判。
+          #    格式 YYYY-MM-DD，# 開頭是註解，每年底更新下一年度。
+          HOLIDAY_FILE="holidays.txt"
+          if [ ! -f "$HOLIDAY_FILE" ]; then
+            echo "::error::找不到 $HOLIDAY_FILE，無法判斷今天是否休市"
+            exit 1
+          fi
+
+          # 先把檔案解析成乾淨的日期清單（去掉 CR、註解、空行）
+          DATES=$(tr -d '\r' < "$HOLIDAY_FILE" \
+                  | sed 's/#.*//' \
+                  | grep -Eo '[0-9]{4}-[0-9]{2}-[0-9]{2}' )
+          N=$(echo "$DATES" | grep -c . || true)
 
           TODAY=$(TZ=Asia/Taipei date +%Y-%m-%d)
           DOW=$(TZ=Asia/Taipei date +%u)  # 1=Mon ... 7=Sun
+          YEAR=${TODAY%%-*}
+          N_YEAR=$(echo "$DATES" | grep -c "^${YEAR}-" || true)
           echo "today=$TODAY (weekday=$DOW)"
+          echo "holidays.txt 解析到 $N 個休市日，其中 $YEAR 年有 $N_YEAR 個"
+
+          # 解析不出東西 = 清單格式壞了。這種閘門永遠通過比沒有更糟，直接失敗。
+          if [ "$N" -lt 10 ]; then
+            echo "::error::holidays.txt 只解析到 $N 個日期，格式可能壞了，不敢判斷"
+            exit 1
+          fi
+          # 今年一個都沒有 = 跨年了沒更新。這裡刻意「放行」而不是失敗：
+          # 擋下來會整條停擺，而大戶持股之類的資料漏掉就補不回來；
+          # 假交易日則是事後刪得掉的。但要叫得夠大聲。
+          if [ "$N_YEAR" -eq 0 ]; then
+            echo "::warning::holidays.txt 沒有任何 $YEAR 年的休市日，請更新（今天先當交易日處理）"
+          fi
 
           if [ "$DOW" -ge 6 ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "⛔ $TODAY 是週末，跳過"
-          elif echo "$TW_HOLIDAYS_2026" | grep -q "$TODAY"; then
+          elif echo "$DATES" | grep -qxF "$TODAY"; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "⛔ $TODAY 是國定假日，跳過"
+            echo "⛔ $TODAY 在 holidays.txt 裡（休市），跳過"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
             echo "✅ $TODAY 是交易日"
           fi
-
-      - name: Checkout repo
-        if: steps.check_holiday.outputs.skip != 'true'
-        uses: actions/checkout@v4
 
       - name: Setup Python
         if: steps.check_holiday.outputs.skip != 'true'
