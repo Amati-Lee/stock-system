@@ -20,21 +20,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Skip if already deployed today (backup cron guard)
+      # ⛔⛔ 判準是「最近 N 小時內有沒有成功過」，不是「今天有沒有成功過」。
+      #
+      # 2026-11-04 01:31 又發生一次：GitHub 自己的 schedule 延遲約 9 小時
+      # （主班是 workflow_dispatch，準時 15:30；schedule 只是備援），
+      # 跑到台北 00:43 時 `date +%Y-%m-%d` 已經換成隔天 ⇒ 查「今天」當然查不到
+      # 下午那班 ⇒ 守門員放行 ⇒ 整條跑完才被 freshness 擋下，並發出
+      # 「沒有拿到新的交易日資料」的警示。資料其實好好的，只是通知看起來像出事。
+      #
+      # ⭐ 用時間差就不受換日影響。12 小時涵蓋 GitHub 實測 6~9 小時的延遲，
+      #    又不會長到把「昨天成功、今天該跑」的情況也跳過。
+      - name: Skip if recently deployed (backup cron guard)
         id: check_already_ran
         if: github.event_name == 'schedule'
         run: |
-          TODAY=$(TZ=Asia/Taipei date +%Y-%m-%d)
-          # 查詢今天是否已有成功的 run（不含自己）
+          SINCE=$(date -u -d '12 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          # ⭐ 不用 API 的 created 篩選（要 URL encode 比較符號），直接抓最近幾筆在 jq 裡比。
+          #    ISO8601 字串可以直接字典序比較。
           RUNS=$(curl -s -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/daily-stock-update.yml/runs?created=${TODAY}&status=success&per_page=5" \
-            | jq "[.workflow_runs[] | select(.id != ${{ github.run_id }})] | length")
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/daily-stock-update.yml/runs?status=success&per_page=10" \
+            | jq --arg self "${{ github.run_id }}" --arg since "$SINCE" \
+              '[.workflow_runs[] | select((.id|tostring) != $self) | select(.created_at > $since)] | length')
+          echo "判準：最近 12 小時（$SINCE 之後）成功的 run 有 ${RUNS} 筆"
           if [ "$RUNS" -gt 0 ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "✅ 今天已有成功的 run，備援 cron 跳過"
+            echo "✅ 12 小時內已有成功的 run，備援 cron 跳過"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
-            echo "⚠️ 今天尚無成功 run，備援 cron 開始執行"
+            echo "⚠️ 12 小時內沒有成功的 run，備援 cron 開始執行"
           fi
 
       # ⚠️ checkout 必須排在假日判斷之前：休市日清單的唯一來源是 repo 裡的
