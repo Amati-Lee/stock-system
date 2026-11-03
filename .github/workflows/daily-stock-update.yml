@@ -265,7 +265,13 @@ jobs:
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: |
           rm -rf pwa/ohlc_backup
-          npx wrangler pages deploy pwa --project-name=stock-viewer --branch=main
+          # ⛔ 不要再直接部署 pwa/。pwa/ohlc 是「每支股票一個 JSON」，2026-10 已累積到
+          #    20,009 個，跨過 Cloudflare Pages 免費方案的 20,000 檔上限 ⇒ 2026-10-29 起
+          #    每天部署都失敗、資料卻照常 commit，網站靜悄悄停在 10/28 三天沒人發現。
+          # ⭐ build_deploy.py 另外組 _deploy/（只含現役代號的 OHLC，約 2,200 檔），
+          #    pwa/ 完全不動——save_snapshot() 與 actions/cache 都依賴它的完整性。
+          python build_deploy.py
+          npx wrangler pages deploy _deploy --project-name=stock-viewer --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -287,3 +293,17 @@ jobs:
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
             -d '{"broadcast": true, "text": "⚠️ Stock 今日未部署：沒有拿到新的交易日資料，停在 '"${LAST}"'。可能是臨時休市、盤後資料還沒出、或下載失敗 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
+
+      # ⛔⛔ 這一步沒有 `if: failure()` 的話，整支 workflow 就是「靜音失敗」。
+      # 2026-10-29 ~ 11-02：部署連續三天失敗（Pages 20,000 檔上限），但
+      #   - 「Notify via Telegram」掛著 `&& success()` ⇒ 不會發
+      #   - 備援班因為資料已 commit、freshness 判 stale ⇒ 發的是
+      #     「沒有拿到新的交易日資料」——**描述了錯誤的問題**，所以被當成雜訊
+      # 結果：資料正確地躺在 GitHub 上，網站卻停在三天前，使用者是看到錯的股價才發現。
+      # ⭐ 判準：失敗就要講出「哪一步、去哪看」，不要只說「今天沒部署」。
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
+            -H "Content-Type: application/json" \
+            -d '{"broadcast": true, "text": "❌ Stock 每日更新失敗。資料可能已經 commit 但網站沒有更新，請看執行記錄：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'

@@ -26,3 +26,4 @@ pwa/
 
 # Icons source — tracked (used by generate_pwa.py)
 # icons/
+_deploy/
