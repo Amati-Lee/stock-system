@@ -9,7 +9,18 @@ import sys
 import time
 import glob
 import urllib.request
+import ssl
+import certifi
 from datetime import datetime, timedelta
+
+# ⛔ 不可改回「不傳 context」的裸 urlopen。
+#    Python 預設的 SSL context 在 Windows 上吃系統憑證庫，OpenSSL 3.0 會對
+#    www.twse.com.tw / www.tpex.org.tw / mopsov.twse.com.tw 丟
+#    "Missing Subject Key Identifier" ⇒ 本機跑永遠拿不到資料。
+#    CI 的 ubuntu 沒事，所以這個 bug 被掩護了很久（只印一行紅字然後 return 空）。
+#    certifi 的 CA bundle 則四台全數通過。
+SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -23,7 +34,7 @@ def fetch_twse_pe(date_str):
     url = f"https://www.twse.com.tw/exchangeReport/BWIBBU_d?response=json&date={date_str}&selectType=ALL"
     req = urllib.request.Request(url, headers={"User-Agent": "stock-system/1.0"})
     try:
-        resp = urllib.request.urlopen(req, timeout=30)
+        resp = urllib.request.urlopen(req, timeout=30, context=SSL_CTX)
         data = json.loads(resp.read().decode("utf-8"))
     except Exception as e:
         print(f"  TWSE {date_str} 失敗: {e}")
@@ -54,7 +65,7 @@ def fetch_tpex_pe(date_str):
     url = f"https://www.tpex.org.tw/web/stock/aftertrading/peratio_analysis/pera_result.php?l=zh-tw&o=json&d={roc_date}&c=&s=0,asc,0"
     req = urllib.request.Request(url, headers={"User-Agent": "stock-system/1.0"})
     try:
-        resp = urllib.request.urlopen(req, timeout=30)
+        resp = urllib.request.urlopen(req, timeout=30, context=SSL_CTX)
         data = json.loads(resp.read().decode("utf-8"))
     except Exception as e:
         print(f"  TPEx {date_str} 失敗: {e}")

@@ -4,8 +4,18 @@ debug_twse_api.py
 TWSE 的網頁是動態加載的，股票數據從後端 API 拿來的。
 """
 import urllib.request
+import ssl
+import certifi
 import json
 import time
+
+# ⛔ 不可改回「不傳 context 」的裸 urlopen。
+#    Python 預設的 SSL context 在 Windows 上吃系統憑證庫，OpenSSL 3.0 會對
+#    www.twse.com.tw / www.tpex.org.tw / mopsov.twse.com.tw 丟
+#    "Missing Subject Key Identifier" → 本機跑永遠拿不到資料（CI 的 ubuntu 沒事，
+#    所以這個 bug 被掩護了很久）。certifi 的 CA bundle 則全數通過。
+SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+
 
 def try_url(name, url, headers=None):
     """嘗試請求一個 URL，印出狀態和回傳內容的前 500 字"""
@@ -20,7 +30,7 @@ def try_url(name, url, headers=None):
     print(f"{'─' * 55}")
     try:
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10, context=SSL_CTX) as resp:
             body = resp.read().decode("utf-8", errors="ignore")
             print(f"  狀態：✅ {resp.status}")
             print(f"  長度：{len(body)} 字元")
