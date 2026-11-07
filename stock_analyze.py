@@ -15,7 +15,10 @@ GLOBAL_PATH = os.path.join(SCRIPT_DIR, "pwa", "global_indicators.json")
 MODEL = "claude-haiku-4-5-20251001"
 MAX_RETRIES = 2
 TELEGRAM_URL = "https://pomodoro-bot.juria-orch.workers.dev"
+# ⛔ chat_id 不是管制點（同 watchlist_check.py 的說明）。
 TELEGRAM_CHAT_ID = "8786691885"
+# ⭐ relay 的共用密鑰；沒設值時照舊發送，所以可以單獨上線。
+NOTIFY_TOKEN = os.environ.get("NOTIFY_TOKEN", "")
 
 
 def load_alerts():
@@ -340,10 +343,11 @@ def send_telegram(text):
     import urllib.request
     try:
         data = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
+        headers = {"Content-Type": "application/json", "User-Agent": "stock-system/1.0"}
+        if NOTIFY_TOKEN:
+            headers["Authorization"] = f"Bearer {NOTIFY_TOKEN}"
         req = urllib.request.Request(
-            TELEGRAM_URL, data=data,
-            headers={"Content-Type": "application/json", "User-Agent": "stock-system/1.0"},
-            method="POST"
+            TELEGRAM_URL, data=data, headers=headers, method="POST"
         )
         urllib.request.urlopen(req, timeout=10)
     except Exception as e:

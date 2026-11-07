@@ -15,6 +15,27 @@ import sys
 from datetime import datetime
 
 
+def js_safe_json(text):
+    """把一段 JSON 文字塞進 <script> 本體前，拆掉所有能跳出 script 區塊的字元。
+
+    ⛔ 病根：`DataFrame.to_json()` 和 `json.dumps()` **都不會轉義 `<`**，而這些
+       JSON 是用字串替換塞進 `var RAW = __STOCK_DATA__;` 的。所以任何字串值
+       裡出現 `</script>` 就會直接關掉 script 元素，後面那段被當 HTML 解析
+       —— 一個來自上游 feed 的公司名就能在公開站上執行任意 JS。
+       （還會被 commit 進 public repo、被 service worker 快取住。）
+
+    ⭐ 為什麼可以直接做文字替換：合法 JSON 裡 `<` `>` `&` 只可能出現在字串值
+       內部（結構字元只有 {}[]:,"、數字與 true/false/null），而 `\\u003c` 這種
+       轉義在 JSON 字串裡完全合法 ⇒ 替換後仍是等價的合法 JSON。
+       U+2028／U+2029 一併轉掉：它們在舊的 JS parser 裡算行結束符。
+    """
+    return (text.replace('<', '\\u003c')
+                .replace('>', '\\u003e')
+                .replace('&', '\\u0026')
+                .replace(' ', '\\u2028')
+                .replace(' ', '\\u2029'))
+
+
 def get_latest_csv():
     """找最新的 stock_data_*.csv"""
     files = glob.glob("stock_data_*.csv")
@@ -775,6 +796,21 @@ var debounceT = null;
 
 function ok(v) { return v != null && v !== ''; }
 function num(v) { var x = parseFloat(v); return isNaN(x) ? 0 : x; }
+// ⛔ 任何「來自資料」的字串進 innerHTML 前一律過 esc()。
+//    股票名稱／產業別／題材／法人數字都來自第三方 feed，沒跳脫的話
+//    一個 <img src=x onerror=...> 就能在公開站上執行，而且會被 commit
+//    進 repo、被 service worker 快取住。模板自己寫死的字不需要 esc。
+function esc(v) {
+    if (v == null) return '';
+    return String(v).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+// ⛔ 股票代號會被塞進 onclick="openChart('…')"，那是「HTML 屬性裡的 JS
+//    字串」—— HTML 實體會被 parser 解回來，所以 esc() 擋不住 '),alert(1)// 這種
+//    跳脫。合法代號一律是英數（2330／0050／00632R／2887Z1），所以這裡直接
+//    把非英數全部拿掉，結構上就不可能跳出字串。
+function scode(c) { return String(c == null ? '' : c).replace(/[^0-9A-Za-z]/g, ''); }
 
 document.addEventListener('DOMContentLoaded', function() {
     // 顯示當日日期
@@ -859,8 +895,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var h = '';
         for (var i = 0; i < hits.length; i++) {
             var s = hits[i];
-            h += '<div class="ac-item" data-code="' + s.股票代號 + '">';
-            h += '<span><span class="ac-code">' + s.股票代號 + '</span> <span class="ac-name">' + (s.股票名稱 || '') + '</span></span>';
+            h += '<div class="ac-item" data-code="' + scode(s.股票代號) + '">';
+            h += '<span><span class="ac-code">' + esc(s.股票代號) + '</span> <span class="ac-name">' + esc(s.股票名稱 || '') + '</span></span>';
             h += '<span class="ac-price">$' + (ok(s.收盤價) ? s.收盤價 : '-') + '</span>';
             h += '</div>';
         }
@@ -1170,31 +1206,31 @@ function renderCards() {
         var bc = ok(s.bb_pos) ? (s.bb_pos >= 80 ? 'tr' : s.bb_pos <= 20 ? 'tb' : 'tg') : '';
         var limitStyle = ok(s.漲跌幅) ? (s.漲跌幅 >= 9.5 ? 'background:#c62828;color:#fff;padding:2px 8px;border-radius:6px' : s.漲跌幅 <= -9.5 ? 'background:#2e7d32;color:#fff;padding:2px 8px;border-radius:6px' : '') : '';
 
-        h += '<div class="stock-item" onclick="openChart(\'' + s.股票代號 + '\')" style="cursor:pointer">';
+        h += '<div class="stock-item" onclick="openChart(\'' + scode(s.股票代號) + '\')" style="cursor:pointer">';
         h += '<div class="stock-header">';
-        h += '<div class="stock-name"' + (limitStyle ? ' style="' + limitStyle + '"' : '') + '>' + s.股票代號 + ' ' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</div>';
+        h += '<div class="stock-name"' + (limitStyle ? ' style="' + limitStyle + '"' : '') + '>' + esc(s.股票代號) + ' ' + esc(s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</div>';
         h += '<div class="stock-price">$' + (ok(s.收盤價) ? s.收盤價 : '-') + '</div>';
         h += '</div>';
         h += '<div class="stock-tags">';
-        if (s.kd_status) h += '<span class="tag ' + kc + '">KD ' + s.kd_status + '</span>';
-        if (s.macd_status) h += '<span class="tag ' + mc + '">MACD ' + s.macd_status + '</span>';
+        if (s.kd_status) h += '<span class="tag ' + kc + '">KD ' + esc(s.kd_status) + '</span>';
+        if (s.macd_status) h += '<span class="tag ' + mc + '">MACD ' + esc(s.macd_status) + '</span>';
         if (bc) h += '<span class="tag ' + bc + '">BB ' + fv(s.bb_pos, 1) + '%</span>';
         if (ok(s.pe_val)) {
             if (s.pe_val > 50) {
-                h += '<span class="tag tgray">PE ' + s.pe_val + '</span>';
+                h += '<span class="tag tgray">PE ' + esc(s.pe_val) + '</span>';
             } else if (ok(s.pe_pct)) {
                 var pec = s.pe_pct >= 67 ? 'tr' : s.pe_pct <= 33 ? 'tb' : 'tg';
-                h += '<span class="tag ' + pec + '" title="PE ' + s.pe_val + ' [' + (s.pe_low||'?') + '-' + (s.pe_high||'?') + ']">PE ' + s.pe_val + ' (' + s.pe_pct + '%)</span>';
+                h += '<span class="tag ' + pec + '" title="PE ' + esc(s.pe_val) + ' [' + esc(s.pe_low||'?') + '-' + esc(s.pe_high||'?') + ']">PE ' + esc(s.pe_val) + ' (' + esc(s.pe_pct) + '%)</span>';
             }
         }
         if (s.themes && s.themes.length > 0) {
             for (var ti = 0; ti < s.themes.length; ti++) {
-                h += '<span class="tag tt">' + s.themes[ti] + '</span>';
+                h += '<span class="tag tt">' + esc(s.themes[ti]) + '</span>';
             }
         }
         if (s.conf_days != null && s.conf_days >= 0) {
             var cl = s.conf_days <= 7 ? 'tc-soon' : 'tc';
-            h += '<span class="tag ' + cl + '">法說 ' + s.conf_date.substring(5) + (s.conf_days === 0 ? ' 今天' : ' ' + s.conf_days + '天後') + '</span>';
+            h += '<span class="tag ' + cl + '">法說 ' + esc(s.conf_date.substring(5)) + (s.conf_days === 0 ? ' 今天' : ' ' + esc(s.conf_days) + '天後') + '</span>';
         }
         h += '</div>';
 
@@ -1205,11 +1241,11 @@ function renderCards() {
             var pLabel = '價格' + (ok(s.漲跌幅) ? (s.漲跌幅 > 0 ? '↑' : s.漲跌幅 < 0 ? '↓' : '') + Math.abs(s.漲跌幅).toFixed(1) + '%' + (ok(s.漲跌額) ? ' (' + (s.漲跌額 > 0 ? '+' : '') + s.漲跌額.toFixed(2) + ')' : '') : '');
             h += '<span class="trend-badge ' + pc + '">' + pLabel + '</span>';
             var kdc = s.KD趨勢 === 'KD轉強' ? 'tb-up' : s.KD趨勢 === 'KD轉弱' ? 'tb-down' : 'tb-flat';
-            h += '<span class="trend-badge ' + kdc + '">' + s.KD趨勢 + '</span>';
+            h += '<span class="trend-badge ' + kdc + '">' + esc(s.KD趨勢) + '</span>';
             var rc = s.RSI趨勢 === 'RSI轉強' ? 'tb-up' : s.RSI趨勢 === 'RSI轉弱' ? 'tb-down' : 'tb-flat';
-            h += '<span class="trend-badge ' + rc + '">' + s.RSI趨勢 + '</span>';
+            h += '<span class="trend-badge ' + rc + '">' + esc(s.RSI趨勢) + '</span>';
             var vc = s.量能趨勢 === '量能放大' ? 'tb-up' : s.量能趨勢 === '量能縮小' ? 'tb-down' : 'tb-flat';
-            h += '<span class="trend-badge ' + vc + '">' + s.量能趨勢 + '</span>';
+            h += '<span class="trend-badge ' + vc + '">' + esc(s.量能趨勢) + '</span>';
             h += '</div>';
         }
 
@@ -1221,7 +1257,7 @@ function renderCards() {
                 h += '<div class="signal-tags">';
                 var tags = s.訊號.split(',');
                 for (var t = 0; t < tags.length; t++) {
-                    if (tags[t]) h += '<span class="signal-tag">' + tags[t] + '</span>';
+                    if (tags[t]) h += '<span class="signal-tag">' + esc(tags[t]) + '</span>';
                 }
                 h += '</div>';
             }
@@ -1259,15 +1295,15 @@ function renderTable() {
         var kc = s.kd_status === '黃金交叉' ? '#2e7d32' : '#c62828';
         var mc = s.macd_status === '黃金交叉' ? '#2e7d32' : '#c62828';
         var limitStyle = ok(s.漲跌幅) ? (s.漲跌幅 >= 9.5 ? 'background:#c62828;color:#fff;font-weight:bold' : s.漲跌幅 <= -9.5 ? 'background:#2e7d32;color:#fff;font-weight:bold' : '') : '';
-        h += '<tr onclick="openChart(\'' + s.股票代號 + '\')" style="cursor:pointer">';
-        h += '<td>' + s.股票代號 + '</td>';
-        h += '<td' + (limitStyle ? ' style="' + limitStyle + '"' : '') + '>' + (s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</td>';
+        h += '<tr onclick="openChart(\'' + scode(s.股票代號) + '\')" style="cursor:pointer">';
+        h += '<td>' + esc(s.股票代號) + '</td>';
+        h += '<td' + (limitStyle ? ' style="' + limitStyle + '"' : '') + '>' + esc(s.股票名稱 || '') + (s.市場 === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '') + '</td>';
         h += '<td>' + (ok(s.收盤價) ? s.收盤價 : '') + '</td>';
         h += '<td>' + fv(s.K值, 1) + '</td>';
         h += '<td>' + fv(s.D值, 1) + '</td>';
-        h += '<td style="color:' + kc + '">' + (s.kd_status || '') + '</td>';
+        h += '<td style="color:' + kc + '">' + esc(s.kd_status || '') + '</td>';
         h += '<td>' + fv(s.RSI, 1) + '</td>';
-        h += '<td style="color:' + mc + '">' + (s.macd_status || '') + '</td>';
+        h += '<td style="color:' + mc + '">' + esc(s.macd_status || '') + '</td>';
         h += '<td>' + fv(s.bb_pos, 1) + '</td>';
         h += '<td>' + (ok(s.pe_val) ? fv(s.pe_val, 1) : '-') + '</td>';
         h += '<td>' + (ok(s.pe_pct) ? s.pe_pct : '-') + '</td>';
@@ -1298,7 +1334,7 @@ function renderInstTag(d, code) {
     function fmt(label, arr) {
         var v = Array.isArray(arr) ? (arr[0] || 0) : (arr || 0);
         var c = v > 0 ? '#ef5350' : v < 0 ? '#26a69a' : '#888';
-        return '<span style="color:'+c+'">'+label+' '+(v>0?'+':'')+v+'</span>';
+        return '<span style="color:'+c+'">'+label+' '+(v>0?'+':'')+esc(v)+'</span>';
     }
     var parts = [fmt('外', d.foreign), fmt('投', d.trust), fmt('自', d.dealer)];
     if (code) {
@@ -1324,7 +1360,7 @@ function renderAlerts() {
         ['bull_case', '看多論點'], ['bear_case', '看空論點'],
         ['verdict', '綜合判斷'], ['conclusion', '結論']
     ];
-    var h = '<div class="alert-banner"><h3>&#x1F525; 起飛警示 (' + ALERTS.date + ')</h3>';
+    var h = '<div class="alert-banner"><h3>&#x1F525; 起飛警示 (' + esc(ALERTS.date) + ')</h3>';
     for (var i = 0; i < ALERTS.alerts.length; i++) {
         var a = ALERTS.alerts[i];
         var clr = a.chg_pct >= 0 ? '#ef5350' : '#26a69a';
@@ -1338,41 +1374,41 @@ function renderAlerts() {
         }
         var divStyle = isDiverg ? 'border:2px solid #ef5350;box-shadow:0 0 8px rgba(255,69,58,0.4)' : '';
         h += '<div>';
-        h += '<div class="alert-item" style="' + divStyle + '" onclick="' + (hasAna ? 'toggleAnalysis(\'' + a.code + '\')' : 'openChart(\'' + a.code + '\')') + '">';
+        h += '<div class="alert-item" style="' + divStyle + '" onclick="' + (hasAna ? 'toggleAnalysis(\'' + scode(a.code) + '\')' : 'openChart(\'' + scode(a.code) + '\')') + '">';
         h += '<div class="alert-left">';
         var emgTag = a.market === '興櫃' ? ' <span class="tag-emg">興櫃</span>' : '';
-        h += '<span class="alert-code">' + a.code + ' ' + a.name + emgTag + '</span>';
+        h += '<span class="alert-code">' + esc(a.code) + ' ' + esc(a.name) + emgTag + '</span>';
         var indText = INDUSTRY ? INDUSTRY[a.code] : '';
-        if (indText) { h += '<span class="tag ti">' + indText + '</span>'; }
-        h += '<span class="alert-reasons">' + a.reasons.join('、') + '</span>';
+        if (indText) { h += '<span class="tag ti">' + esc(indText) + '</span>'; }
+        h += '<span class="alert-reasons">' + esc(a.reasons.join('、')) + '</span>';
         var instD = (INST && INST.data) ? INST.data[a.code] : null;
         if (instD) { h += renderInstTag(instD, a.code); }
         var peInfo = PE_RIVER[a.code];
         if (peInfo && peInfo.pe != null) {
             if (peInfo.pe > 50) {
-                h += '<span class="tag tgray">PE ' + peInfo.pe + '</span>';
+                h += '<span class="tag tgray">PE ' + esc(peInfo.pe) + '</span>';
             } else if (peInfo.pct != null) {
                 var pec = peInfo.pct >= 67 ? 'tr' : peInfo.pct <= 33 ? 'tb' : 'tg';
-                h += '<span class="tag ' + pec + '" title="PE ' + peInfo.pe + ' [' + (peInfo.low||'?') + '-' + (peInfo.high||'?') + ']">PE ' + peInfo.pe + ' (' + peInfo.pct + '%)</span>';
+                h += '<span class="tag ' + pec + '" title="PE ' + esc(peInfo.pe) + ' [' + esc(peInfo.low||'?') + '-' + esc(peInfo.high||'?') + ']">PE ' + esc(peInfo.pe) + ' (' + esc(peInfo.pct) + '%)</span>';
             }
         }
         if (THEMES && THEMES.themes) {
             for (var tk in THEMES.themes) {
                 if (THEMES.themes[tk].codes && THEMES.themes[tk].codes.indexOf(a.code) >= 0) {
-                    h += '<span class="tag tt">' + tk + '</span>';
+                    h += '<span class="tag tt">' + esc(tk) + '</span>';
                 }
             }
         }
         var confInfo = CONF ? CONF[a.code] : null;
         if (confInfo && confInfo.days >= 0) {
             var cl = confInfo.days <= 7 ? 'tc-soon' : 'tc';
-            h += '<span class="tag ' + cl + '">法說 ' + confInfo.date.substring(5) + (confInfo.days === 0 ? ' 今天' : ' ' + confInfo.days + '天後') + '</span>';
+            h += '<span class="tag ' + cl + '">法說 ' + esc(confInfo.date.substring(5)) + (confInfo.days === 0 ? ' 今天' : ' ' + esc(confInfo.days) + '天後') + '</span>';
         }
         h += '</div>';
         h += '<div class="alert-right">';
-        h += '<div class="alert-price">$' + a.close + '</div>';
-        h += '<div class="alert-chg" style="color:' + clr + '">' + sign + a.chg_pct + '%</div>';
-        h += '<span class="alert-score">&#x2B50; ' + a.score + '分</span>';
+        h += '<div class="alert-price">$' + esc(a.close) + '</div>';
+        h += '<div class="alert-chg" style="color:' + clr + '">' + sign + esc(a.chg_pct) + '%</div>';
+        h += '<span class="alert-score">&#x2B50; ' + esc(a.score) + '分</span>';
         if (a.hurst != null) {
             var hc = a.hurst >= 0.55 ? '#4fc3f7' : a.hurst <= 0.45 ? '#ffa726' : '#aaa';
             h += '<span style="display:inline-block;padding:2px 6px;border-radius:10px;font-size:10px;color:' + hc + ';border:1px solid ' + hc + ';margin-top:2px">H=' + a.hurst + '</span>';
@@ -1383,14 +1419,14 @@ function renderAlerts() {
         h += '</div></div>';
         if (hasAna) {
             var d = ana[a.code];
-            h += '<div class="analysis-panel" id="analysis-' + a.code + '">';
+            h += '<div class="analysis-panel" id="analysis-' + scode(a.code) + '">';
             for (var j = 0; j < labels.length; j++) {
                 var val = d[labels[j][0]];
                 if (val) {
-                    h += '<div class="analysis-row"><span class="analysis-label">' + labels[j][1] + '</span><span class="analysis-text">' + val + '</span></div>';
+                    h += '<div class="analysis-row"><span class="analysis-label">' + labels[j][1] + '</span><span class="analysis-text">' + esc(val) + '</span></div>';
                 }
             }
-            h += '<span class="analysis-chart-btn" onclick="event.stopPropagation();openChart(\'' + a.code + '\')">K 線圖</span>';
+            h += '<span class="analysis-chart-btn" onclick="event.stopPropagation();openChart(\'' + scode(a.code) + '\')">K 線圖</span>';
             h += '</div>';
         }
         h += '</div>';
@@ -1416,8 +1452,8 @@ function renderWatchlist() {
         var s = stocks[code];
         h += '<div class="watch-item">';
         h += '<div class="watch-header">';
-        h += '<span class="watch-name" onclick="openChart(\'' + code + '\')" style="cursor:pointer">' + code + ' ' + s.name + '</span>';
-        h += '<span class="watch-price">$' + s.price + '</span>';
+        h += '<span class="watch-name" onclick="openChart(\'' + scode(code) + '\')" style="cursor:pointer">' + esc(code) + ' ' + esc(s.name) + '</span>';
+        h += '<span class="watch-price">$' + esc(s.price) + '</span>';
         h += '</div>';
         // 法人動向
         if (s.institutional) { h += '<div class="watch-inst">' + renderInstTag(s.institutional, code) + '</div>'; }
@@ -1431,9 +1467,9 @@ function renderWatchlist() {
                 var icon = t.hit ? '&#x2705; ' : '';
                 var sign = t.diff_pct >= 0 ? '+' : '';
                 h += '<div class="' + cls + '">';
-                h += '<span class="wt-label">' + icon + tkeys[j] + ': ' + t.note + '</span>';
-                h += '<span class="wt-price">$' + t.target_price + '</span>';
-                h += '<span class="wt-diff">' + sign + t.diff_pct + '%</span>';
+                h += '<span class="wt-label">' + icon + esc(tkeys[j]) + ': ' + esc(t.note) + '</span>';
+                h += '<span class="wt-price">$' + esc(t.target_price) + '</span>';
+                h += '<span class="wt-diff">' + sign + esc(t.diff_pct) + '%</span>';
                 h += '</div>';
             }
             h += '</div>';
@@ -1445,21 +1481,21 @@ function renderWatchlist() {
             for (var k = 0; k < dates.length; k++) {
                 var dd = dates[k];
                 var dcls = dd.days_left <= 0 ? 'watch-date today' : 'watch-date';
-                var dlabel = dd.days_left === 0 ? '(今天!)' : dd.days_left === 1 ? '(明天)' : '(' + dd.days_left + '天後)';
-                h += '<div class="' + dcls + '">' + dd.date + ' ' + dd.event + ' ' + dlabel + '</div>';
+                var dlabel = dd.days_left === 0 ? '(今天!)' : dd.days_left === 1 ? '(明天)' : '(' + esc(dd.days_left) + '天後)';
+                h += '<div class="' + dcls + '">' + esc(dd.date) + ' ' + esc(dd.event) + ' ' + dlabel + '</div>';
             }
             h += '</div>';
         }
         // 觀察重點
         var watch = s.watch || [];
         if (watch.length > 0) {
-            h += '<div class="watch-notes">觀察: ' + watch.join(' / ') + '</div>';
+            h += '<div class="watch-notes">觀察: ' + esc(watch.join(' / ')) + '</div>';
         }
         // 停損
         if (s.stop_loss) {
-            h += '<div class="watch-sl">停損: $' + s.stop_loss + '</div>';
+            h += '<div class="watch-sl">停損: $' + esc(s.stop_loss) + '</div>';
         }
-        h += '<div class="watch-actions"><span class="watch-del-btn" onclick="deleteWatch(\'' + code + '\')">刪除</span></div>';
+        h += '<div class="watch-actions"><span class="watch-del-btn" onclick="deleteWatch(\'' + scode(code) + '\')">刪除</span></div>';
         h += '</div>';
     }
     h += '</div></div>';
@@ -2522,14 +2558,15 @@ def main():
         industry_json = '{}'
         print(f"  產業分類：無 stock_industry.json，跳過")
 
-    html = html.replace('__STOCK_DATA__', json_data)
-    html = html.replace('__ALERTS_DATA__', alerts_json)
-    html = html.replace('__ANALYSIS_DATA__', analysis_json)
-    html = html.replace('__INST_DATA__', inst_json)
-    html = html.replace('__PE_RIVER_DATA__', pe_json)
-    html = html.replace('__THEME_DATA__', theme_json)
-    html = html.replace('__CONF_DATA__', conf_json)
-    html = html.replace('__INDUSTRY_DATA__', industry_json)
+    # ⛔ 每一份 JSON 都是被塞進 <script> 本體的，一律先過 js_safe_json()。
+    html = html.replace('__STOCK_DATA__', js_safe_json(json_data))
+    html = html.replace('__ALERTS_DATA__', js_safe_json(alerts_json))
+    html = html.replace('__ANALYSIS_DATA__', js_safe_json(analysis_json))
+    html = html.replace('__INST_DATA__', js_safe_json(inst_json))
+    html = html.replace('__PE_RIVER_DATA__', js_safe_json(pe_json))
+    html = html.replace('__THEME_DATA__', js_safe_json(theme_json))
+    html = html.replace('__CONF_DATA__', js_safe_json(conf_json))
+    html = html.replace('__INDUSTRY_DATA__', js_safe_json(industry_json))
 
     # 讀取觀察清單狀態
     watchnotes_path = os.path.join('pwa', 'watchlist_status.json')
@@ -2540,10 +2577,10 @@ def main():
     else:
         watchnotes_json = '{}'
         print(f"  觀察清單：無 watchlist_status.json，跳過")
-    html = html.replace('__WATCHNOTES_DATA__', watchnotes_json)
+    html = html.replace('__WATCHNOTES_DATA__', js_safe_json(watchnotes_json))
     html = html.replace('__UPDATE_TIME__', update_time)
     html = html.replace('__TOTAL_COUNT__', str(len(df)))
-    html = html.replace('__HIST_DATA__', hist_json)
+    html = html.replace('__HIST_DATA__', js_safe_json(hist_json))
     html = html.replace('__COMPARE_DEFAULT__', default_compare)
     html = html.replace('__CURRENT_TRADE_DATE__', current_trade_date)
     html = html.replace('__CACHE_VERSION__', cache_version)

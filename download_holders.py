@@ -29,6 +29,7 @@ import io
 import json
 import os
 import ssl
+import certifi
 import urllib.request
 from collections import defaultdict
 
@@ -36,9 +37,14 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(SCRIPT_DIR, "holders_history")
 URL = "https://opendata.tdcc.com.tw/getOD.ashx?id=1-5"
 
-SSL_CTX = ssl.create_default_context()
-SSL_CTX.check_hostname = False
-SSL_CTX.verify_mode = ssl.CERT_NONE
+# ⛔ 不可改回 check_hostname=False / CERT_NONE。
+#    TDCC 的快照「只能往後累積、拿不回來」，所以被灌進來的假資料是永久的。
+#    這支原本的兩道防線都擋不住偽造：MIN_STOCKS 只檢查筆數夠多，
+#    「只有一個資料日期」只檢查一致 —— 一份完整的假 CSV 兩道都過。
+#    （病根不是 TWSE：OpenSSL 3.0 + Windows 系統憑證庫會對這幾台丟
+#      "Missing Subject Key Identifier"，但用 certifi 的 CA bundle 全部通過。
+#      requests 一直沒事就是因為它預設用 certifi，不是系統庫。）
+SSL_CTX = ssl.create_default_context(cafile=certifi.where())
 
 LEVELS = 15          # 持股分級 1~15，15 = 1,000,001 股以上（千張大戶）
 MIN_STOCKS = 1000    # 少於這個數就當抓壞了，不寫

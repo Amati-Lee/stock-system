@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import ssl
+import certifi
 import time
 import urllib.request
 
@@ -34,9 +35,15 @@ OUT_DIR = os.path.join(SCRIPT_DIR, "margin_history")
 OHLC_DIR = os.path.join(SCRIPT_DIR, "pwa", "ohlc")
 CAL_SOURCE = ["2330", "0050", "6488"]     # 交易日曆取這幾支的日期聯集
 
-SSL_CTX = ssl.create_default_context()
-SSL_CTX.check_hostname = False
-SSL_CTX.verify_mode = ssl.CERT_NONE
+# ⛔ 不可改回 check_hostname=False / CERT_NONE。
+#    verify_identity() 查的是「前日餘額＋買－賣－償還＝今日餘額」這個恆等式，
+#    那是一致性檢查不是真實性檢查：偽造的資料兩邊都由攻擊者供給，恆等式照樣
+#    成立、照樣過 rate>2.0 的門檻，然後被 commit 進 margin_history/，
+#    污染 prereg_record.py 的 H3 —— 一份存在目的就是「不可事後竄改」的紀錄。
+#    （病根不是 TWSE：OpenSSL 3.0 + Windows 系統憑證庫會對這幾台丟
+#      "Missing Subject Key Identifier"，但用 certifi 的 CA bundle 全部通過。
+#      requests 一直沒事就是因為它預設用 certifi，不是系統庫。）
+SSL_CTX = ssl.create_default_context(cafile=certifi.where())
 
 TWSE_URL = ("https://www.twse.com.tw/rwd/zh/marginTrading/MI_MARGN"
             "?date={date}&selectType=ALL&response=json")
