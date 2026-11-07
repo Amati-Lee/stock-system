@@ -9,7 +9,18 @@ import re
 import sys
 import time
 import urllib.request
+import ssl
+import certifi
 from datetime import datetime, timedelta
+
+# ⛔ 不可改回「不傳 context」的裸 urlopen。
+#    Python 預設的 SSL context 在 Windows 上吃系統憑證庫，OpenSSL 3.0 會對
+#    www.twse.com.tw / www.tpex.org.tw / mopsov.twse.com.tw 丟
+#    "Missing Subject Key Identifier" ⇒ 本機跑永遠拿不到資料。
+#    CI 的 ubuntu 沒事，所以這個 bug 被掩護了很久（只印一行紅字然後 return 空）。
+#    certifi 的 CA bundle 則四台全數通過。
+SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -30,7 +41,7 @@ def fetch_month(typek, roc_year, month):
         },
     )
     try:
-        resp = urllib.request.urlopen(req, timeout=30)
+        resp = urllib.request.urlopen(req, timeout=30, context=SSL_CTX)
         return resp.read().decode("utf-8")
     except Exception as e:
         print(f"    {typek} {roc_year}/{month:02d} 失敗: {e}")

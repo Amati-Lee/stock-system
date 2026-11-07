@@ -242,10 +242,16 @@ jobs:
         run: python stock_analyze.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # relay 的共用密鑰。⛔ 少了這個，send_telegram() 會被 relay 回 401，
+          #    而它只是 print 出錯誤 ⇒ 通知就安靜地消失了。
+          NOTIFY_TOKEN: ${{ secrets.NOTIFY_TOKEN }}
 
       - name: Check watchlist conditions
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
         run: python watchlist_check.py
+        env:
+          # 同上：條件達成時要發 Telegram，沒有密鑰會被 relay 擋掉。
+          NOTIFY_TOKEN: ${{ secrets.NOTIFY_TOKEN }}
 
       - name: Generate PWA
         if: steps.check_holiday.outputs.skip != 'true' && steps.freshness.outputs.stale != 'true'
@@ -284,7 +290,14 @@ jobs:
           # ⭐ build_deploy.py 另外組 _deploy/（只含現役代號的 OHLC，約 2,200 檔），
           #    pwa/ 完全不動——save_snapshot() 與 actions/cache 都依賴它的完整性。
           python build_deploy.py
-          npx wrangler pages deploy _deploy --project-name=stock-viewer --branch=main
+          # ⛔ 版號要鎖死。`npx wrangler`（不帶版號）會在每天跑的時候去 npm
+          #    抓「當下的最新版」，而這一步的環境裡有 CLOUDFLARE_API_TOKEN、
+          #    CLOUDFLARE_ACCOUNT_ID，同一個 job 裡還有 contents:write 的
+          #    GITHUB_TOKEN 和 ANTHROPIC_API_KEY ⇒ wrangler 或它任何一層
+          #    相依套件被投毒，這些 secret 當天就被帶走。
+          # ⭐ 4.158.0 就是 2026-11-08 當下 `npx wrangler` 會解析到的版本，
+          #    所以鎖這個版號不改變現在的行為，只是不再每天隨 npm 漂移。
+          npx --yes wrangler@4.158.0 pages deploy _deploy --project-name=stock-viewer --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -294,6 +307,7 @@ jobs:
         run: |
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.NOTIFY_TOKEN }}" \
             -d '{"broadcast": true, "text": "📊 Stock PWA 已更新部署完成 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
 
       # 已知的國定假日在 check_holiday 就擋掉了，不會走到這裡。
@@ -305,6 +319,7 @@ jobs:
           LAST="${{ steps.freshness.outputs.last }}"
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.NOTIFY_TOKEN }}" \
             -d '{"broadcast": true, "text": "⚠️ Stock 今日未部署：沒有拿到新的交易日資料，停在 '"${LAST}"'。可能是臨時休市、盤後資料還沒出、或下載失敗 ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'
 
       # ⛔⛔ 這一步沒有 `if: failure()` 的話，整支 workflow 就是「靜音失敗」。
@@ -319,4 +334,5 @@ jobs:
         run: |
           curl -s -X POST https://pomodoro-bot.juria-orch.workers.dev \
             -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.NOTIFY_TOKEN }}" \
             -d '{"broadcast": true, "text": "❌ Stock 每日更新失敗。資料可能已經 commit 但網站沒有更新，請看執行記錄：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} ('"$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"')"}'

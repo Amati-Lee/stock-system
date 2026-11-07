@@ -512,13 +512,16 @@ def _load_stock_names() -> dict[str, str]:
 
 def refresh_stock_names() -> int:
     """從 TWSE/TPEx API 更新 stock_names_all.json，回傳總筆數。"""
-    import requests, urllib3
-    urllib3.disable_warnings()
+    import requests
+    # ⛔ 不可加 verify=False / urllib3.disable_warnings()。
+    #    這裡抓回來的公司名會寫進 stock_names_all.json，再被
+    #    generate_pwa.py 放進公開網站 —— 沒驗證憑證就等於讓路徑上的人
+    #    決定網站上出現什麼字。抓不到名字只是少一個名字，可以接受。
     all_names: dict[str, str] = {}
     # 上市
     try:
         r = requests.get("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL",
-                         timeout=30, verify=False)
+                         timeout=30)
         if r.ok:
             for item in r.json():
                 code = item.get("Code", "").strip()
@@ -530,7 +533,7 @@ def refresh_stock_names() -> int:
     # 上櫃
     try:
         r = requests.get("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes",
-                         timeout=30, verify=False)
+                         timeout=30)
         if r.ok:
             for item in r.json():
                 code = item.get("SecuritiesCompanyCode", "").strip()
@@ -1335,11 +1338,14 @@ def _save_stock_csv(csv_data: list[dict]) -> str | None:
 
 def _query_twse(ticker: str, date_ymd: str) -> float | None:
     """從證交所 API 取得上市股收盤價"""
-    import requests, urllib3
-    urllib3.disable_warnings()
+    import requests
+    # ⛔ 不可加 verify=False。這支是 _verify_and_fix_prices 的「正確答案來源」：
+    #    漲跌超過 15% 時會拿它蓋掉原本的價格。沒驗證憑證的話，能弄出
+    #    「可疑價格」的人就是能決定「修正成多少」的人 —— 校正機制會被
+    #    它要防的那個人操控。
     try:
         url = f"https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date={date_ymd}&stockNo={ticker}"
-        r = requests.get(url, timeout=10, verify=False,
+        r = requests.get(url, timeout=10,
                          headers={"User-Agent": "Mozilla/5.0"})
         if r.ok:
             data = r.json()
@@ -1353,12 +1359,12 @@ def _query_twse(ticker: str, date_ymd: str) -> float | None:
 
 def _query_tpex(ticker: str, date_slash: str) -> float | None:
     """從櫃買中心 API 取得上櫃股收盤價"""
-    import requests, urllib3
-    urllib3.disable_warnings()
+    import requests
+    # ⛔ 同 _query_twse：不可加 verify=False。
     try:
         url = (f"https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes"
                f"?date={date_slash}&code={ticker}&response=json")
-        r = requests.get(url, timeout=10, verify=False,
+        r = requests.get(url, timeout=10,
                          headers={"User-Agent": "Mozilla/5.0"})
         if r.ok:
             data = r.json()

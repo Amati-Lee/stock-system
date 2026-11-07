@@ -4,7 +4,17 @@ debug_twse_html.py
 看看HTML結構長什麼樣子才能寫正確的解析。
 """
 import urllib.request
+import ssl
+import certifi
 import re
+
+# ⛔ 不可改回「不傳 context 」的裸 urlopen。
+#    Python 預設的 SSL context 在 Windows 上吃系統憑證庫，OpenSSL 3.0 會對
+#    www.twse.com.tw / www.tpex.org.tw / mopsov.twse.com.tw 丟
+#    "Missing Subject Key Identifier" → 本機跑永遠拿不到資料（CI 的 ubuntu 沒事，
+#    所以這個 bug 被掩護了很久）。certifi 的 CA bundle 則全數通過。
+SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+
 
 url = "https://www.twse.com.tw/en/listed/listedCompanies"
 headers = {
@@ -13,7 +23,7 @@ headers = {
 }
 
 req = urllib.request.Request(url, headers=headers)
-with urllib.request.urlopen(req, timeout=15) as resp:
+with urllib.request.urlopen(req, timeout=15, context=SSL_CTX) as resp:
     body = resp.read().decode("utf-8")
 
 print(f"網頁總長度：{len(body)} 字元\n")

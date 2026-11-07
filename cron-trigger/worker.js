@@ -2,9 +2,14 @@ export default {
   async scheduled(event, env) {
     const twTime = () => new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
     const notify = async (text) => {
+      // ⭐ relay 的共用密鑰走 Worker secret：wrangler secret put NOTIFY_TOKEN
+      //    沒設值時照舊發送 ⇒ 這個改動可以單獨部署，不會弄壞現有通知。
+      //    relay 開始強制驗證之後，這裡就必須有值。
+      const headers = { 'Content-Type': 'application/json' };
+      if (env.NOTIFY_TOKEN) headers['Authorization'] = `Bearer ${env.NOTIFY_TOKEN}`;
       await fetch('https://pomodoro-bot.juria-orch.workers.dev', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ chat_id: '8786691885', text }),
       }).catch(() => {});
     };

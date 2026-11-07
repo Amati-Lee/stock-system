@@ -9,15 +9,22 @@ import glob
 import time
 import urllib.request
 import ssl
+import certifi
 from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT_PATH = os.path.join(SCRIPT_DIR, "pwa", "institutional.json")
 
-# 建立不驗證 SSL 的 context（TWSE 偶爾憑證問題）
-SSL_CTX = ssl.create_default_context()
-SSL_CTX.check_hostname = False
-SSL_CTX.verify_mode = ssl.CERT_NONE
+# ⛔ 這裡曾經是 check_hostname=False + CERT_NONE，理由寫「TWSE 偶爾憑證問題」。
+#    那個「憑證問題」是真的，但病根不在 TWSE：OpenSSL 3.0 + Windows 系統
+#    憑證庫會對這幾台丟 "Missing Subject Key Identifier"（本機實測 2026-11-08，
+#    openapi.twse.com.tw / www.twse.com.tw / www.tpex.org.tw / opendata.tdcc.com.tw
+#    四台全失敗）。但同一批主機用 certifi 的 CA bundle 驗證全部 200 ——
+#    requests 之所以一直沒事就是因為它預設用 certifi，不是系統庫。
+#    ⇒ 正解是明確指定 certifi，不是關掉驗證，也不是用系統庫。
+#    關掉驗證等於讓路徑上任何人用自簽憑證偽造三大法人買賣超，而那份資料
+#    會被 commit 進 public repo、發佈到網站、驅動 Telegram 警示。
+SSL_CTX = ssl.create_default_context(cafile=certifi.where())
 
 
 def get_trade_date():

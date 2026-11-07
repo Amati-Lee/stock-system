@@ -52,6 +52,30 @@ def safe_float(val):
     return float(str(val).replace(",", ""))
 
 
+def safe_ohlc_path(code):
+    """把遠端來的代號變成 OUTPUT_DIR 底下的檔名；想爬出去的一律回 None。
+
+    ⛔ code 直接來自 TWSE/TPEx 的回應本體（fetch_twse 的 row[idx_code]、
+       fetch_tpex 的 SecuritiesCompanyCode），沒有任何長度或字元限制就被
+       拿去當檔名。`../../x` 會爬出 OUTPUT_DIR，絕對路徑更慘 ——
+       os.path.join 會把 OUTPUT_DIR 整段丟掉。兩者都能覆蓋
+       pwa/alerts.json、stock_names_all.json 這類「下一步就被 commit
+       並發佈到公開網站」的檔案，或指向不存在的目錄讓整條 pipeline 中斷。
+
+    ⭐ 這裡刻意**不限制字元集**：pwa/ohlc 裡現存 2887Z1 這類合法特別股，
+       收緊成 ^[0-9]{4}$ 會把它們一起丟掉 —— 那是行為改變，不是修漏洞。
+       只擋「爬出目錄」這一件事。
+    """
+    if not code or code in (".", ".."):
+        return None
+    if "/" in code or "\\" in code or "\x00" in code:
+        return None
+    fpath = os.path.join(OUTPUT_DIR, f"{code}.json")
+    if os.path.dirname(os.path.realpath(fpath)) != os.path.realpath(OUTPUT_DIR):
+        return None
+    return fpath
+
+
 def fetch_twse(date_str):
     """
     從證交所 MI_INDEX 下載指定日期全市場 OHLCV。
@@ -59,10 +83,11 @@ def fetch_twse(date_str):
     回傳 (dict[code] -> {t,o,h,l,c,v}, actual_date)
     """
     url = TWSE_MI_INDEX.format(date=date_str)
-    try:
-        resp = requests.get(url, timeout=30)
-    except requests.exceptions.SSLError:
-        resp = requests.get(url, timeout=30, verify=False)
+    # ⛔ 絕對不要在 SSLError 時改用 verify=False 重試。
+    #    那等於讓攻擊者「先弄壞憑證驗證、再餵假行情」—— 防線在被攻擊的
+    #    那一刻自己撤掉。呼叫端 fetch_from_api 已經 try/except 容忍抓不到，
+    #    寧可缺一天也不要收下沒驗證過的價格。
+    resp = requests.get(url, timeout=30)
     resp.raise_for_status()
     data = resp.json()
 
@@ -161,10 +186,9 @@ def fetch_tpex_date(date_str):
     roc_year = dt.year - 1911
     roc_date = f"{roc_year}/{dt.month:02d}/{dt.day:02d}"
     url = TPEX_HISTORY.format(roc_date=roc_date)
-    try:
-        resp = requests.get(url, timeout=30)
-    except requests.exceptions.SSLError:
-        resp = requests.get(url, timeout=30, verify=False)
+    # ⛔ 同上：不可在 SSLError 時改用 verify=False 重試。這裡連日期
+    #    (actual_date) 都是 API 回來的，沒驗證過就連「哪一天」都能被偽造。
+    resp = requests.get(url, timeout=30)
     resp.raise_for_status()
     data = resp.json()
 
@@ -613,7 +637,11 @@ def main():
         if not merged:
             continue
 
-        fpath = os.path.join(OUTPUT_DIR, f"{code}.json")
+        fpath = safe_ohlc_path(code)
+        if fpath is None:
+            # 代號想寫到 pwa/ohlc 之外 ⇒ 回應被動過，丟掉並出聲
+            print(f"  ⛔ 跳過可疑代號（路徑爬出 {OUTPUT_DIR}）: {code!r}")
+            continue
         with open(fpath, 'w', encoding='utf-8') as f:
             json.dump(merged, f, ensure_ascii=False, separators=(',', ':'))
         written += 1

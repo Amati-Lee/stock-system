@@ -54,6 +54,16 @@ print("\n" + "=" * 50)
 print("[Test 3] urllib 逐一測試各網站")
 print("=" * 50)
 import urllib.request
+import ssl
+import certifi
+
+# ⛔ 不可改回「不傳 context 」的裸 urlopen。
+#    Python 預設的 SSL context 在 Windows 上吃系統憑證庫，OpenSSL 3.0 會對
+#    www.twse.com.tw / www.tpex.org.tw / mopsov.twse.com.tw 丟
+#    "Missing Subject Key Identifier" → 本機跑永遠拿不到資料（CI 的 ubuntu 沒事，
+#    所以這個 bug 被掩護了很久）。certifi 的 CA bundle 則全數通過。
+SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+
 
 test_urls = [
     ("Google",          "https://www.google.com"),
@@ -66,7 +76,7 @@ test_urls = [
 for name, url in test_urls:
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        with urllib.request.urlopen(req, timeout=8, context=SSL_CTX) as resp:
             print(f"  {name:20s} ✅ {resp.status}")
     except Exception as e:
         print(f"  {name:20s} ❌ {e}")

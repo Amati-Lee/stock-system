@@ -15,7 +15,22 @@ NOTES_PATH = os.path.join(SCRIPT_DIR, "watchlist_notes.json")
 STATUS_OUT = os.path.join(SCRIPT_DIR, "pwa", "watchlist_status.json")
 INST_PATH = os.path.join(SCRIPT_DIR, "pwa", "institutional.json")
 TELEGRAM_URL = "https://pomodoro-bot.juria-orch.workers.dev"
+# ⛔ chat_id 不是管制點，也不算機密：它早就永久躺在 public git 歷史裡，
+#    而真正決定「誰可以發訊息」的是 relay 驗不驗 NOTIFY_TOKEN。
+#    ⇒ 把它從這裡搬走買不到安全，只會在 secret 還沒設好時讓通知停掉。
 TELEGRAM_CHAT_ID = "8786691885"
+# ⭐ relay（pomodoro-bot Worker）的共用密鑰，從環境變數／GitHub Secret 讀。
+#    沒設值時照舊發送 ⇒ 這個改動可以單獨上線，不會弄壞現有通知。
+#    relay 那端開始強制驗證之後，這裡就必須有值。
+NOTIFY_TOKEN = os.environ.get("NOTIFY_TOKEN", "")
+
+
+def notify_headers():
+    """送往 relay 的標頭；有 NOTIFY_TOKEN 就帶上 Bearer。"""
+    h = {"Content-Type": "application/json", "User-Agent": "stock-system/1.0"}
+    if NOTIFY_TOKEN:
+        h["Authorization"] = f"Bearer {NOTIFY_TOKEN}"
+    return h
 
 
 def load_institutional():
@@ -78,9 +93,7 @@ def send_telegram(text):
     try:
         data = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
         req = urllib.request.Request(
-            TELEGRAM_URL, data=data,
-            headers={"Content-Type": "application/json", "User-Agent": "stock-system/1.0"},
-            method="POST"
+            TELEGRAM_URL, data=data, headers=notify_headers(), method="POST"
         )
         urllib.request.urlopen(req, timeout=10)
         print(f"  Telegram: OK")
