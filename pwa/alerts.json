@@ -1,65 +1,83 @@
 {
-  "date": "2026-11-18",
+  "date": "2026-11-19",
   "threshold": 8,
-  "scanned": 11310,
+  "scanned": 11361,
   "alerts": [
     {
-      "code": "4977",
-      "name": "眾達-KY",
-      "close": 197.0,
-      "chg_pct": 9.75,
-      "volume": 31331,
-      "avg_volume": 9975,
+      "code": "7584",
+      "name": "樂意",
+      "close": 44.45,
+      "chg_pct": 9.89,
+      "volume": 424,
+      "avg_volume": 126,
       "score": 13,
-      "hurst": 0.576,
+      "hurst": 0.603,
       "reasons": [
         "10日內漲停",
-        "爆量3.1倍",
+        "爆量3.4倍",
         "突破20日高",
         "創60日新高",
-        "穿越MA10",
         "突破布林上軌",
-        "偏趨勢H=0.576"
+        "趨勢持續H=0.603"
+      ],
+      "market": "上櫃"
+    },
+    {
+      "code": "4807",
+      "name": "日成-KY",
+      "close": 37.0,
+      "chg_pct": 7.25,
+      "volume": 782,
+      "avg_volume": 223,
+      "score": 13,
+      "hurst": 0.76,
+      "reasons": [
+        "10日內漲停",
+        "爆量3.5倍",
+        "突破20日高",
+        "創60日新高",
+        "突破布林上軌",
+        "趨勢持續H=0.76"
       ],
       "market": "上市"
     },
     {
-      "code": "8415",
-      "name": "大國鋼",
-      "close": 41.6,
-      "chg_pct": 0.6,
-      "volume": 9212,
-      "avg_volume": 1120,
+      "code": "6782",
+      "name": "視陽",
+      "close": 290.5,
+      "chg_pct": 9.01,
+      "volume": 2160,
+      "avg_volume": 608,
       "score": 10,
-      "hurst": 0.43,
+      "hurst": 0.435,
       "reasons": [
-        "10日內漲停",
-        "爆量8.2倍",
+        "爆量3.5倍",
         "突破20日高",
         "創60日新高",
+        "穿越MA20",
+        "穿越MA10",
         "突破布林上軌",
-        "偏回歸H=0.43"
+        "偏回歸H=0.435"
       ],
-      "market": "上櫃"
+      "market": "上市"
     },
     {
-      "code": "8426",
-      "name": "紅木-KY",
-      "close": 23.7,
-      "chg_pct": 0.42,
-      "volume": 700,
-      "avg_volume": 101,
+      "code": "2923",
+      "name": "鼎固-KY",
+      "close": 34.95,
+      "chg_pct": 9.91,
+      "volume": 460,
+      "avg_volume": 238,
       "score": 9,
-      "hurst": 0.355,
+      "hurst": 0.536,
       "reasons": [
         "10日內漲停",
-        "爆量6.9倍",
+        "增量1.9倍",
         "突破20日高",
         "創60日新高",
-        "突破布林上軌",
-        "均值回歸H=0.355"
+        "突破布林上軌"
       ],
-      "market": "上櫃"
+      "market": "上市"
     },
     {
       "code": "711652",
@@ -79,116 +97,54 @@
       "market": ""
     },
     {
-      "code": "2413",
-      "name": "環科",
-      "close": 53.3,
-      "chg_pct": 9.9,
-      "volume": 18302,
-      "avg_volume": 3343,
+      "code": "00651R",
+      "name": "",
+      "close": 5.69,
+      "chg_pct": 1.61,
+      "volume": 1174,
+      "avg_volume": 297,
       "score": 9,
-      "hurst": 0.568,
+      "hurst": 0.696,
       "reasons": [
-        "10日內漲停",
-        "爆量5.5倍",
-        "穿越MA20",
-        "偏趨勢H=0.568"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "714164",
-      "name": "",
-      "close": 1.96,
-      "chg_pct": 20.25,
-      "volume": 1374,
-      "avg_volume": 177,
-      "score": 8,
-      "hurst": null,
-      "reasons": [
-        "10日內漲停",
-        "爆量7.8倍",
-        "穿越MA20"
+        "爆量3.9倍",
+        "突破20日高",
+        "創60日新高",
+        "趨勢持續H=0.696"
       ],
       "market": ""
     },
     {
-      "code": "714720",
-      "name": "",
-      "close": 1.1,
-      "chg_pct": 23.6,
-      "volume": 1915,
-      "avg_volume": 612,
+      "code": "8426",
+      "name": "紅木-KY",
+      "close": 23.65,
+      "chg_pct": -0.21,
+      "volume": 463,
+      "avg_volume": 135,
       "score": 8,
-      "hurst": null,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.1倍",
-        "穿越MA20"
-      ],
-      "market": ""
-    },
-    {
-      "code": "6190",
-      "name": "萬泰科",
-      "close": 66.4,
-      "chg_pct": 9.93,
-      "volume": 8488,
-      "avg_volume": 2394,
-      "score": 8,
-      "hurst": 0.512,
-      "reasons": [
-        "10日內漲停",
-        "爆量3.5倍",
-        "穿越MA20"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "3049",
-      "name": "精金",
-      "close": 11.55,
-      "chg_pct": -9.41,
-      "volume": 23225,
-      "avg_volume": 6753,
-      "score": 8,
-      "hurst": 0.613,
+      "hurst": 0.355,
       "reasons": [
         "10日內漲停",
         "爆量3.4倍",
-        "趨勢持續H=0.613"
-      ],
-      "market": "上市"
-    },
-    {
-      "code": "7717",
-      "name": "萊德光電-KY",
-      "close": 570.0,
-      "chg_pct": 6.94,
-      "volume": 854,
-      "avg_volume": 685,
-      "score": 8,
-      "hurst": 0.747,
-      "reasons": [
-        "10日內漲停",
         "突破20日高",
-        "突破布林上軌",
-        "趨勢持續H=0.747"
+        "創60日新高",
+        "均值回歸H=0.355"
       ],
       "market": "上櫃"
     },
     {
-      "code": "714162",
+      "code": "00710B",
       "name": "",
-      "close": 1.67,
-      "chg_pct": 31.5,
-      "volume": 1777,
-      "avg_volume": 374,
+      "close": 19.01,
+      "chg_pct": 0.21,
+      "volume": 380,
+      "avg_volume": 267,
       "score": 8,
-      "hurst": null,
+      "hurst": 0.633,
       "reasons": [
-        "10日內漲停",
-        "爆量4.8倍",
-        "穿越MA20"
+        "突破20日高",
+        "創60日新高",
+        "穿越MA20",
+        "趨勢持續H=0.633"
       ],
       "market": ""
     }
