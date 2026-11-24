@@ -1,44 +1,44 @@
 {
-  "date": "2026-11-23",
+  "date": "2026-11-24",
   "threshold": 8,
-  "scanned": 11503,
+  "scanned": 11512,
   "alerts": [
     {
-      "code": "6614",
-      "name": "資拓宏宇",
-      "close": 44.75,
+      "code": "2618",
+      "name": "長榮航",
+      "close": 48.6,
       "chg_pct": 9.95,
-      "volume": 4716,
-      "avg_volume": 575,
-      "score": 10,
-      "hurst": 0.404,
+      "volume": 88566,
+      "avg_volume": 28799,
+      "score": 13,
+      "hurst": 0.534,
       "reasons": [
         "10日內漲停",
-        "爆量8.2倍",
+        "爆量3.1倍",
         "突破20日高",
         "創60日新高",
-        "突破布林上軌",
-        "偏回歸H=0.404"
+        "穿越MA20",
+        "穿越MA10"
       ],
       "market": "上市"
     },
     {
-      "code": "6925",
-      "name": "意藍",
-      "close": 111.0,
-      "chg_pct": 9.9,
-      "volume": 8773,
-      "avg_volume": 3952,
-      "score": 9,
-      "hurst": 0.732,
+      "code": "2603",
+      "name": "長榮",
+      "close": 257.0,
+      "chg_pct": 9.59,
+      "volume": 44291,
+      "avg_volume": 11868,
+      "score": 10,
+      "hurst": 0.561,
       "reasons": [
         "10日內漲停",
-        "增量2.2倍",
+        "爆量3.7倍",
         "穿越MA20",
         "穿越MA10",
-        "趨勢持續H=0.732"
+        "偏趨勢H=0.561"
       ],
-      "market": "上櫃"
+      "market": "上市"
     },
     {
       "code": "711652",
@@ -58,74 +58,56 @@
       "market": ""
     },
     {
-      "code": "3285",
-      "name": "微端",
-      "close": 49.95,
-      "chg_pct": 9.9,
-      "volume": 206,
-      "avg_volume": 369,
+      "code": "712881",
+      "name": "",
+      "close": 2.58,
+      "chg_pct": 93.98,
+      "volume": 1,
+      "avg_volume": 302,
       "score": 8,
-      "hurst": 0.658,
+      "hurst": null,
       "reasons": [
         "10日內漲停",
-        "穿越MA20",
-        "穿越MA10",
-        "趨勢持續H=0.658"
-      ],
-      "market": "上櫃"
-    },
-    {
-      "code": "00985B",
-      "name": "",
-      "close": 10.39,
-      "chg_pct": 0.29,
-      "volume": 14768,
-      "avg_volume": 8323,
-      "score": 8,
-      "hurst": 0.702,
-      "reasons": [
-        "增量1.8倍",
         "突破20日高",
-        "創60日新高",
-        "穿越MA10",
-        "趨勢持續H=0.702"
+        "穿越MA20",
+        "穿越MA10"
       ],
       "market": ""
     },
     {
-      "code": "00865B",
-      "name": "",
-      "close": 50.85,
-      "chg_pct": 0.1,
-      "volume": 7149,
-      "avg_volume": 4736,
+      "code": "3014",
+      "name": "聯陽",
+      "close": 130.5,
+      "chg_pct": 9.66,
+      "volume": 2446,
+      "avg_volume": 1233,
       "score": 8,
-      "hurst": 0.676,
+      "hurst": 0.556,
       "reasons": [
-        "增量1.5倍",
-        "突破20日高",
-        "創60日新高",
+        "10日內漲停",
+        "增量2.0倍",
+        "穿越MA20",
         "穿越MA10",
-        "趨勢持續H=0.676"
+        "偏趨勢H=0.556"
       ],
-      "market": ""
+      "market": "上市"
     },
     {
-      "code": "6590",
-      "name": "普鴻",
-      "close": 79.9,
-      "chg_pct": 9.9,
-      "volume": 451,
-      "avg_volume": 350,
+      "code": "2454",
+      "name": "聯發科",
+      "close": 4050.0,
+      "chg_pct": 9.91,
+      "volume": 1291,
+      "avg_volume": 14382,
       "score": 8,
-      "hurst": 0.603,
+      "hurst": 0.669,
       "reasons": [
         "10日內漲停",
         "穿越MA20",
         "穿越MA10",
-        "趨勢持續H=0.603"
+        "趨勢持續H=0.669"
       ],
-      "market": "上櫃"
+      "market": "上市"
     }
   ]
 }
