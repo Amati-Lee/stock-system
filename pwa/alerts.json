@@ -1,44 +1,45 @@
 {
-  "date": "2026-11-24",
+  "date": "2026-11-25",
   "threshold": 8,
-  "scanned": 11512,
+  "scanned": 11580,
   "alerts": [
     {
-      "code": "2618",
-      "name": "長榮航",
-      "close": 48.6,
-      "chg_pct": 9.95,
-      "volume": 88566,
-      "avg_volume": 28799,
-      "score": 13,
-      "hurst": 0.534,
+      "code": "7765",
+      "name": "中華資安",
+      "close": 311.0,
+      "chg_pct": 9.89,
+      "volume": 4931,
+      "avg_volume": 1641,
+      "score": 12,
+      "hurst": 0.555,
       "reasons": [
         "10日內漲停",
-        "爆量3.1倍",
+        "爆量3.0倍",
         "突破20日高",
         "創60日新高",
-        "穿越MA20",
-        "穿越MA10"
+        "突破布林上軌",
+        "偏趨勢H=0.555"
       ],
       "market": "上市"
     },
     {
-      "code": "2603",
-      "name": "長榮",
-      "close": 257.0,
-      "chg_pct": 9.59,
-      "volume": 44291,
-      "avg_volume": 11868,
+      "code": "00678",
+      "name": "",
+      "close": 46.76,
+      "chg_pct": 4.38,
+      "volume": 1064,
+      "avg_volume": 625,
       "score": 10,
-      "hurst": 0.561,
+      "hurst": 0.633,
       "reasons": [
-        "10日內漲停",
-        "爆量3.7倍",
+        "增量1.7倍",
+        "突破20日高",
+        "創60日新高",
         "穿越MA20",
         "穿越MA10",
-        "偏趨勢H=0.561"
+        "趨勢持續H=0.633"
       ],
-      "market": "上市"
+      "market": ""
     },
     {
       "code": "711652",
@@ -75,39 +76,20 @@
       "market": ""
     },
     {
-      "code": "3014",
-      "name": "聯陽",
-      "close": 130.5,
-      "chg_pct": 9.66,
-      "volume": 2446,
-      "avg_volume": 1233,
+      "code": "6590",
+      "name": "普鴻",
+      "close": 92.0,
+      "chg_pct": 9.26,
+      "volume": 1262,
+      "avg_volume": 390,
       "score": 8,
-      "hurst": 0.556,
+      "hurst": 0.603,
       "reasons": [
         "10日內漲停",
-        "增量2.0倍",
-        "穿越MA20",
-        "穿越MA10",
-        "偏趨勢H=0.556"
+        "爆量3.2倍",
+        "趨勢持續H=0.603"
       ],
-      "market": "上市"
-    },
-    {
-      "code": "2454",
-      "name": "聯發科",
-      "close": 4050.0,
-      "chg_pct": 9.91,
-      "volume": 1291,
-      "avg_volume": 14382,
-      "score": 8,
-      "hurst": 0.669,
-      "reasons": [
-        "10日內漲停",
-        "穿越MA20",
-        "穿越MA10",
-        "趨勢持續H=0.669"
-      ],
-      "market": "上市"
+      "market": "上櫃"
     }
   ]
 }
