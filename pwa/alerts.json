@@ -1,45 +1,63 @@
 {
-  "date": "2026-11-25",
+  "date": "2026-11-26",
   "threshold": 8,
-  "scanned": 11580,
+  "scanned": 11689,
   "alerts": [
     {
-      "code": "7765",
-      "name": "中華資安",
-      "close": 311.0,
-      "chg_pct": 9.89,
-      "volume": 4931,
-      "avg_volume": 1641,
-      "score": 12,
-      "hurst": 0.555,
+      "code": "3285",
+      "name": "微端",
+      "close": 61.0,
+      "chg_pct": 9.52,
+      "volume": 2058,
+      "avg_volume": 450,
+      "score": 13,
+      "hurst": 0.658,
       "reasons": [
         "10日內漲停",
-        "爆量3.0倍",
+        "爆量4.6倍",
         "突破20日高",
         "創60日新高",
         "突破布林上軌",
-        "偏趨勢H=0.555"
+        "趨勢持續H=0.658"
       ],
-      "market": "上市"
+      "market": "上櫃"
     },
     {
-      "code": "00678",
-      "name": "",
-      "close": 46.76,
-      "chg_pct": 4.38,
-      "volume": 1064,
-      "avg_volume": 625,
-      "score": 10,
-      "hurst": 0.633,
+      "code": "8432",
+      "name": "東生華",
+      "close": 64.5,
+      "chg_pct": 6.97,
+      "volume": 398,
+      "avg_volume": 188,
+      "score": 9,
+      "hurst": 0.604,
       "reasons": [
-        "增量1.7倍",
+        "增量2.1倍",
         "突破20日高",
         "創60日新高",
-        "穿越MA20",
         "穿越MA10",
-        "趨勢持續H=0.633"
+        "突破布林上軌",
+        "趨勢持續H=0.604"
       ],
-      "market": ""
+      "market": "上櫃"
+    },
+    {
+      "code": "4106",
+      "name": "雃博",
+      "close": 25.35,
+      "chg_pct": 4.75,
+      "volume": 593,
+      "avg_volume": 195,
+      "score": 9,
+      "hurst": 0.523,
+      "reasons": [
+        "爆量3.0倍",
+        "突破20日高",
+        "創60日新高",
+        "穿越MA10",
+        "突破布林上軌"
+      ],
+      "market": "上市"
     },
     {
       "code": "711652",
@@ -59,6 +77,77 @@
       "market": ""
     },
     {
+      "code": "00849B",
+      "name": "",
+      "close": 38.54,
+      "chg_pct": -0.03,
+      "volume": 802,
+      "avg_volume": 264,
+      "score": 9,
+      "hurst": 0.608,
+      "reasons": [
+        "爆量3.0倍",
+        "突破20日高",
+        "創60日新高",
+        "趨勢持續H=0.608"
+      ],
+      "market": ""
+    },
+    {
+      "code": "6674",
+      "name": "鋐寶科技",
+      "close": 18.4,
+      "chg_pct": 0.27,
+      "volume": 25,
+      "avg_volume": 108,
+      "score": 9,
+      "hurst": 0.627,
+      "reasons": [
+        "突破20日高",
+        "創60日新高",
+        "穿越MA20",
+        "穿越MA10",
+        "趨勢持續H=0.627"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "2516",
+      "name": "新建",
+      "close": 17.1,
+      "chg_pct": 6.88,
+      "volume": 1136,
+      "avg_volume": 697,
+      "score": 8,
+      "hurst": 0.537,
+      "reasons": [
+        "增量1.6倍",
+        "突破20日高",
+        "創60日新高",
+        "穿越MA20",
+        "穿越MA10"
+      ],
+      "market": "上市"
+    },
+    {
+      "code": "1708",
+      "name": "東鹼",
+      "close": 46.25,
+      "chg_pct": 8.31,
+      "volume": 3268,
+      "avg_volume": 1624,
+      "score": 8,
+      "hurst": 0.575,
+      "reasons": [
+        "10日內漲停",
+        "增量2.0倍",
+        "穿越MA20",
+        "穿越MA10",
+        "偏趨勢H=0.575"
+      ],
+      "market": "上市"
+    },
+    {
       "code": "712881",
       "name": "",
       "close": 2.58,
@@ -76,18 +165,36 @@
       "market": ""
     },
     {
-      "code": "6590",
-      "name": "普鴻",
-      "close": 92.0,
-      "chg_pct": 9.26,
-      "volume": 1262,
-      "avg_volume": 390,
+      "code": "7689",
+      "name": "大鵬科CLMX",
+      "close": 106.0,
+      "chg_pct": 8.16,
+      "volume": 131,
+      "avg_volume": 141,
       "score": 8,
-      "hurst": 0.603,
+      "hurst": 0.74,
       "reasons": [
         "10日內漲停",
-        "爆量3.2倍",
-        "趨勢持續H=0.603"
+        "穿越MA20",
+        "穿越MA10",
+        "趨勢持續H=0.74"
+      ],
+      "market": "興櫃"
+    },
+    {
+      "code": "3491",
+      "name": "昇達科",
+      "close": 1380.0,
+      "chg_pct": 9.96,
+      "volume": 952,
+      "avg_volume": 1952,
+      "score": 8,
+      "hurst": 0.672,
+      "reasons": [
+        "10日內漲停",
+        "穿越MA20",
+        "穿越MA10",
+        "趨勢持續H=0.672"
       ],
       "market": "上櫃"
     }
